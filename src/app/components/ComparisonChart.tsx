@@ -34,7 +34,7 @@ export function ComparisonChart({ data }: ComparisonChartProps) {
               fontSize: '14px',
               fontWeight: '600',
             }}
-            formatter={(value: number) => `${value}‰`}
+            formatter={(value: number | undefined) => `${value ?? 0}‰`}
           />
           <Legend
             wrapperStyle={{ fontSize: '14px', fontWeight: '600', paddingTop: '10px' }}

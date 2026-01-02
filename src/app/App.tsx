@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { AuthProvider } from '../contexts/AuthContext';
-import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import { PublicRoute } from '../components/auth/PublicRoute';
 import { Navigation } from './components/Navigation';
 import { Tutorial } from './components/Tutorial';
@@ -23,7 +22,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNavigateToProduct = (productId: string) => {
+  const handleNavigateToProduct = () => {
     setCurrentPage('products');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

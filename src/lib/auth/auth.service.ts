@@ -15,7 +15,6 @@ import type {
 } from './auth.types';
 import { normalizePhoneNumber } from './validation';
 import type { User, Session } from '@supabase/supabase-js';
-import type { Database } from '../supabase/database.types';
 
 /**
  * Sign up a new user with username, password, and phone
@@ -452,7 +451,7 @@ export async function requestPasswordReset(
         const { data, error } = await supabase
             .rpc('request_password_reset', {
                 reset_phone_number: normalizedPhone
-            } as never);
+            } as never) as { data: Array<{ code: string; expires_at: string }> | null; error: any };
 
         if (error) {
             console.error('🔴 [ResetPassword] Database error:', error);
@@ -521,7 +520,7 @@ export async function verifyResetCode(
             .rpc('verify_password_reset_code', {
                 reset_phone_number: normalizedPhone,
                 reset_code: code,
-            } as never);
+            } as never) as { data: Array<{ valid: boolean; user_id: string }> | null; error: any };
 
         if (error) {
             console.error('🔴 [VerifyCode] Database error:', error);
@@ -591,7 +590,7 @@ export async function resetPasswordWithCode(
             .rpc('verify_password_reset_code', {
                 reset_phone_number: normalizedPhone,
                 reset_code: code,
-            } as never);
+            } as never) as { data: Array<{ valid: boolean; user_id: string; username: string }> | null };
 
         if (!verifyData || verifyData.length === 0 || !verifyData[0].username) {
             return {
@@ -603,14 +602,6 @@ export async function resetPasswordWithCode(
             };
         }
 
-        const username = verifyData[0].username;
-
-        // To update password, we need to sign in first with a temporary session
-        // Then update the password using Supabase auth.updateUser
-        // Since we're resetting, we'll use the Supabase auth API directly
-
-        // Sign in the user with the username and ANY password to get a session
-        // Actually, we can't do this. Instead, we need to use admin API
         // For now, we'll use a workaround: update via SQL using the database function
 
         // Update password via auth.users table (requires SECURITY DEFINER function)

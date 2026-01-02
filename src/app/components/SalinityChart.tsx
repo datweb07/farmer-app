@@ -35,12 +35,12 @@ export function SalinityChart({ data }: SalinityChartProps) {
               fontSize: '14px',
               fontWeight: '600',
             }}
-            formatter={(value: number) => [`${value}‰`, 'Độ mặn']}
+            formatter={(value: number | undefined) => [`${value ?? 0}‰`, 'Độ mặn']}
           />
           <Legend
             wrapperStyle={{ fontSize: '14px', fontWeight: '600', paddingTop: '10px' }}
           />
-          
+
           {/* Reference lines for safety levels */}
           <ReferenceLine y={4} stroke="#10b981" strokeDasharray="5 5" label={{ value: 'Mức an toàn', fill: '#10b981', fontSize: 12, fontWeight: 'bold' }} />
           <ReferenceLine y={6} stroke="#f59e0b" strokeDasharray="5 5" label={{ value: 'Mức cảnh báo', fill: '#f59e0b', fontSize: 12, fontWeight: 'bold' }} />

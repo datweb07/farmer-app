@@ -1,7 +1,15 @@
-import { Building2, Users, TrendingUp, Award, Mail, Phone, MapPin } from 'lucide-react';
-import { InvestmentProjectCard } from '../components/InvestmentProjectCard';
-import { StatsCard } from '../components/StatsCard';
-import { investmentProjects, overallStats } from '../../data/mockData';
+import {
+  Building2,
+  Users,
+  TrendingUp,
+  Award,
+  Mail,
+  Phone,
+  MapPin,
+} from "lucide-react";
+import { InvestmentProjectCard } from "../components/InvestmentProjectCard";
+import { StatsCard } from "../components/StatsCard";
+import { investmentProjects, overallStats } from "../../data/mockData";
 
 export function InvestPage() {
   return (
@@ -10,24 +18,26 @@ export function InvestPage() {
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 mb-8 text-white shadow-xl">
           <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
-            <span className="text-4xl">💰</span>
+            <span className="text-4xl"></span>
             Đầu tư & Hợp tác phát triển bền vững
           </h1>
-          <p className="text-lg opacity-90">Kết nối nhà đầu tư - Doanh nghiệp - Tổ chức khoa học - Nông dân</p>
+          <p className="text-lg opacity-90">
+            Kết nối nhà đầu tư - Doanh nghiệp - Tổ chức khoa học - Nông dân
+          </p>
         </div>
 
         {/* Impact Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatsCard
             title="Nông dân tham gia"
-            value={overallStats.totalFarmers.toLocaleString('vi-VN')}
+            value={overallStats.totalFarmers.toLocaleString("vi-VN")}
             icon={Users}
             color="blue"
             subtitle="Đang hoạt động"
           />
           <StatsCard
             title="Diện tích ảnh hưởng"
-            value={`${overallStats.affectedArea.toLocaleString('vi-VN')} ha`}
+            value={`${overallStats.affectedArea.toLocaleString("vi-VN")} ha`}
             icon={MapPin}
             color="green"
             subtitle="Đồng Bằng Sông Cửu Long"
@@ -51,27 +61,33 @@ export function InvestPage() {
         {/* Why Invest Section */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border-2 border-indigo-100">
           <h2 className="font-bold text-2xl text-gray-900 mb-6 flex items-center gap-3">
-            <span className="text-3xl">🎯</span>
+            <span className="text-3xl"></span>
             Tại sao nên đầu tư vào nông nghiệp ĐBSCL?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-200">
-              <div className="text-4xl mb-3">🌾</div>
-              <h3 className="font-bold text-lg text-gray-900 mb-2">Tiềm năng lớn</h3>
+              <div className="text-4xl mb-3"></div>
+              <h3 className="font-bold text-lg text-gray-900 mb-2">
+                Tiềm năng lớn
+              </h3>
               <p className="text-gray-700">
                 ĐBSCL là vựa lúa của Việt Nam, chiếm 50% sản lượng lúa cả nước
               </p>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border-2 border-green-200">
-              <div className="text-4xl mb-3">📈</div>
-              <h3 className="font-bold text-lg text-gray-900 mb-2">ROI hấp dẫn</h3>
+              <div className="text-4xl mb-3"></div>
+              <h3 className="font-bold text-lg text-gray-900 mb-2">
+                ROI hấp dẫn
+              </h3>
               <p className="text-gray-700">
                 Thu nhập nông dân tăng trung bình 35% sau khi áp dụng công nghệ
               </p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border-2 border-purple-200">
-              <div className="text-4xl mb-3">🤝</div>
-              <h3 className="font-bold text-lg text-gray-900 mb-2">Tác động xã hội</h3>
+              <div className="text-4xl mb-3"></div>
+              <h3 className="font-bold text-lg text-gray-900 mb-2">
+                Tác động xã hội
+              </h3>
               <p className="text-gray-700">
                 Giúp đỡ hàng chục nghìn nông dân vượt qua khó khăn xâm nhập mặn
               </p>
@@ -82,7 +98,7 @@ export function InvestPage() {
         {/* Investment Projects */}
         <div className="mb-8">
           <h2 className="font-bold text-2xl text-gray-900 mb-6 flex items-center gap-3">
-            <span className="text-3xl">💼</span>
+            <span className="text-3xl"></span>
             Các dự án đang kêu gọi đầu tư
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -127,7 +143,9 @@ export function InvestPage() {
             <div className="bg-green-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
               <Building2 className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="font-bold text-xl text-gray-900 mb-3">Doanh nghiệp</h3>
+            <h3 className="font-bold text-xl text-gray-900 mb-3">
+              Doanh nghiệp
+            </h3>
             <p className="text-gray-700 mb-4">
               Hợp tác cùng phát triển chuỗi giá trị nông sản bền vững
             </p>
@@ -155,7 +173,9 @@ export function InvestPage() {
             <div className="bg-purple-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-4">
               <Award className="w-8 h-8 text-purple-600" />
             </div>
-            <h3 className="font-bold text-xl text-gray-900 mb-3">Tổ chức Khoa học - Kỹ thuật</h3>
+            <h3 className="font-bold text-xl text-gray-900 mb-3">
+              Tổ chức Khoa học - Kỹ thuật
+            </h3>
             <p className="text-gray-700 mb-4">
               Triển khai nghiên cứu, thử nghiệm mô hình mới tại vùng thực tế
             </p>
@@ -182,12 +202,14 @@ export function InvestPage() {
         {/* Contact Form */}
         <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-100">
           <h2 className="font-bold text-2xl text-gray-900 mb-6 flex items-center gap-3">
-            <span className="text-3xl">📞</span>
+            <span className="text-3xl"></span>
             Liên hệ với chúng tôi
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-gray-700 font-bold mb-2">Họ và tên *</label>
+              <label className="block text-gray-700 font-bold mb-2">
+                Họ và tên *
+              </label>
               <input
                 type="text"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
@@ -195,7 +217,9 @@ export function InvestPage() {
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-bold mb-2">Số điện thoại *</label>
+              <label className="block text-gray-700 font-bold mb-2">
+                Số điện thoại *
+              </label>
               <input
                 type="tel"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
@@ -203,7 +227,9 @@ export function InvestPage() {
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-bold mb-2">Email *</label>
+              <label className="block text-gray-700 font-bold mb-2">
+                Email *
+              </label>
               <input
                 type="email"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
@@ -211,7 +237,9 @@ export function InvestPage() {
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-bold mb-2">Loại hình hợp tác *</label>
+              <label className="block text-gray-700 font-bold mb-2">
+                Loại hình hợp tác *
+              </label>
               <select className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none">
                 <option>Nhà đầu tư</option>
                 <option>Doanh nghiệp</option>
@@ -220,7 +248,9 @@ export function InvestPage() {
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-gray-700 font-bold mb-2">Nội dung *</label>
+              <label className="block text-gray-700 font-bold mb-2">
+                Nội dung *
+              </label>
               <textarea
                 rows={5}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
@@ -259,9 +289,10 @@ export function InvestPage() {
         <div className="mt-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 text-white text-center shadow-xl">
           <h2 className="font-bold text-3xl mb-4">🌱 Sứ mệnh của chúng tôi</h2>
           <p className="text-xl leading-relaxed max-w-4xl mx-auto">
-            Ứng dụng công nghệ để giúp nông dân Đồng Bằng Sông Cửu Long vượt qua thách thức xâm nhập mặn, 
-            nâng cao thu nhập và phát triển nông nghiệp bền vững. 
-            Kết nối các bên liên quan để tạo ra giá trị chung cho cộng đồng.
+            Ứng dụng công nghệ để giúp nông dân Đồng Bằng Sông Cửu Long vượt qua
+            thách thức xâm nhập mặn, nâng cao thu nhập và phát triển nông nghiệp
+            bền vững. Kết nối các bên liên quan để tạo ra giá trị chung cho cộng
+            đồng.
           </p>
         </div>
       </div>

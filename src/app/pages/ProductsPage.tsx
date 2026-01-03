@@ -1,25 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Search, Filter, ShoppingBag, Loader2 } from 'lucide-react';
-import { ProductCard } from '../components/ProductCard';
-import { CreateProductModal } from '../components/CreateProductModal';
-import { getProducts } from '../../lib/community/products.service';
-import type { ProductWithStats } from '../../lib/community/types';
+import { useState, useEffect } from "react";
+import { Search, Filter, ShoppingBag, Loader2 } from "lucide-react";
+import { ProductCard } from "../components/ProductCard";
+import { CreateProductModal } from "../components/CreateProductModal";
+import { getProducts } from "../../lib/community/products.service";
+import type { ProductWithStats } from "../../lib/community/types";
 
 export function ProductsPage() {
   const [products, setProducts] = useState<ProductWithStats[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const categories = [
-    { id: 'all', label: 'Tất cả', emoji: '🏪' },
-    { id: 'Thiết bị đo', label: 'Thiết bị đo', emoji: '📊' },
-    { id: 'Giống cây trồng', label: 'Giống cây', emoji: '🌾' },
-    { id: 'Máy móc', label: 'Máy móc', emoji: '⚙️' },
-    { id: 'Phân bón', label: 'Phân bón', emoji: '🧪' },
-    { id: 'Vật tư', label: 'Vật tư', emoji: '🔧' },
-    { id: 'Hệ thống tưới', label: 'Tưới tiêu', emoji: '💦' },
+    { id: "all", label: "Tất cả", emoji: "" },
+    { id: "Thiết bị đo", label: "Thiết bị đo", emoji: "" },
+    { id: "Giống cây trồng", label: "Giống cây", emoji: "" },
+    { id: "Máy móc", label: "Máy móc", emoji: "" },
+    { id: "Phân bón", label: "Phân bón", emoji: "" },
+    { id: "Vật tư", label: "Vật tư", emoji: "" },
+    { id: "Hệ thống tưới", label: "Tưới tiêu", emoji: "" },
   ];
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function ProductsPage() {
   const loadProducts = async () => {
     setLoading(true);
     const result = await getProducts({
-      category: selectedCategory === 'all' ? undefined : selectedCategory,
+      category: selectedCategory === "all" ? undefined : selectedCategory,
       limit: 20,
     });
     if (!result.error) {
@@ -41,7 +41,7 @@ export function ProductsPage() {
   const handleSearch = async () => {
     setLoading(true);
     const result = await getProducts({
-      category: selectedCategory === 'all' ? undefined : selectedCategory,
+      category: selectedCategory === "all" ? undefined : selectedCategory,
       search: searchQuery.trim() || undefined,
       limit: 20,
     });
@@ -61,10 +61,12 @@ export function ProductsPage() {
         {/* Header */}
         <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 mb-8 text-white shadow-xl">
           <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
-            <span className="text-4xl">🛒</span>
+            <span className="text-4xl"></span>
             Chợ nông sản & Thiết bị
           </h1>
-          <p className="text-lg opacity-90">Mua bán trực tiếp - Giá rẻ - Uy tín</p>
+          <p className="text-lg opacity-90">
+            Mua bán trực tiếp - Giá rẻ - Uy tín
+          </p>
         </div>
 
         {/* Search Bar */}
@@ -76,7 +78,7 @@ export function ProductsPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="Tìm kiếm sản phẩm..."
                 className="w-full pl-14 pr-6 py-4 border-2 border-gray-200 rounded-xl text-lg focus:border-blue-500 focus:outline-none"
               />
@@ -94,17 +96,20 @@ export function ProductsPage() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border-2 border-gray-100">
           <div className="flex items-center gap-3 mb-4">
             <Filter className="w-6 h-6 text-gray-700" />
-            <h3 className="font-bold text-lg text-gray-900">Danh mục sản phẩm</h3>
+            <h3 className="font-bold text-lg text-gray-900">
+              Danh mục sản phẩm
+            </h3>
           </div>
           <div className="flex flex-wrap gap-3">
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2 transition-all ${selectedCategory === category.id
-                    ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                className={`px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2 transition-all ${
+                  selectedCategory === category.id
+                    ? "bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg scale-105"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
               >
                 <span className="text-xl">{category.emoji}</span>
                 {category.label}
@@ -116,24 +121,34 @@ export function ProductsPage() {
         {/* Seller Benefits */}
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6 mb-8">
           <h3 className="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-2xl">💼</span>
+            <span className="text-2xl"></span>
             Lợi ích khi bán hàng trên nền tảng
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl p-4 border-2 border-purple-100">
-              <p className="text-2xl mb-2">🎯</p>
-              <p className="font-bold text-purple-600 mb-1">Tiếp cận hơn 48,500+ Nông dân</p>
+              <p className="text-2xl mb-2"></p>
+              <p className="font-bold text-purple-600 mb-1">
+                Tiếp cận hơn 48,500+ Nông dân
+              </p>
               <p className="text-sm text-gray-600">Khách hàng tiềm năng lớn</p>
             </div>
             <div className="bg-white rounded-xl p-4 border-2 border-blue-100">
-              <p className="text-2xl mb-2">⭐</p>
-              <p className="font-bold text-blue-600 mb-1">Tăng uy tín qua hình thức tích điểm</p>
-              <p className="text-sm text-gray-600">Hệ thống đánh giá minh bạch</p>
+              <p className="text-2xl mb-2"></p>
+              <p className="font-bold text-blue-600 mb-1">
+                Tăng uy tín qua hình thức tích điểm
+              </p>
+              <p className="text-sm text-gray-600">
+                Hệ thống đánh giá minh bạch
+              </p>
             </div>
             <div className="bg-white rounded-xl p-4 border-2 border-green-100">
-              <p className="text-2xl mb-2">💰</p>
-              <p className="font-bold text-green-600 mb-1">Không tính phí trung gian</p>
-              <p className="text-sm text-gray-600">Liên hệ trực tiếp, tiết kiệm</p>
+              <p className="text-2xl mb-2"></p>
+              <p className="font-bold text-green-600 mb-1">
+                Không tính phí trung gian
+              </p>
+              <p className="text-sm text-gray-600">
+                Liên hệ trực tiếp, tiết kiệm
+              </p>
             </div>
           </div>
         </div>
@@ -163,7 +178,9 @@ export function ProductsPage() {
         {!loading && products.length === 0 && (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-gray-100">
             <p className="text-2xl text-gray-400 mb-4">🛍️</p>
-            <p className="text-xl text-gray-600 font-bold">Chưa có sản phẩm nào</p>
+            <p className="text-xl text-gray-600 font-bold">
+              Chưa có sản phẩm nào
+            </p>
             <p className="text-gray-500 mt-2">Hãy thử lọc danh mục khác!</p>
           </div>
         )}
@@ -171,7 +188,7 @@ export function ProductsPage() {
         {/* Buyer Protection */}
         <div className="mt-8 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-2xl p-6">
           <h3 className="font-bold text-xl text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-2xl">🛡️</span>
+            <span className="text-2xl"></span>
             Lưu ý khi mua hàng
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

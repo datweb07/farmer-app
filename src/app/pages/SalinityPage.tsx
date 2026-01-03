@@ -1,8 +1,13 @@
-import { SalinityChart } from '../components/SalinityChart';
-import { ComparisonChart } from '../components/ComparisonChart';
-import { AffectedAreasMap } from '../components/AffectedAreasMap';
-import { RecommendationCard } from '../components/RecommendationCard';
-import { salinityData, salinityComparison, affectedAreas, getSalinityRecommendations } from '../../data/mockData';
+import { SalinityChart } from "../components/SalinityChart";
+import { ComparisonChart } from "../components/ComparisonChart";
+import { AffectedAreasMap } from "../components/AffectedAreasMap";
+import { RecommendationCard } from "../components/RecommendationCard";
+import {
+  salinityData,
+  salinityComparison,
+  affectedAreas,
+  getSalinityRecommendations,
+} from "../../data/mockData";
 
 export function SalinityPage() {
   const latestData = salinityData[salinityData.length - 1];
@@ -14,10 +19,12 @@ export function SalinityPage() {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-8 mb-8 text-white shadow-xl">
           <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
-            <span className="text-4xl">💧</span>
+            <span className="text-4xl"></span>
             Hệ thống dự đoán xâm nhập mặn
           </h1>
-          <p className="text-lg opacity-90">Theo dõi và dự báo chính xác - Giúp nông dân chủ động</p>
+          <p className="text-lg opacity-90">
+            Theo dõi và dự báo chính xác - Giúp nông dân chủ động
+          </p>
         </div>
 
         {/* Main Chart */}
@@ -30,7 +37,7 @@ export function SalinityPage() {
           <RecommendationCard
             title={recommendations.title}
             recommendations={recommendations.recommendations}
-            color={recommendations.color as 'green' | 'yellow' | 'red'}
+            color={recommendations.color as "green" | "yellow" | "red"}
           />
         </div>
 
@@ -53,20 +60,36 @@ export function SalinityPage() {
             </h3>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</span>
-                <p className="text-gray-700 pt-1">Kiểm tra biểu đồ mỗi ngày để biết xu hướng</p>
+                <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                  1
+                </span>
+                <p className="text-gray-700 pt-1">
+                  Kiểm tra biểu đồ mỗi ngày để biết xu hướng
+                </p>
               </li>
               <li className="flex items-start gap-3">
-                <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</span>
-                <p className="text-gray-700 pt-1">Chú ý màu sắc: Xanh (an toàn), Vàng (cảnh báo), Đỏ (nguy hiểm)</p>
+                <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                  2
+                </span>
+                <p className="text-gray-700 pt-1">
+                  Chú ý màu sắc: Xanh (an toàn), Vàng (cảnh báo), Đỏ (nguy hiểm)
+                </p>
               </li>
               <li className="flex items-start gap-3">
-                <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</span>
-                <p className="text-gray-700 pt-1">Đọc phần khuyến nghị và làm theo hướng dẫn</p>
+                <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                  3
+                </span>
+                <p className="text-gray-700 pt-1">
+                  Đọc phần khuyến nghị và làm theo hướng dẫn
+                </p>
               </li>
               <li className="flex items-start gap-3">
-                <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">4</span>
-                <p className="text-gray-700 pt-1">Chia sẻ thông tin với hàng xóm</p>
+                <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                  4
+                </span>
+                <p className="text-gray-700 pt-1">
+                  Chia sẻ thông tin với hàng xóm
+                </p>
               </li>
             </ul>
           </div>
@@ -83,11 +106,15 @@ export function SalinityPage() {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-green-500 text-xl">✓</span>
-                <p className="text-gray-700">Chuyển đổi sang giống cây chịu mặn</p>
+                <p className="text-gray-700">
+                  Chuyển đổi sang giống cây chịu mặn
+                </p>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-green-500 text-xl">✓</span>
-                <p className="text-gray-700">Tham gia mô hình canh tác luân canh</p>
+                <p className="text-gray-700">
+                  Tham gia mô hình canh tác luân canh
+                </p>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-green-500 text-xl">✓</span>

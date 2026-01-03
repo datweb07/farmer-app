@@ -1,14 +1,21 @@
-import { useState } from 'react';
-import { PlusCircle, Filter, Award } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { PlusCircle, Filter, Award, Loader2 } from 'lucide-react';
 import { PostCard } from '../components/PostCard';
-import { posts } from '../../data/mockData';
+import { CreatePostModal } from '../components/CreatePostModal';
+import { getPosts } from '../../lib/community/posts.service';
+import { getTopContributors } from '../../lib/community/leaderboard.service';
+import type { PostWithStats, TopContributor } from '../../lib/community/types';
 
 interface PostsPageProps {
   onNavigateToProduct: (productId: string) => void;
 }
 
 export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
+  const [posts, setPosts] = useState<PostWithStats[]>([]);
+  const [topContributors, setTopContributors] = useState<TopContributor[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const categories = [
     { id: 'all', label: 'Tất cả', emoji: '📚' },
@@ -17,9 +24,48 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
     { id: 'product', label: 'Sản phẩm', emoji: '🛒' },
   ];
 
-  const filteredPosts = selectedCategory === 'all' 
-    ? posts 
-    : posts.filter(post => post.category === selectedCategory);
+  useEffect(() => {
+    loadPosts();
+    loadLeaderboard();
+  }, [selectedCategory]);
+
+  const loadPosts = async () => {
+    setLoading(true);
+    const result = await getPosts({
+      category: selectedCategory === 'all' ? undefined : selectedCategory,
+      limit: 20,
+    });
+    if (!result.error) {
+      setPosts(result.posts);
+    }
+    setLoading(false);
+  };
+
+  const loadLeaderboard = async () => {
+    const result = await getTopContributors(3);
+    if (!result.error) {
+      setTopContributors(result.contributors);
+    }
+  };
+
+  const handlePostCreated = () => {
+    loadPosts();
+    loadLeaderboard();
+  };
+
+  const getMedalEmoji = (index: number) => {
+    const medals = ['🥇', '🥈', '🥉'];
+    return medals[index] || '';
+  };
+
+  const getMedalColor = (index: number) => {
+    const colors = [
+      'from-yellow-100 to-yellow-200 border-yellow-300',
+      'from-gray-100 to-gray-200 border-gray-300',
+      'from-orange-100 to-orange-200 border-orange-300',
+    ];
+    return colors[index] || 'from-gray-100 to-gray-200 border-gray-300';
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50">
@@ -40,38 +86,34 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
             Thành viên xuất sắc tháng này
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-xl p-4 border-2 border-yellow-300">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">🥇</span>
-                <div>
-                  <p className="font-bold text-gray-900">Chị Trần Thị Lan</p>
-                  <p className="text-sm text-gray-700">1,200 điểm</p>
+            {topContributors.length > 0 ? (
+              topContributors.map((contributor, index) => (
+                <div
+                  key={contributor.user_id}
+                  className={`bg-gradient-to-r ${getMedalColor(index)} rounded-xl p-4 border-2`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{getMedalEmoji(index)}</span>
+                    <div>
+                      <p className="font-bold text-gray-900">{contributor.username}</p>
+                      <p className="text-sm text-gray-700">{contributor.total_points.toLocaleString()} điểm</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl p-4 border-2 border-gray-300">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">🥈</span>
-                <div>
-                  <p className="font-bold text-gray-900">Anh Phạm Văn Nam</p>
-                  <p className="text-sm text-gray-700">920 điểm</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-gradient-to-r from-orange-100 to-orange-200 rounded-xl p-4 border-2 border-orange-300">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">🥉</span>
-                <div>
-                  <p className="font-bold text-gray-900">Anh Nguyễn Văn Hai</p>
-                  <p className="text-sm text-gray-700">850 điểm</p>
-                </div>
-              </div>
-            </div>
+              ))
+            ) : (
+              <p className="col-span-3 text-center text-gray-500 py-4">
+                Đang tải bảng xếp hạng...
+              </p>
+            )}
           </div>
         </div>
 
         {/* Create Post Button */}
-        <button className="w-full md:w-auto bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-lg mb-6">
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="w-full md:w-auto bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-lg mb-6"
+        >
           <PlusCircle className="w-6 h-6" />
           Đăng bài mới - Nhận điểm
         </button>
@@ -87,11 +129,10 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2 transition-all ${
-                  selectedCategory === category.id
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2 transition-all ${selectedCategory === category.id
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 <span className="text-xl">{category.emoji}</span>
                 {category.label}
@@ -123,17 +164,24 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
         </div>
 
         {/* Posts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredPosts.map((post) => (
-            <PostCard 
-              key={post.id} 
-              post={post}
-              onProductClick={onNavigateToProduct}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-12 h-12 animate-spin text-purple-500" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onProductClick={onNavigateToProduct}
+                onUpdate={handlePostCreated}
+              />
+            ))}
+          </div>
+        )}
 
-        {filteredPosts.length === 0 && (
+        {!loading && posts.length === 0 && (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-gray-100">
             <p className="text-2xl text-gray-400 mb-4">📭</p>
             <p className="text-xl text-gray-600 font-bold">Chưa có bài viết nào</p>
@@ -167,6 +215,13 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
           </ul>
         </div>
       </div>
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handlePostCreated}
+      />
     </div>
   );
 }

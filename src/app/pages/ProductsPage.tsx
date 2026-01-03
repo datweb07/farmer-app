@@ -1,10 +1,16 @@
-import { useState } from 'react';
-import { Search, Filter, ShoppingBag } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, ShoppingBag, Loader2 } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
-import { products } from '../../data/mockData';
+import { CreateProductModal } from '../components/CreateProductModal';
+import { getProducts } from '../../lib/community/products.service';
+import type { ProductWithStats } from '../../lib/community/types';
 
 export function ProductsPage() {
+  const [products, setProducts] = useState<ProductWithStats[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const categories = [
     { id: 'all', label: 'Tất cả', emoji: '🏪' },
@@ -16,9 +22,38 @@ export function ProductsPage() {
     { id: 'Hệ thống tưới', label: 'Tưới tiêu', emoji: '💦' },
   ];
 
-  const filteredProducts = selectedCategory === 'all' 
-    ? products 
-    : products.filter(product => product.category === selectedCategory);
+  useEffect(() => {
+    loadProducts();
+  }, [selectedCategory]);
+
+  const loadProducts = async () => {
+    setLoading(true);
+    const result = await getProducts({
+      category: selectedCategory === 'all' ? undefined : selectedCategory,
+      limit: 20,
+    });
+    if (!result.error) {
+      setProducts(result.products);
+    }
+    setLoading(false);
+  };
+
+  const handleSearch = async () => {
+    setLoading(true);
+    const result = await getProducts({
+      category: selectedCategory === 'all' ? undefined : selectedCategory,
+      search: searchQuery.trim() || undefined,
+      limit: 20,
+    });
+    if (!result.error) {
+      setProducts(result.products);
+    }
+    setLoading(false);
+  };
+
+  const handleProductCreated = () => {
+    loadProducts();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
@@ -39,11 +74,17 @@ export function ProductsPage() {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="Tìm kiếm sản phẩm..."
                 className="w-full pl-14 pr-6 py-4 border-2 border-gray-200 rounded-xl text-lg focus:border-blue-500 focus:outline-none"
               />
             </div>
-            <button className="bg-blue-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-600 transition-colors">
+            <button
+              onClick={handleSearch}
+              className="bg-blue-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-600 transition-colors"
+            >
               Tìm
             </button>
           </div>
@@ -60,11 +101,10 @@ export function ProductsPage() {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2 transition-all ${
-                  selectedCategory === category.id
+                className={`px-6 py-3 rounded-xl font-bold text-lg flex items-center gap-2 transition-all ${selectedCategory === category.id
                     ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 <span className="text-xl">{category.emoji}</span>
                 {category.label}
@@ -99,19 +139,28 @@ export function ProductsPage() {
         </div>
 
         {/* Add Product Button */}
-        <button className="w-full md:w-auto bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-lg mb-8">
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="w-full md:w-auto bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-lg mb-8"
+        >
           <ShoppingBag className="w-6 h-6" />
           Đăng bán sản phẩm của bạn
         </button>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-12 h-12 animate-spin text-green-500" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
 
-        {filteredProducts.length === 0 && (
+        {!loading && products.length === 0 && (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-gray-100">
             <p className="text-2xl text-gray-400 mb-4">🛍️</p>
             <p className="text-xl text-gray-600 font-bold">Chưa có sản phẩm nào</p>
@@ -157,6 +206,13 @@ export function ProductsPage() {
           </div>
         </div>
       </div>
+
+      {/* Create Product Modal */}
+      <CreateProductModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleProductCreated}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
     useEffect,
     useState,
     useCallback,
+    useRef,
     type ReactNode,
 } from 'react';
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
@@ -66,20 +67,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // Track if profile fetch is in progress to avoid duplicate calls
+    const fetchingProfileRef = useRef(false);
+
     /**
      * Fetch and set user profile
      */
     const fetchProfile = useCallback(async (userId: string) => {
+        // Skip if already fetching
+        if (fetchingProfileRef.current) {
+            console.log('🟡 [fetchProfile] Already fetching, skipping duplicate call');
+            return;
+        }
+
+        fetchingProfileRef.current = true;
+
         try {
-            console.log('🔵 [fetchProfile] Fetching profile for user:', userId);
+            console.log('🔵 [fetchProfile] Starting fetch for user:', userId);
+
             const { data: profileData, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
                 .single();
 
+            console.log('🔵 [fetchProfile] Query completed');
+
             if (error) {
-                console.error('🔴 [fetchProfile] Error:', error);
+                console.error('🔴 [fetchProfile] Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    details: error.details,
+                    hint: error.hint,
+                });
                 setProfile(null);
                 return;
             }
@@ -88,12 +108,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 console.log('✅ [fetchProfile] Profile loaded:', (profileData as UserProfile).username);
                 setProfile(profileData as UserProfile);
             } else {
-                console.warn('🟡 [fetchProfile] No profile data returned');
+                console.warn('🟡 [fetchProfile] No profile data returned - user may not have profile yet');
                 setProfile(null);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('🔴 [fetchProfile] Unexpected error:', error);
+            console.error('🔴 [fetchProfile] Error message:', error?.message);
             setProfile(null);
+        } finally {
+            fetchingProfileRef.current = false;
         }
     }, []);
 
@@ -107,16 +130,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             try {
                 console.log('🔵 [AuthContext] Initializing auth...');
 
-                // Get initial session with timeout
-                const sessionPromise = supabase.auth.getSession();
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Session timeout')), 30000)
-                );
-
-                const { data: { session: initialSession }, error } = await Promise.race([
-                    sessionPromise,
-                    timeoutPromise
-                ]) as any;
+                // Get initial session
+                const { data: { session: initialSession }, error } = await supabase.auth.getSession();
 
                 if (error) {
                     console.error('🔴 [AuthContext] Session error:', error);
@@ -159,6 +174,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
                 if (!mounted) return;
 
+                // Skip INITIAL_SESSION as it's already handled in initAuth
+                if (event === 'INITIAL_SESSION') {
+                    console.log('🟡 [AuthContext] Skipping INITIAL_SESSION - already handled');
+                    return;
+                }
+
                 setSession(currentSession);
                 setUser(currentSession?.user ?? null);
 
@@ -177,7 +198,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             mounted = false;
             subscription.unsubscribe();
         };
-    }, [fetchProfile]);
+    }, []); // Empty dependency array - only run once on mount
 
     /**
      * Sign up new user

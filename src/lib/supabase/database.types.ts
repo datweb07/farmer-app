@@ -23,6 +23,7 @@ export interface Database {
                     phone_number: string | null
                     role: 'farmer' | 'organization'
                     organization_id: string | null
+                    points: number
                     created_at: string
                     updated_at: string
                 }
@@ -32,6 +33,7 @@ export interface Database {
                     phone_number?: string | null
                     role?: 'farmer' | 'organization'
                     organization_id?: string | null
+                    points?: number
                     created_at?: string
                     updated_at?: string
                 }
@@ -41,6 +43,7 @@ export interface Database {
                     phone_number?: string | null
                     role?: 'farmer' | 'organization'
                     organization_id?: string | null
+                    points?: number
                     created_at?: string
                     updated_at?: string
                 }
@@ -103,6 +106,171 @@ export interface Database {
                     created_at?: string
                 }
             }
+            posts: {
+                Row: {
+                    id: string
+                    user_id: string
+                    title: string
+                    content: string
+                    category: 'experience' | 'salinity-solution' | 'product'
+                    image_url: string | null
+                    product_link: string | null
+                    views_count: number
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    title: string
+                    content: string
+                    category: 'experience' | 'salinity-solution' | 'product'
+                    image_url?: string | null
+                    product_link?: string | null
+                    views_count?: number
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    title?: string
+                    content?: string
+                    category?: 'experience' | 'salinity-solution' | 'product'
+                    image_url?: string | null
+                    product_link?: string | null
+                    views_count?: number
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+            products: {
+                Row: {
+                    id: string
+                    user_id: string
+                    name: string
+                    description: string
+                    price: number
+                    category: string
+                    image_url: string | null
+                    contact: string
+                    views_count: number
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    name: string
+                    description: string
+                    price: number
+                    category: string
+                    image_url?: string | null
+                    contact: string
+                    views_count?: number
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    name?: string
+                    description?: string
+                    price?: number
+                    category?: string
+                    image_url?: string | null
+                    contact?: string
+                    views_count?: number
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+            post_likes: {
+                Row: {
+                    id: string
+                    post_id: string
+                    user_id: string
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    post_id: string
+                    user_id: string
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    post_id?: string
+                    user_id?: string
+                    created_at?: string
+                }
+            }
+            post_comments: {
+                Row: {
+                    id: string
+                    post_id: string
+                    user_id: string
+                    content: string
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    post_id: string
+                    user_id: string
+                    content: string
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    post_id?: string
+                    user_id?: string
+                    content?: string
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+            post_views: {
+                Row: {
+                    id: string
+                    post_id: string
+                    user_id: string | null
+                    viewed_at: string
+                }
+                Insert: {
+                    id?: string
+                    post_id: string
+                    user_id?: string | null
+                    viewed_at?: string
+                }
+                Update: {
+                    id?: string
+                    post_id?: string
+                    user_id?: string | null
+                    viewed_at?: string
+                }
+            }
+            product_views: {
+                Row: {
+                    id: string
+                    product_id: string
+                    user_id: string | null
+                    viewed_at: string
+                }
+                Insert: {
+                    id?: string
+                    product_id: string
+                    user_id?: string | null
+                    viewed_at?: string
+                }
+                Update: {
+                    id?: string
+                    product_id?: string
+                    user_id?: string | null
+                    viewed_at?: string
+                }
+            }
         }
         Views: {
             [_ in never]: never
@@ -149,6 +317,83 @@ export interface Database {
                     p_new_password: string
                 }
                 Returns: boolean
+            }
+            get_post_with_stats: {
+                Args: {
+                    post_uuid: string
+                }
+                Returns: {
+                    id: string
+                    user_id: string
+                    title: string
+                    content: string
+                    category: string
+                    image_url: string | null
+                    product_link: string | null
+                    views_count: number
+                    likes_count: number
+                    comments_count: number
+                    created_at: string
+                    updated_at: string
+                    author_username: string
+                    author_points: number
+                }[]
+            }
+            get_posts_with_stats: {
+                Args: {
+                    category_filter?: string | null
+                    search_query?: string | null
+                    limit_count?: number
+                    offset_count?: number
+                }
+                Returns: {
+                    id: string
+                    user_id: string
+                    title: string
+                    content: string
+                    category: string
+                    image_url: string | null
+                    product_link: string | null
+                    views_count: number
+                    likes_count: number
+                    comments_count: number
+                    created_at: string
+                    updated_at: string
+                    author_username: string
+                    author_points: number
+                }[]
+            }
+            calculate_user_points: {
+                Args: {
+                    user_uuid: string
+                }
+                Returns: number
+            }
+            get_top_contributors: {
+                Args: {
+                    limit_count?: number
+                }
+                Returns: {
+                    user_id: string
+                    username: string
+                    total_points: number
+                    posts_count: number
+                    likes_received: number
+                }[]
+            }
+            increment_post_views: {
+                Args: {
+                    post_uuid: string
+                    viewer_id?: string | null
+                }
+                Returns: void
+            }
+            increment_product_views: {
+                Args: {
+                    product_uuid: string
+                    viewer_id?: string | null
+                }
+                Returns: void
             }
         }
         Enums: {

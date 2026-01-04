@@ -9,12 +9,15 @@ import { SalinityPage } from './pages/SalinityPage';
 import { PostsPage } from './pages/PostsPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { InvestPage } from './pages/InvestPage';
+import { CreateProjectPage } from './pages/CreateProjectPage';
+import { EditProjectPage } from './pages/EditProjectPage';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
 import { ProfilePage } from '../pages/auth/ProfilePage';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
 
   const handleNavigate = (page: string) => {
@@ -38,7 +41,20 @@ export default function App() {
       case 'products':
         return <ProductsPage />;
       case 'invest':
-        return <InvestPage />;
+        return <InvestPage onNavigate={handleNavigate} onEditProject={(id) => {
+          setEditProjectId(id);
+          setCurrentPage('edit-project');
+        }} />;
+      case 'create-project':
+        return <CreateProjectPage onNavigate={handleNavigate} />;
+      case 'edit-project':
+        return editProjectId ? (
+          <EditProjectPage
+            projectId={editProjectId}
+            onNavigate={handleNavigate}
+            onSuccess={() => setEditProjectId(null)}
+          />
+        ) : null;
       case 'profile':
         return <ProfilePage />;
       default:

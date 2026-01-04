@@ -15,7 +15,7 @@ import { supabase } from '../supabase/supabase';
  */
 export async function uploadImage(
     file: File,
-    bucket: 'post-images' | 'product-images',
+    bucket: 'post-images' | 'product-images' | 'project-images',
     userId: string
 ): Promise<{ url: string | null; error: string | null }> {
     try {
@@ -72,7 +72,7 @@ export async function uploadImage(
  */
 export async function deleteImage(
     imageUrl: string,
-    bucket: 'post-images' | 'product-images'
+    bucket: 'post-images' | 'product-images' | 'project-images'
 ): Promise<{ success: boolean; error: string | null }> {
     try {
         // Extract path from URL

@@ -30,42 +30,12 @@ export function CreateProductModal({
   if (!isOpen) return null;
 
   const categories = [
-    {
-      value: "Thiết bị đo",
-      emoji: "📏",
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
-    },
-    {
-      value: "Giống cây trồng",
-      emoji: "🌱",
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-    },
-    {
-      value: "Máy móc",
-      emoji: "🚜",
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
-    },
-    {
-      value: "Phân bón",
-      emoji: "🧪",
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-100",
-    },
-    {
-      value: "Vật tư",
-      emoji: "🔧",
-      color: "text-gray-600",
-      bgColor: "bg-gray-100",
-    },
-    {
-      value: "Hệ thống tưới",
-      emoji: "💧",
-      color: "text-cyan-600",
-      bgColor: "bg-cyan-100",
-    },
+    { value: "Thiết bị đo", label: "Thiết bị đo" },
+    { value: "Giống cây trồng", label: "Giống cây" },
+    { value: "Máy móc", label: "Máy móc" },
+    { value: "Phân bón", label: "Phân bón" },
+    { value: "Vật tư", label: "Vật tư" },
+    { value: "Hệ thống tưới", label: "Tưới tiêu" },
   ];
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +51,6 @@ export function CreateProductModal({
     setImageFile(file);
     setError(null);
 
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
@@ -93,7 +62,6 @@ export function CreateProductModal({
     e.preventDefault();
     setError(null);
 
-    // Validation
     if (!formData.name?.trim()) {
       setError("Vui lòng nhập tên sản phẩm");
       return;
@@ -114,7 +82,6 @@ export function CreateProductModal({
       return;
     }
 
-    // Validate phone number format
     const phoneRegex = /^[0-9]{10,11}$/;
     const cleanPhone = formData.contact.replace(/\D/g, "");
     if (!phoneRegex.test(cleanPhone)) {
@@ -135,7 +102,6 @@ export function CreateProductModal({
       });
 
       if (result.success) {
-        // Reset form
         setFormData({
           name: "",
           description: "",
@@ -165,22 +131,19 @@ export function CreateProductModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop với hiệu ứng mờ */}
       <div
         className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300"
         onClick={handleBackdropClick}
       />
 
-      {/* Modal Container */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl transform transition-all duration-300 ease-out">
-          {/* Modal Content */}
-          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            {/* Modal Header với gradient */}
-            <div className="sticky top-0 z-10 bg-gradient-to-r from-green-50 to-blue-50 px-6 pt-6 pb-4 border-b border-gray-100">
+        <div className="relative w-full max-w-2xl">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-white px-4 pt-4 pb-3 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     Đăng bán sản phẩm mới
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
@@ -189,40 +152,28 @@ export function CreateProductModal({
                 </div>
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"
                   disabled={loading}
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* Modal Body - Scrollable */}
-            <div className="max-h-[70vh] overflow-y-auto px-6 py-4">
+            {/* Modal Body */}
+            <div className="max-h-[70vh] overflow-y-auto px-4 py-3">
               {/* Error Message */}
               {error && (
-                <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 animate-fade-in">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0">
-                      <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
-                        <X className="w-4 h-4 text-red-600" />
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-red-800 font-medium">{error}</p>
-                      <p className="text-red-600 text-sm mt-1">
-                        Vui lòng kiểm tra lại thông tin
-                      </p>
-                    </div>
-                  </div>
+                <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-red-700 text-sm">{error}</p>
                 </div>
               )}
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Product Name */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700">
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-gray-700">
                     Tên sản phẩm
                   </label>
                   <input
@@ -232,18 +183,18 @@ export function CreateProductModal({
                       setFormData({ ...formData, name: e.target.value })
                     }
                     placeholder="Ví dụ: Máy đo độ mặn cầm tay XYZ-2024"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                     required
                     disabled={loading}
                   />
                 </div>
 
-                {/* Category Selection with Icons */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700">
+                {/* Category Selection */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
                     Danh mục sản phẩm
                   </label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     {categories.map((cat) => (
                       <button
                         key={cat.value}
@@ -251,26 +202,21 @@ export function CreateProductModal({
                         onClick={() =>
                           setFormData({ ...formData, category: cat.value })
                         }
-                        className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
-                          formData.category === cat.value
-                            ? `border-green-500 ${cat.bgColor} ${cat.color} shadow-sm`
-                            : "border-gray-200 bg-white text-gray-600 hover:border-green-300 hover:bg-green-50/50"
-                        }`}
+                        className={`p-2 rounded-lg border text-xs transition-colors ${formData.category === cat.value
+                            ? "border-blue-600 bg-blue-50 text-blue-700"
+                            : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
+                          }`}
                         disabled={loading}
                       >
-                        <span className="text-2xl">{cat.emoji}</span>
-                        <span className="font-medium text-xs text-center">
-                          {cat.value}
-                        </span>
+                        {cat.label}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Price Input */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-gray-700">
                     Giá bán
                   </label>
                   <div className="relative">
@@ -288,16 +234,16 @@ export function CreateProductModal({
                       placeholder="Nhập giá sản phẩm"
                       min="0"
                       step="1000"
-                      className="w-full px-12 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none transition-colors"
+                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                       required
                       disabled={loading}
                     />
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <div className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500">
                       ₫
                     </div>
                   </div>
                   {formData.price && formData.price > 0 && (
-                    <p className="text-sm font-medium text-green-600 mt-2">
+                    <p className="text-sm text-blue-600 mt-1">
                       {new Intl.NumberFormat("vi-VN", {
                         style: "currency",
                         currency: "VND",
@@ -307,8 +253,8 @@ export function CreateProductModal({
                 </div>
 
                 {/* Description */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700">
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-gray-700">
                     Mô tả chi tiết
                   </label>
                   <textarea
@@ -317,20 +263,19 @@ export function CreateProductModal({
                       setFormData({ ...formData, description: e.target.value })
                     }
                     placeholder="Mô tả chi tiết sản phẩm, tính năng, chất lượng, thông số kỹ thuật..."
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none resize-none transition-colors"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none resize-none"
                     required
                     disabled={loading}
                   />
-                  <p className="text-sm text-gray-500">
+                  <p className="text-xs text-gray-500">
                     Mô tả càng chi tiết, sản phẩm càng thu hút khách hàng
                   </p>
                 </div>
 
                 {/* Contact Information */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-gray-700">
                     Số điện thoại liên hệ
                   </label>
                   <input
@@ -340,29 +285,28 @@ export function CreateProductModal({
                       setFormData({ ...formData, contact: e.target.value })
                     }
                     placeholder="0912345678 hoặc 0123456789"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                     required
                     disabled={loading}
                   />
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                    <span>Khách hàng sẽ liên hệ qua Zalo với số này</span>
-                  </div>
+                  <p className="text-xs text-gray-500">
+                    Khách hàng sẽ liên hệ qua số này
+                  </p>
                 </div>
 
                 {/* Image Upload */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
                     Hình ảnh sản phẩm
                   </label>
 
                   {imagePreview ? (
-                    <div className="space-y-3">
-                      <div className="relative group">
+                    <div className="space-y-2">
+                      <div className="relative">
                         <img
                           src={imagePreview}
                           alt="Preview"
-                          className="w-full max-h-64 object-cover rounded-xl border-2 border-gray-200"
+                          className="w-full h-48 object-cover rounded-lg border border-gray-300"
                         />
                         <button
                           type="button"
@@ -370,35 +314,28 @@ export function CreateProductModal({
                             setImageFile(null);
                             setImagePreview(null);
                           }}
-                          className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
                           disabled={loading}
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
-                      <p className="text-sm text-gray-500 text-center">
-                        Nhấn vào biểu tượng X để xóa ảnh
-                      </p>
                     </div>
                   ) : (
                     <label
-                      className={`block cursor-pointer ${
-                        loading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                      className={`block cursor-pointer ${loading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                     >
-                      <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400 hover:bg-green-50/30 transition-all duration-200 group">
-                        <div className="flex flex-col items-center justify-center gap-3">
-                          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                            <Image className="w-8 h-8 text-green-500" />
+                      <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                            <Image className="w-5 h-5 text-blue-600" />
                           </div>
                           <div>
-                            <p className="text-gray-700 font-medium mb-1">
+                            <p className="text-gray-700 text-sm mb-1">
                               Tải ảnh sản phẩm lên
                             </p>
-                            <p className="text-sm text-gray-500">
-                              Kéo thả hoặc nhấn để chọn ảnh
-                            </p>
-                            <p className="text-xs text-gray-400 mt-2">
+                            <p className="text-xs text-gray-500">
                               JPG, PNG, GIF, WebP (tối đa 5MB)
                             </p>
                           </div>
@@ -416,40 +353,22 @@ export function CreateProductModal({
                 </div>
 
                 {/* Benefits Info */}
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-4">
-                  <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                      <span className="text-green-600">✓</span>
-                    </span>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <h4 className="font-medium text-blue-800 text-sm mb-2">
                     Lợi ích khi đăng bán trên nền tảng
                   </h4>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-sm text-green-700">
-                      <span className="text-green-500 mt-0.5">•</span>
-                      <span>
-                        Tiếp cận <strong>48,500+ nông dân</strong> tiềm năng
-                      </span>
+                  <ul className="space-y-1 text-sm text-blue-700">
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 mt-0.5">•</span>
+                      <span>Tiếp cận 48,500+ nông dân tiềm năng</span>
                     </li>
-                    <li className="flex items-start gap-2 text-sm text-green-700">
-                      <span className="text-green-500 mt-0.5">•</span>
-                      <span>
-                        <strong>Không tính phí trung gian</strong> - Liên hệ
-                        trực tiếp
-                      </span>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 mt-0.5">•</span>
+                      <span>Không tính phí trung gian</span>
                     </li>
-                    <li className="flex items-start gap-2 text-sm text-green-700">
-                      <span className="text-green-500 mt-0.5">•</span>
-                      <span>
-                        <strong>Tăng uy tín</strong> qua hệ thống đánh giá minh
-                        bạch
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2 text-sm text-green-700">
-                      <span className="text-green-500 mt-0.5">•</span>
-                      <span>
-                        <strong>Quản lý đơn hàng</strong> dễ dàng trên một nền
-                        tảng
-                      </span>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 mt-0.5">•</span>
+                      <span>Tăng uy tín qua hệ thống đánh giá</span>
                     </li>
                   </ul>
                 </div>
@@ -457,12 +376,12 @@ export function CreateProductModal({
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4">
-              <div className="flex gap-3">
+            <div className="bg-white border-t border-gray-200 px-4 py-3">
+              <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                   disabled={loading}
                 >
                   Hủy bỏ
@@ -470,18 +389,18 @@ export function CreateProductModal({
                 <button
                   type="submit"
                   onClick={handleSubmit}
-                  className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   disabled={loading}
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Đang xử lý...</span>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">Đang xử lý...</span>
                     </>
                   ) : (
                     <>
-                      <Package className="w-5 h-5" />
-                      <span>Đăng bán sản phẩm</span>
+                      <Package className="w-4 h-4" />
+                      <span className="text-sm">Đăng bán sản phẩm</span>
                     </>
                   )}
                 </button>

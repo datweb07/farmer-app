@@ -8,7 +8,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  // Track view on mount
   useEffect(() => {
     trackProductView(product.id);
   }, [product.id]);
@@ -19,66 +18,64 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-100 hover:shadow-xl transition-all hover:scale-105">
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       {/* Image */}
       <div className="relative">
         {product.image_url ? (
           <img
             src={product.image_url}
             alt={product.name}
-            className="w-full h-56 object-cover"
+            className="w-full h-64 object-cover"
           />
         ) : (
-          <div className="w-full h-56 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-            <Tag className="w-16 h-16 text-gray-400" />
+          <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+            <Tag className="w-12 h-12 text-gray-400" />
           </div>
         )}
-        <div className="absolute top-3 right-3 bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-1">
-          <Tag className="w-4 h-4" />
-          <span className="text-sm font-bold">{product.category}</span>
+        <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded flex items-center gap-1">
+          <Tag className="w-3 h-3" />
+          <span className="text-xs font-medium">{product.category}</span>
         </div>
-        {/* View Count Badge */}
-        <div className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white px-3 py-1 rounded-full flex items-center gap-1">
-          <Eye className="w-4 h-4" />
-          <span className="text-sm font-bold">{product.views_count}</span>
+        <div className="absolute bottom-2 left-2 bg-gray-800 text-white px-2 py-1 rounded flex items-center gap-1">
+          <Eye className="w-3 h-3" />
+          <span className="text-xs font-medium">{product.views_count}</span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-5">
-        <h3 className="font-bold text-xl text-gray-900 mb-2">{product.name}</h3>
-        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-4">
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
+        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-3">
           {product.description}
         </p>
 
         {/* Price */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4 mb-4">
+        <div className="border border-gray-200 rounded-lg p-3 mb-3">
           <p className="text-sm text-gray-600 mb-1">Giá bán</p>
-          <p className="text-2xl font-bold text-green-600">{formatPrice(product.price)}</p>
+          <p className="text-lg font-semibold text-blue-600">{formatPrice(product.price)}</p>
         </div>
 
         {/* Seller Info */}
-        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200">
           <div className="flex-1">
-            <p className="text-sm text-gray-500">Người bán</p>
-            <p className="font-bold text-gray-900">{product.seller_username}</p>
+            <p className="text-xs text-gray-500">Người bán</p>
+            <p className="font-medium text-gray-900 text-sm">{product.seller_username}</p>
           </div>
-          <div className="flex items-center gap-1 bg-yellow-100 px-3 py-2 rounded-lg">
-            <Award className="w-5 h-5 text-yellow-600" />
-            <span className="font-bold text-yellow-700">{product.seller_points}</span>
+          <div className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded">
+            <Award className="w-3 h-3 text-blue-600" />
+            <span className="text-xs font-medium text-blue-700">{product.seller_points}</span>
           </div>
         </div>
 
-        {/* Contact Button with Zalo */}
+        {/* Contact Button */}
         <button
           onClick={handleZaloContact}
-          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-lg"
+          className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
         >
-          <Phone className="w-6 h-6" />
-          Liên hệ Zalo
+          <Phone className="w-4 h-4" />
+          <span className="text-sm">Liên hệ Zalo</span>
         </button>
       </div>
     </div>
   );
 }
-

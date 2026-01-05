@@ -649,3 +649,123 @@ export async function resetPasswordWithCode(
     }
 }
 
+// ============================================
+// Avatar Management Functions
+// ============================================
+
+/**
+ * Upload user avatar
+ */
+export async function uploadAvatar(file: File): Promise<{
+    success: boolean;
+    avatarUrl?: string;
+    error?: string;
+}> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return { success: false, error: 'Chưa đăng nhập' };
+        }
+
+        // Generate unique filename
+        const timestamp = Date.now();
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${user.id}/${timestamp}.${fileExt}`;
+
+        // Delete old avatar if exists
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .single();
+
+        if (profile?.avatar_url) {
+            const oldPath = profile.avatar_url.split('/avatars/')[1];
+            if (oldPath) {
+                await supabase.storage.from('avatars').remove([oldPath]);
+            }
+        }
+
+        // Upload new avatar
+        const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false,
+            });
+
+        if (uploadError) {
+            console.error('Upload error:', uploadError);
+            return { success: false, error: 'Không thể tải ảnh lên' };
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+        // Update profile with new avatar URL
+        const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ avatar_url: publicUrl })
+            .eq('id', user.id);
+
+        if (updateError) {
+            console.error('Profile update error:', updateError);
+            return { success: false, error: 'Không thể cập nhật profile' };
+        }
+
+        return { success: true, avatarUrl: publicUrl };
+    } catch (error: any) {
+        console.error('Unexpected error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Delete user avatar
+ */
+export async function deleteAvatar(): Promise<{
+    success: boolean;
+    error?: string;
+}> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return { success: false, error: 'Chưa đăng nhập' };
+        }
+
+        // Get current avatar
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile?.avatar_url) {
+            return { success: true }; // No avatar to delete
+        }
+
+        // Extract path from URL
+        const path = profile.avatar_url.split('/avatars/')[1];
+        if (path) {
+            await supabase.storage.from('avatars').remove([path]);
+        }
+
+        // Update profile to remove avatar URL
+        const { error } = await supabase
+            .from('profiles')
+            .update({ avatar_url: null })
+            .eq('id', user.id);
+
+        if (error) {
+            console.error('Profile update error:', error);
+            return { success: false, error: 'Không thể cập nhật profile' };
+        }
+
+        return { success: true };
+    } catch (error: any) {
+        console.error('Unexpected error:', error);
+        return { success: false, error: error.message };
+    }
+}

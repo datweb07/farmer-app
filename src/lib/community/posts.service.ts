@@ -311,15 +311,19 @@ export async function getComments(postId: string): Promise<{
     error?: string;
 }> {
     try {
+        const { data: { user } } = await supabase.auth.getUser();
+
         const { data, error } = await supabase
             .from('post_comments')
             .select(`
                 *,
                 profiles:user_id (
-                    username
+                    username,
+                    avatar_url
                 )
             `)
             .eq('post_id', postId)
+            // Removed .is('parent_comment_id', null) to get ALL comments for tree building
             .order('created_at', { ascending: true });
 
         if (error) {
@@ -327,22 +331,212 @@ export async function getComments(postId: string): Promise<{
             return { comments: [], error: 'Không thể tải bình luận' };
         }
 
-        const comments = (data || []).map((c: any) => ({
-            id: c.id,
-            post_id: c.post_id,
-            user_id: c.user_id,
-            content: c.content,
-            created_at: c.created_at,
-            updated_at: c.updated_at,
-            author_username: c.profiles?.username
-        }));
+        // Check if user liked each comment
+        let commentsWithData = data || [];
+        if (user && data && data.length > 0) {
+            const commentIds = data.map((c: any) => c.id);
+            const { data: likes } = await supabase
+                .from('comment_likes')
+                .select('comment_id')
+                .in('comment_id', commentIds)
+                .eq('user_id', user.id);
 
-        return { comments };
+            const likedIds = new Set(likes?.map(l => l.comment_id) || []);
+
+            commentsWithData = data.map((c: any) => ({
+                ...c,
+                username: c.profiles?.username || 'Unknown',
+                avatar_url: c.profiles?.avatar_url,
+                user_liked: likedIds.has(c.id),
+            }));
+        } else if (data) {
+            commentsWithData = data.map((c: any) => ({
+                ...c,
+                username: c.profiles?.username || 'Unknown',
+                avatar_url: c.profiles?.avatar_url,
+                user_liked: false,
+            }));
+        }
+
+        return { comments: commentsWithData as PostComment[] };
     } catch (err) {
         console.error('🔴 [Posts] Unexpected error:', err);
         return { comments: [], error: 'Đã xảy ra lỗi không mong muốn' };
     }
 }
+
+/**
+ * Create a reply to a comment
+ */
+export async function createCommentReply(
+    postId: string,
+    parentCommentId: string,
+    content: string
+): Promise<{
+    success: boolean;
+    comment?: PostComment;
+    error?: string;
+}> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return { success: false, error: 'Chưa đăng nhập' };
+        }
+
+        console.log('🔵 [Posts] Creating comment reply...');
+
+        const { data: comment, error } = await supabase
+            .from('post_comments')
+            .insert({
+                post_id: postId,
+                user_id: user.id,
+                content,
+                parent_comment_id: parentCommentId,
+            })
+            .select()
+            .single();
+
+        if (error || !comment) {
+            console.error('🔴 [Posts] Reply error:', error);
+            return { success: false, error: 'Không thể tạo reply' };
+        }
+
+        console.log('✅ [Posts] Comment reply created');
+        return { success: true, comment: comment as PostComment };
+    } catch (err) {
+        console.error('🔴 [Posts] Unexpected error:', err);
+        return { success: false, error: 'Đã xảy ra lỗi không mong muốn' };
+    }
+}
+
+/**
+ * Get replies for a comment
+ */
+export async function getCommentReplies(commentId: string): Promise<{
+    replies: PostComment[];
+    error?: string;
+}> {
+    try {
+        console.log('🔵 [Posts] Fetching comment replies...');
+
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const { data: replies, error } = await supabase
+            .from('post_comments')
+            .select(`
+                *,
+                profiles:user_id (username, avatar_url)
+            `)
+            .eq('parent_comment_id', commentId)
+            .order('created_at', { ascending: true });
+
+        if (error) {
+            console.error('🔴 [Posts] Fetch replies error:', error);
+            return { replies: [], error: 'Không thể tải replies' };
+        }
+
+        // Check if user liked each reply
+        let repliesWithLikes = replies || [];
+        if (user && replies) {
+            const replyIds = replies.map(r => r.id);
+            const { data: likes } = await supabase
+                .from('comment_likes')
+                .select('comment_id')
+                .in('comment_id', replyIds)
+                .eq('user_id', user.id);
+
+            const likedIds = new Set(likes?.map(l => l.comment_id) || []);
+
+            repliesWithLikes = replies.map(reply => ({
+                ...reply,
+                username: reply.profiles?.username,
+                avatar_url: reply.profiles?.avatar_url,
+                user_liked: likedIds.has(reply.id),
+            }));
+        }
+
+        console.log('✅ [Posts] Fetched', repliesWithLikes.length, 'replies');
+        return { replies: repliesWithLikes as PostComment[] };
+    } catch (err) {
+        console.error('🔴 [Posts] Unexpected error:', err);
+        return { replies: [], error: 'Đã xảy ra lỗi không mong muốn' };
+    }
+}
+
+/**
+ * Like a comment
+ */
+export async function likeComment(commentId: string): Promise<{
+    success: boolean;
+    error?: string;
+}> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return { success: false, error: 'Chưa đăng nhập' };
+        }
+
+        console.log('🔵 [Posts] Liking comment...');
+
+        const { error } = await supabase
+            .from('comment_likes')
+            .insert({
+                comment_id: commentId,
+                user_id: user.id,
+            });
+
+        if (error) {
+            // Duplicate like error is OK (already liked)
+            if (error.code === '23505') {
+                console.log('🟡 [Posts] Already liked');
+                return { success: true };
+            }
+            console.error('🔴 [Posts] Like error:', error);
+            return { success: false, error: 'Không thể like comment' };
+        }
+
+        console.log('✅ [Posts] Comment liked');
+        return { success: true };
+    } catch (err) {
+        console.error('🔴 [Posts] Unexpected error:', err);
+        return { success: false, error: 'Đã xảy ra lỗi không mong muốn' };
+    }
+}
+
+/**
+ * Unlike a comment
+ */
+export async function unlikeComment(commentId: string): Promise<{
+    success: boolean;
+    error?: string;
+}> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return { success: false, error: 'Chưa đăng nhập' };
+        }
+
+        console.log('🔵 [Posts] Unliking comment...');
+
+        const { error } = await supabase
+            .from('comment_likes')
+            .delete()
+            .eq('comment_id', commentId)
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error('🔴 [Posts] Unlike error:', error);
+            return { success: false, error: 'Không thể unlike comment' };
+        }
+
+        console.log('✅ [Posts] Comment unliked');
+        return { success: true };
+    } catch (err) {
+        console.error('🔴 [Posts] Unexpected error:', err);
+        return { success: false, error: 'Đã xảy ra lỗi không mong muốn' };
+    }
+}
+
 
 /**
  * Add comment to post

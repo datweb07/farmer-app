@@ -22,14 +22,14 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-8 mb-8 text-white shadow-xl">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Chào mừng đến với nền tảng hỗ trợ nông dân! 👋
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
+            Chào mừng đến với nền tảng hỗ trợ nông dân
           </h1>
-          <p className="text-lg opacity-90">
+          <p className="text-gray-600">
             Đồng Bằng Sông Cửu Long - Cùng nhau vượt qua khó khăn
           </p>
         </div>
@@ -44,7 +44,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
             title="Nông dân tham gia"
             value={overallStats.totalFarmers.toLocaleString("vi-VN")}
@@ -56,21 +56,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             title="Diện tích canh tác"
             value={`${overallStats.affectedArea.toLocaleString("vi-VN")} ha`}
             icon={Droplet}
-            color="green"
+            color="blue"
             subtitle="Được bảo vệ"
           />
           <StatsCard
             title="Tỷ lệ dự đoán độ mặn"
             value={`${overallStats.successRate}%`}
             icon={CheckCircle}
-            color="purple"
+            color="blue"
             subtitle="Phần trăm chính xác"
           />
           <StatsCard
             title="Thu nhập tăng"
             value={`+${overallStats.incomIncrease}%`}
             icon={TrendingUp}
-            color="orange"
+            color="blue"
             subtitle="Trung bình"
           />
         </div>
@@ -85,33 +85,32 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-gray-100">
-          <h3 className="font-bold text-xl text-gray-900 mb-6 flex items-center gap-2">
-            <span className="text-2xl">🚀</span>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+          <h3 className="font-semibold text-xl text-gray-900 mb-6">
             Hành động nhanh
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               onClick={() => onNavigate?.("salinity")}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl font-bold text-lg hover:scale-105 transition-transform shadow-lg"
+              className="bg-white text-blue-600 border border-blue-600 p-5 rounded-lg font-medium text-base hover:bg-blue-50 transition-colors"
             >
               Xem chi tiết dự báo mặn
             </button>
             <button
               onClick={() => onNavigate?.("posts")}
-              className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl font-bold text-lg hover:scale-105 transition-transform shadow-lg"
+              className="bg-white text-blue-600 border border-blue-600 p-5 rounded-lg font-medium text-base hover:bg-blue-50 transition-colors"
             >
               Tham gia cộng đồng
             </button>
             <button
               onClick={() => onNavigate?.("products")}
-              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl font-bold text-lg hover:scale-105 transition-transform shadow-lg"
+              className="bg-white text-blue-600 border border-blue-600 p-5 rounded-lg font-medium text-base hover:bg-blue-50 transition-colors"
             >
               Mua bán thiết bị hỗ trợ
             </button>
             <button
               onClick={() => onNavigate?.("invest")}
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl font-bold text-lg hover:scale-105 transition-transform shadow-lg"
+              className="bg-white text-blue-600 border border-blue-600 p-5 rounded-lg font-medium text-base hover:bg-blue-50 transition-colors"
             >
               Tìm nguồn vốn đầu tư
             </button>
@@ -119,43 +118,38 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
 
         {/* Help Guide */}
-        <div className="mt-8 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-6">
-          <div className="flex items-start gap-4">
-            <span className="text-4xl"></span>
-            <div>
-              <h4 className="font-bold text-xl text-gray-900 mb-2">
-                Hướng dẫn sử dụng cho người mới
-              </h4>
-              <ul className="space-y-2 text-gray-700">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 font-bold">1.</span>
-                  <span>
-                    Bấm vào <strong>"Độ mặn"</strong> để xem dự báo chi tiết và
-                    biểu đồ
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 font-bold">2.</span>
-                  <span>
-                    Vào <strong>"Cộng đồng"</strong> để học kinh nghiệm từ nông
-                    dân khác
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 font-bold">3.</span>
-                  <span>
-                    Mua thiết bị hỗ trợ tại <strong>"Sản phẩm"</strong>
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 font-bold">4.</span>
-                  <span>
-                    Tìm nguồn vốn và hợp tác tại <strong>"Đầu tư"</strong>
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h4 className="font-semibold text-xl text-gray-900 mb-4">
+            Hướng dẫn sử dụng cho người mới
+          </h4>
+          <ul className="space-y-3 text-gray-700">
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 font-medium">1.</span>
+              <span>
+                Bấm vào <strong className="text-gray-900">"Độ mặn"</strong> để xem dự báo chi tiết và
+                biểu đồ
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 font-medium">2.</span>
+              <span>
+                Vào <strong className="text-gray-900">"Cộng đồng"</strong> để học kinh nghiệm từ nông
+                dân khác
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 font-medium">3.</span>
+              <span>
+                Mua thiết bị hỗ trợ tại <strong className="text-gray-900">"Sản phẩm"</strong>
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 font-medium">4.</span>
+              <span>
+                Tìm nguồn vốn và hợp tác tại <strong className="text-gray-900">"Đầu tư"</strong>
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
     </div>

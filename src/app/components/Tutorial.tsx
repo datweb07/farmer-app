@@ -123,13 +123,12 @@ export function Tutorial({ onClose }: TutorialProps) {
               {steps.map((_, index) => (
                 <div
                   key={index}
-                  className={`h-2 rounded-full transition-all ${
-                    index === currentStep
+                  className={`h-2 rounded-full transition-all ${index === currentStep
                       ? 'bg-blue-500 w-8'
                       : index < currentStep
-                      ? 'bg-green-500 w-2'
-                      : 'bg-gray-300 w-2'
-                  }`}
+                        ? 'bg-green-500 w-2'
+                        : 'bg-gray-300 w-2'
+                    }`}
                 />
               ))}
             </div>
@@ -143,11 +142,10 @@ export function Tutorial({ onClose }: TutorialProps) {
             <button
               onClick={handlePrev}
               disabled={currentStep === 0}
-              className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 ${
-                currentStep === 0
+              className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 ${currentStep === 0
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+                }`}
             >
               <ChevronLeft className="w-5 h-5" />
               Quay lại

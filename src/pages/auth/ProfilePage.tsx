@@ -1,14 +1,24 @@
+// @ts-nocheck - Types will be fully available after running SQL schema in Supabase
 // ============================================
 // Profile Page
 // ============================================
-// User profile management interface
+// User profile management interface with avatar upload
 // ============================================
 
-import { LogOut, User, Phone, Briefcase, Building2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { LogOut, User, Phone, Briefcase, Building2, Upload, Trash2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { uploadAvatar, deleteAvatar } from '../../lib/auth/auth.service';
+import { UserAvatar } from '../../app/components/UserAvatar';
+import { validateImageFile } from '../../lib/utils/image-validation';
 
 export function ProfilePage() {
-    const { profile, signOut } = useAuth();
+    const { profile, signOut, refreshProfile } = useAuth();
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const [avatarError, setAvatarError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
 
     const handleSignOut = async () => {
         if (confirm('Bạn có chắc muốn đăng xuất?')) {
@@ -16,75 +26,188 @@ export function ProfilePage() {
         }
     };
 
+    const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setAvatarError(null);
+
+        const validation = validateImageFile(file);
+        if (!validation.valid) {
+            setAvatarError(validation.error || 'File không hợp lệ');
+            return;
+        }
+
+        setAvatarUploading(true);
+        const result = await uploadAvatar(file);
+        setAvatarUploading(false);
+
+        if (result.success) {
+            await refreshProfile();
+            setSuccess(true);
+            setTimeout(() => setSuccess(false), 3000);
+        } else {
+            setAvatarError(result.error || 'Không thể tải ảnh lên');
+        }
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const handleDeleteAvatar = async () => {
+        if (!confirm('Bạn có chắc muốn xóa ảnh đại diện?')) return;
+
+        setAvatarUploading(true);
+        const result = await deleteAvatar();
+        setAvatarUploading(false);
+
+        if (result.success) {
+            await refreshProfile();
+            setSuccess(true);
+            setTimeout(() => setSuccess(false), 3000);
+        } else {
+            setAvatarError(result.error || 'Không thể xóa ảnh');
+        }
+    };
+
     if (!profile) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen bg-white flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Đang tải thông tin...</p>
+                    <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <p className="mt-4 text-gray-600 text-sm">Đang tải thông tin...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 pt-20 pb-12">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-white pt-6 pb-12">
+            <div className="max-w-4xl mx-auto px-4">
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mb-4 shadow-xl">
-                        <User className="w-12 h-12 text-white" />
-                    </div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                <div className="text-center mb-6">
+                    <h1 className="text-2xl font-semibold text-gray-900">
                         Hồ sơ cá nhân
                     </h1>
-                    <p className="text-gray-600 mt-2">Quản lý thông tin tài khoản của bạn</p>
+                    <p className="text-gray-600 text-sm mt-1">Quản lý thông tin tài khoản</p>
                 </div>
 
+                {/* Success Message */}
+                {success && (
+                    <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-blue-700 text-center text-sm">✓ Cập nhật thành công!</p>
+                    </div>
+                )}
+
                 {/* Profile Card */}
-                <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/50">
-                    <div className="space-y-6">
-                        {/* Username */}
-                        <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl">
-                            <div className="flex-shrink-0 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
-                                <User className="w-6 h-6 text-blue-600" />
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    {/* Avatar Upload Section - Centered */}
+                    <div className="mb-6 pb-6 border-b border-gray-200">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+                            Ảnh đại diện
+                        </h2>
+
+                        <div className="flex flex-col items-center">
+                            {/* Avatar Container */}
+                            <div className="relative mb-4">
+                                <UserAvatar
+                                    avatarUrl={profile?.avatar_url}
+                                    username={profile?.username}
+                                    size="xl"
+                                />
+                                {avatarUploading && (
+                                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                                        <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-500">Tên đăng nhập</p>
-                                <p className="text-lg font-semibold text-gray-900 truncate">
+
+                            {/* Image Info */}
+                            <p className="text-sm text-gray-600 mb-4 text-center">
+                                Ảnh JPG, PNG hoặc WebP. Tối đa 2MB.
+                            </p>
+
+                            {/* Buttons - Centered under avatar */}
+                            <div className="flex flex-wrap gap-2 justify-center">
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    onChange={handleAvatarSelect}
+                                    className="hidden"
+                                    disabled={avatarUploading}
+                                />
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={avatarUploading}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                                >
+                                    <Upload className="w-4 h-4" />
+                                    Tải ảnh lên
+                                </button>
+                                {profile?.avatar_url && (
+                                    <button
+                                        onClick={handleDeleteAvatar}
+                                        disabled={avatarUploading}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Xóa ảnh
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Error Message */}
+                            {avatarError && (
+                                <p className="mt-3 text-sm text-red-600 text-center">{avatarError}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Profile Info */}
+                    <div className="space-y-4">
+                        {/* Username */}
+                        <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                            <div className="flex-shrink-0 w-8 h-8 bg-white rounded flex items-center justify-center">
+                                <User className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-xs text-gray-500">Tên đăng nhập</p>
+                                <p className="text-base font-medium text-gray-900">
                                     {profile.username}
                                 </p>
                             </div>
                         </div>
 
                         {/* Phone Number */}
-                        <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl">
-                            <div className="flex-shrink-0 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
-                                <Phone className="w-6 h-6 text-green-600" />
+                        <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                            <div className="flex-shrink-0 w-8 h-8 bg-white rounded flex items-center justify-center">
+                                <Phone className="w-4 h-4 text-blue-600" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-500">Số điện thoại</p>
-                                <p className="text-lg font-semibold text-gray-900">
+                            <div className="flex-1">
+                                <p className="text-xs text-gray-500">Số điện thoại</p>
+                                <p className="text-base font-medium text-gray-900">
                                     {profile.phone_number || 'Chưa cập nhật'}
                                 </p>
                             </div>
                         </div>
 
                         {/* Role */}
-                        <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
-                            <div className="flex-shrink-0 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
-                                <Briefcase className="w-6 h-6 text-purple-600" />
+                        <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                            <div className="flex-shrink-0 w-8 h-8 bg-white rounded flex items-center justify-center">
+                                <Briefcase className="w-4 h-4 text-blue-600" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-500">Vai trò</p>
-                                <div className="flex items-center gap-2 mt-1">
+                            <div className="flex-1">
+                                <p className="text-xs text-gray-500">Vai trò</p>
+                                <div className="mt-1">
                                     <span
-                                        className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${profile.role === 'farmer'
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-blue-100 text-blue-800'
+                                        className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${profile.role === 'farmer'
+                                            ? 'bg-blue-100 text-blue-700'
+                                            : 'bg-blue-100 text-blue-700'
                                             }`}
                                     >
-                                        {profile.role === 'farmer' ? '👨‍🌾 Nông dân' : '🏢 Tổ chức'}
+                                        {profile.role === 'farmer' ? 'Nông dân' : 'Tổ chức'}
                                     </span>
                                 </div>
                             </div>
@@ -92,13 +215,13 @@ export function ProfilePage() {
 
                         {/* Organization (if applicable) */}
                         {profile.organization_id && (
-                            <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-                                <div className="flex-shrink-0 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
-                                    <Building2 className="w-6 h-6 text-blue-600" />
+                            <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                <div className="flex-shrink-0 w-8 h-8 bg-white rounded flex items-center justify-center">
+                                    <Building2 className="w-4 h-4 text-blue-600" />
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-500">Tổ chức</p>
-                                    <p className="text-lg font-semibold text-gray-900">
+                                <div className="flex-1">
+                                    <p className="text-xs text-gray-500">Tổ chức</p>
+                                    <p className="text-base font-medium text-gray-900">
                                         {profile.organization_id}
                                     </p>
                                 </div>
@@ -106,8 +229,8 @@ export function ProfilePage() {
                         )}
 
                         {/* Account Info */}
-                        <div className="pt-6 border-t border-gray-200">
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="pt-4 border-t border-gray-200">
+                            <div className="grid grid-cols-2 gap-4 text-xs">
                                 <div>
                                     <p className="text-gray-500">Ngày tạo</p>
                                     <p className="font-medium text-gray-900">
@@ -125,19 +248,19 @@ export function ProfilePage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="mt-8 pt-6 border-t border-gray-200">
+                    <div className="mt-6 pt-4 border-t border-gray-200">
                         <button
                             onClick={handleSignOut}
-                            className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
+                            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                         >
-                            <LogOut className="w-5 h-5" />
+                            <LogOut className="w-4 h-4" />
                             Đăng xuất
                         </button>
                     </div>
                 </div>
 
                 {/* Help Text */}
-                <div className="mt-8 text-center text-sm text-gray-600">
+                <div className="mt-6 text-center text-xs text-gray-600">
                     <p>
                         Cần hỗ trợ?{' '}
                         <a href="mailto:support@dbscl.vn" className="text-blue-600 hover:underline">

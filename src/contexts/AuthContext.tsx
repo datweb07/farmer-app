@@ -85,11 +85,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
             console.log('🔵 [fetchProfile] Starting fetch for user:', userId);
 
-            const { data: profileData, error } = await supabase
+            // Add timeout to prevent hanging
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+            );
+
+            const fetchPromise = supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
-                .single();
+                .maybeSingle();
+
+            const { data: profileData, error } = await Promise.race([
+                fetchPromise,
+                timeoutPromise
+            ]) as any;
 
             console.log('🔵 [fetchProfile] Query completed');
 
@@ -100,6 +110,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
                     details: error.details,
                     hint: error.hint,
                 });
+
+                // If RLS policy error, show helpful message
+                if (error.code === '42501' || error.message?.includes('policy')) {
+                    console.error('🔴 [fetchProfile] RLS POLICY ERROR - Run migration 004_fix_profiles_rls.sql!');
+                }
+
                 setProfile(null);
                 return;
             }
@@ -114,11 +130,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } catch (error: any) {
             console.error('🔴 [fetchProfile] Unexpected error:', error);
             console.error('🔴 [fetchProfile] Error message:', error?.message);
+
+            if (error.message === 'Profile fetch timeout') {
+                console.error('🔴 [fetchProfile] TIMEOUT - Check RLS policies and network connection!');
+            }
+
             setProfile(null);
         } finally {
             fetchingProfileRef.current = false;
+            console.log('✅ [fetchProfile] Fetch completed, ref reset');
         }
     }, []);
+
+    // Track last user ID to prevent duplicate profile fetches
+    const lastUserIdRef = useRef<string | null>(null);
 
     /**
      * Initialize auth state on mount
@@ -149,6 +174,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
                     if (initialSession?.user) {
                         console.log('🔵 [AuthContext] Fetching profile...');
+                        lastUserIdRef.current = initialSession.user.id;
                         await fetchProfile(initialSession.user.id);
                     }
 
@@ -180,12 +206,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
                     return;
                 }
 
+                // Prevent duplicate profile fetches for the same user
+                if (currentSession?.user && currentSession.user.id === lastUserIdRef.current && event === 'SIGNED_IN') {
+                    console.log('🟡 [AuthContext] Skipping duplicate SIGNED_IN for same user');
+                    return;
+                }
+
                 setSession(currentSession);
                 setUser(currentSession?.user ?? null);
 
                 if (currentSession?.user) {
+                    lastUserIdRef.current = currentSession.user.id;
                     await fetchProfile(currentSession.user.id);
                 } else {
+                    lastUserIdRef.current = null;
                     setProfile(null);
                 }
 
@@ -198,7 +232,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             mounted = false;
             subscription.unsubscribe();
         };
-    }, []); // Empty dependency array - only run once on mount
+    }, [fetchProfile]);
 
     /**
      * Sign up new user

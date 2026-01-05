@@ -30,15 +30,15 @@ export function InvestmentProjectCard({ project, onUpdate, onEdit }: InvestmentP
   const getStatusBadge = () => {
     switch (project.status) {
       case 'active':
-        return { text: 'Đang kêu gọi', color: 'bg-green-100 text-green-700' };
+        return { text: 'Đang kêu gọi', color: 'bg-blue-100 text-blue-700' };
       case 'funded':
         return { text: 'Đã đủ vốn', color: 'bg-blue-100 text-blue-700' };
       case 'pending':
-        return { text: 'Chờ phê duyệt', color: 'bg-yellow-100 text-yellow-700' };
+        return { text: 'Chờ phê duyệt', color: 'bg-blue-100 text-blue-700' };
       case 'completed':
-        return { text: 'Hoàn thành', color: 'bg-purple-100 text-purple-700' };
+        return { text: 'Hoàn thành', color: 'bg-blue-100 text-blue-700' };
       case 'cancelled':
-        return { text: 'Đã hủy', color: 'bg-red-100 text-red-700' };
+        return { text: 'Đã hủy', color: 'bg-blue-100 text-blue-700' };
     }
   };
 
@@ -62,74 +62,74 @@ export function InvestmentProjectCard({ project, onUpdate, onEdit }: InvestmentP
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
-          <div className="flex items-start justify-between mb-3">
-            <h3 className="font-bold text-xl flex-1">{project.title}</h3>
-            <span className={`${statusBadge.color} px-3 py-1 rounded-full text-sm font-bold`}>
+        <div className="bg-blue-600 p-4 text-white">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="font-semibold text-lg flex-1">{project.title}</h3>
+            <span className={`${statusBadge.color} px-2 py-1 rounded text-xs font-medium`}>
               {statusBadge.text}
             </span>
           </div>
-          <p className="text-white/90 leading-relaxed">{project.description}</p>
+          <p className="text-white/90 text-sm line-clamp-2">{project.description}</p>
           {project.creator_username && (
-            <p className="text-white/80 text-sm mt-2">
-              Bởi: <span className="font-bold">{project.creator_username}</span>
+            <p className="text-white/80 text-xs mt-2">
+              Bởi: <span className="font-medium">{project.creator_username}</span>
             </p>
           )}
         </div>
 
         {/* Stats */}
-        <div className="p-6">
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-blue-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-blue-600 mb-2">
-                <Users className="w-5 h-5" />
-                <span className="text-sm font-medium">Nông dân hưởng lợi</span>
+        <div className="p-4">
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="border border-gray-200 rounded-lg p-3">
+              <div className="flex items-center gap-1 text-blue-600 mb-1">
+                <Users className="w-4 h-4" />
+                <span className="text-xs font-medium">Nông dân hưởng lợi</span>
               </div>
-              <p className="text-2xl font-bold text-blue-700">
+              <p className="text-lg font-semibold text-blue-700">
                 {project.farmers_impacted.toLocaleString('vi-VN')}
               </p>
             </div>
 
-            <div className="bg-green-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 text-green-600 mb-2">
-                <MapPin className="w-5 h-5" />
-                <span className="text-sm font-medium">Khu vực</span>
+            <div className="border border-gray-200 rounded-lg p-3">
+              <div className="flex items-center gap-1 text-blue-600 mb-1">
+                <MapPin className="w-4 h-4" />
+                <span className="text-xs font-medium">Khu vực</span>
               </div>
-              <p className="text-lg font-bold text-green-700">{project.area}</p>
+              <p className="text-sm font-semibold text-blue-700">{project.area}</p>
             </div>
           </div>
 
           {/* Funding Progress */}
-          <div className="bg-gray-50 rounded-xl p-5 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-600" />
-                <span className="font-bold text-gray-700">Tiến độ gọi vốn</span>
+          <div className="border border-gray-200 rounded-lg p-3 mb-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1">
+                <Target className="w-4 h-4 text-blue-600" />
+                <span className="font-medium text-gray-700 text-sm">Tiến độ gọi vốn</span>
               </div>
-              <span className="text-2xl font-bold text-purple-600">{progress.toFixed(0)}%</span>
+              <span className="text-lg font-semibold text-blue-600">{progress.toFixed(0)}%</span>
             </div>
 
             {/* Progress Bar */}
-            <div className="bg-gray-200 rounded-full h-4 mb-3 overflow-hidden">
+            <div className="bg-gray-100 rounded-full h-2 mb-2 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full transition-all"
+                className="bg-blue-600 h-full rounded-full"
                 style={{ width: `${Math.min(progress, 100)}%` }}
               />
             </div>
 
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-xs">
               <span className="text-gray-600">
-                Đã huy động: <span className="font-bold text-green-600">{formatMoney(project.current_funding)}</span>
+                Đã huy động: <span className="font-medium text-blue-600">{formatMoney(project.current_funding)}</span>
               </span>
               <span className="text-gray-600">
-                Mục tiêu: <span className="font-bold text-blue-600">{formatMoney(project.funding_goal)}</span>
+                Mục tiêu: <span className="font-medium text-blue-600">{formatMoney(project.funding_goal)}</span>
               </span>
             </div>
 
             {project.investors_count > 0 && (
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-xs text-gray-600 mt-2">
                 {project.investors_count} nhà đầu tư đã tham gia
               </p>
             )}
@@ -137,32 +137,32 @@ export function InvestmentProjectCard({ project, onUpdate, onEdit }: InvestmentP
 
           {/* Action Buttons */}
           {isOwner ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {/* Investors List Button */}
               <button
                 onClick={() => setShowInvestorsList(true)}
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg flex items-center justify-center gap-2"
+                className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
-                <UserCheck className="w-5 h-5" />
-                Xem danh sách nhà đầu tư ({project.investors_count})
+                <UserCheck className="w-4 h-4" />
+                Xem nhà đầu tư ({project.investors_count})
               </button>
 
               {/* Edit and Delete Buttons */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => onEdit?.(project.id)}
-                  className="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                  className="bg-gray-100 text-gray-700 px-2 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-1 text-sm"
                   disabled={deleting}
                 >
-                  <Edit className="w-5 h-5" />
+                  <Edit className="w-3 h-3" />
                   Chỉnh sửa
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="bg-red-100 text-red-700 px-6 py-3 rounded-xl font-bold hover:bg-red-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="bg-red-50 text-red-700 px-2 py-2 rounded-lg font-medium hover:bg-red-100 transition-colors flex items-center justify-center gap-1 text-sm disabled:opacity-50"
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className="w-3 h-3" />
                   {deleting ? 'Đang xóa...' : 'Xóa'}
                 </button>
               </div>
@@ -172,22 +172,22 @@ export function InvestmentProjectCard({ project, onUpdate, onEdit }: InvestmentP
               {project.status === 'active' && (
                 <button
                   onClick={() => setShowInvestModal(true)}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-105 transition-transform shadow-lg"
+                  className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                 >
-                  <TrendingUp className="w-6 h-6" />
+                  <TrendingUp className="w-4 h-4" />
                   Tham gia đầu tư
                 </button>
               )}
 
               {project.status === 'funded' && (
-                <div className="w-full bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-4 rounded-xl font-bold text-center">
-                  ✓ Dự án đã hoàn thành gọi vốn
+                <div className="w-full bg-blue-50 text-blue-700 px-3 py-2 rounded-lg font-medium text-center text-sm">
+                  Dự án đã hoàn thành gọi vốn
                 </div>
               )}
 
               {project.status === 'pending' && (
-                <div className="w-full bg-yellow-100 text-yellow-700 px-6 py-4 rounded-xl font-bold text-center">
-                  ⏳ Dự án đang chờ phê duyệt
+                <div className="w-full bg-blue-50 text-blue-700 px-3 py-2 rounded-lg font-medium text-center text-sm">
+                  Dự án đang chờ phê duyệt
                 </div>
               )}
             </>

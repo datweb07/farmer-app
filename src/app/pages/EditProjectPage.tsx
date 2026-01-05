@@ -100,7 +100,6 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
 
         setSubmitting(true);
 
-        // Upload new image if provided
         let imageUrl = project?.image_url;
         if (imageFile && user) {
             const { url, error: uploadError } = await uploadImage(imageFile, 'project-images', user.id);
@@ -139,22 +138,22 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
         );
     }
 
     if (!project || !user || project.user_id !== user.id) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <div className="min-h-screen bg-white flex items-center justify-center p-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-6 max-w-md text-center">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4">
                         Không có quyền truy cập
                     </h2>
                     <button
                         onClick={() => onNavigate?.('invest')}
-                        className="bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-600"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                     >
                         Quay lại
                     </button>
@@ -165,10 +164,10 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
 
     if (showSuccess) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center">
-                    <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-4 animate-bounce" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="min-h-screen bg-white flex items-center justify-center p-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-6 max-w-md text-center">
+                    <CheckCircle className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
                         Cập nhật thành công!
                     </h2>
                 </div>
@@ -177,115 +176,115 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <div className="min-h-screen bg-white">
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <button
                     onClick={() => onNavigate?.('invest')}
-                    className="flex items-center gap-2 text-gray-700 hover:text-gray-900 mb-6 font-bold"
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 font-medium"
                 >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-4 h-4" />
                     Quay lại trang Đầu tư
                 </button>
 
-                <div className="bg-white rounded-2xl shadow-lg p-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <h1 className="text-2xl font-semibold text-gray-900 mb-2">
                         Chỉnh sửa dự án
                     </h1>
-                    <p className="text-gray-600 mb-8">
+                    <p className="text-gray-600 mb-6">
                         Cập nhật thông tin dự án của bạn
                     </p>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Title */}
                         <div>
-                            <label className="block text-gray-700 font-bold mb-2">
+                            <label className="block text-gray-700 font-medium mb-1">
                                 Tên dự án *
                             </label>
                             <input
                                 type="text"
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                                 disabled={submitting}
                             />
                         </div>
 
                         {/* Description */}
                         <div>
-                            <label className="block text-gray-700 font-bold mb-2">
+                            <label className="block text-gray-700 font-medium mb-1">
                                 Mô tả dự án *
                             </label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                rows={5}
-                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none resize-none"
                                 disabled={submitting}
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-gray-700 font-bold mb-2">
+                                <label className="block text-gray-700 font-medium mb-1">
                                     Mục tiêu vốn (VNĐ) *
                                 </label>
                                 <input
                                     type="text"
                                     value={formatNumber(formData.funding_goal)}
                                     onChange={(e) => handleNumberInput('funding_goal', e.target.value)}
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                                     disabled={submitting}
                                 />
                             </div>
                             <div>
-                                <label className="block text-gray-700 font-bold mb-2">
+                                <label className="block text-gray-700 font-medium mb-1">
                                     Số nông dân hưởng lợi *
                                 </label>
                                 <input
                                     type="text"
                                     value={formatNumber(formData.farmers_impacted)}
                                     onChange={(e) => handleNumberInput('farmers_impacted', e.target.value)}
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                                     disabled={submitting}
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-gray-700 font-bold mb-2">
+                            <label className="block text-gray-700 font-medium mb-1">
                                 Khu vực triển khai *
                             </label>
                             <input
                                 type="text"
                                 value={formData.area}
                                 onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                                 disabled={submitting}
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-gray-700 font-bold mb-2">
+                                <label className="block text-gray-700 font-medium mb-1">
                                     Ngày bắt đầu
                                 </label>
                                 <input
                                     type="date"
                                     value={formData.start_date}
                                     onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                                     disabled={submitting}
                                 />
                             </div>
                             <div>
-                                <label className="block text-gray-700 font-bold mb-2">
+                                <label className="block text-gray-700 font-medium mb-1">
                                     Ngày dự kiến hoàn thành
                                 </label>
                                 <input
                                     type="date"
                                     value={formData.end_date}
                                     onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                                     disabled={submitting}
                                 />
                             </div>
@@ -293,13 +292,13 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
 
                         {/* Status */}
                         <div>
-                            <label className="block text-gray-700 font-bold mb-2">
+                            <label className="block text-gray-700 font-medium mb-1">
                                 Trạng thái dự án
                             </label>
                             <select
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
                                 disabled={submitting}
                             >
                                 <option value="pending">Chờ phê duyệt</option>
@@ -312,7 +311,7 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
 
                         {/* Image Upload */}
                         <div>
-                            <label className="block text-gray-700 font-bold mb-2">
+                            <label className="block text-gray-700 font-medium mb-1">
                                 Hình ảnh dự án
                             </label>
                             {imagePreview ? (
@@ -320,20 +319,20 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
                                     <img
                                         src={imagePreview}
                                         alt="Preview"
-                                        className="w-full h-64 object-cover rounded-xl"
+                                        className="w-full h-48 object-cover rounded-lg"
                                     />
                                     <button
                                         type="button"
                                         onClick={removeImage}
-                                        className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
                                         disabled={submitting}
                                     >
-                                        <X className="w-5 h-5" />
+                                        <X className="w-4 h-4" />
                                     </button>
                                 </div>
                             ) : (
-                                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-indigo-500 transition-colors">
-                                    <Upload className="w-12 h-12 text-gray-400 mb-2" />
+                                <label className="flex flex-col items-center justify-center w-full h-48 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-600 transition-colors">
+                                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
                                     <span className="text-gray-600">Nhấn để tải ảnh lên</span>
                                     <input
                                         type="file"
@@ -347,8 +346,8 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
                         </div>
 
                         {error && (
-                            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
-                                <p className="text-red-700 font-bold">{error}</p>
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                <p className="text-red-700">{error}</p>
                             </div>
                         )}
 
@@ -356,7 +355,7 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
                             <button
                                 type="button"
                                 onClick={() => onNavigate?.('invest')}
-                                className="flex-1 bg-gray-200 text-gray-700 px-6 py-4 rounded-xl font-bold hover:bg-gray-300 transition-colors"
+                                className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                                 disabled={submitting}
                             >
                                 Hủy
@@ -364,11 +363,11 @@ export function EditProjectPage({ projectId, onNavigate, onSuccess }: EditProjec
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-4 rounded-xl font-bold hover:scale-105 transition-transform shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {submitting ? (
                                     <>
-                                        <Loader2 className="w-6 h-6 animate-spin" />
+                                        <Loader2 className="w-4 h-4 animate-spin" />
                                         Đang lưu...
                                     </>
                                 ) : (

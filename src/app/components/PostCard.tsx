@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Eye, Award, ExternalLink } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MoreHorizontal, ExternalLink } from 'lucide-react';
 import type { PostWithStats } from '../../lib/community/types';
 import { likePost, unlikePost, trackPostView } from '../../lib/community/posts.service';
-import { CommentSection } from './CommentSection';
+import { CommentsModal } from './CommentsModal';
 import { useAuth } from '../../contexts/AuthContext';
+import { UserAvatar } from './UserAvatar';
 
 interface PostCardProps {
   post: PostWithStats;
@@ -13,22 +14,21 @@ interface PostCardProps {
 
 export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const { user } = useAuth();
-  const [showComments, setShowComments] = useState(false);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [commentsCount, setCommentsCount] = useState(post.comments_count);
   const [isLiking, setIsLiking] = useState(false);
 
-  // Track view on mount
   useEffect(() => {
     trackPostView(post.id);
   }, [post.id]);
 
   const getCategoryBadge = () => {
     const badges = {
-      experience: { text: 'Kinh nghiệm', color: 'bg-blue-100 text-blue-700' },
-      'salinity-solution': { text: 'Giải pháp mặn', color: 'bg-green-100 text-green-700' },
-      product: { text: 'Sản phẩm', color: 'bg-purple-100 text-purple-700' },
+      experience: { text: 'Kinh nghiệm', color: 'text-blue-600' },
+      'salinity-solution': { text: 'Giải pháp mặn', color: 'text-green-600' },
+      product: { text: 'Sản phẩm', color: 'text-purple-600' },
     };
     return badges[post.category];
   };
@@ -39,14 +39,12 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
     setIsLiking(true);
 
     if (isLiked) {
-      // Unlike
       const result = await unlikePost(post.id);
       if (result.success) {
         setIsLiked(false);
         setLikesCount(prev => Math.max(0, prev - 1));
       }
     } else {
-      // Like
       const result = await likePost(post.id);
       if (result.success) {
         setIsLiked(true);
@@ -66,100 +64,178 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffDays === 0) return 'Hôm nay';
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+
+    const diffDays = Math.floor(diffHours / 24);
     if (diffDays === 1) return 'Hôm qua';
     if (diffDays < 7) return `${diffDays} ngày trước`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
-    return date.toLocaleDateString('vi-VN');
+
+    return date.toLocaleDateString('vi-VN', {
+      day: 'numeric',
+      month: 'short',
+    });
   };
 
   const badge = getCategoryBadge();
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-100 hover:shadow-xl transition-shadow">
-      {/* Header */}
-      <div className="p-4 flex items-center gap-3 border-b border-gray-100">
-        <img
-          src={'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100'}
-          alt={post.author_username}
-          className="w-14 h-14 rounded-full object-cover border-2 border-blue-200"
-        />
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h4 className="font-bold text-gray-900">{post.author_username}</h4>
-            <div className="flex items-center gap-1 bg-yellow-100 px-2 py-1 rounded-lg">
-              <Award className="w-4 h-4 text-yellow-600" />
-              <span className="text-sm font-bold text-yellow-700">{post.author_points}</span>
+    <>
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-4 min-h-0 flex flex-col">
+        {/* Header - Giống Facebook */}
+        <div className="p-3 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              avatarUrl={post.author_avatar}
+              username={post.author_username}
+              size="lg"
+            />
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-semibold text-gray-900 text-sm hover:underline cursor-pointer">
+                  {post.author_username}
+                </h4>
+                <span className={`text-xs ${badge.color}`}>
+                  • {badge.text}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-gray-500">
+                  {formatDate(post.created_at)}
+                </span>
+                {post.author_points > 0 && (
+                  <>
+                    <span className="text-gray-300">•</span>
+                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-yellow-500 rounded-full"></span>
+                      {post.author_points} điểm
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-          <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
-        </div>
-        <span className={`${badge.color} px-3 py-1 rounded-full text-sm font-medium`}>
-          {badge.text}
-        </span>
-      </div>
-
-      {/* Image */}
-      {post.image_url && (
-        <img
-          src={post.image_url}
-          alt={post.title}
-          className="w-full h-64 object-cover"
-        />
-      )}
-
-      {/* Content */}
-      <div className="p-5">
-        <h3 className="font-bold text-xl text-gray-900 mb-3">{post.title}</h3>
-        <p className="text-gray-700 leading-relaxed line-clamp-3">{post.content}</p>
-
-        {/* Product Link */}
-        {post.product_link && (
-          <button
-            onClick={() => onProductClick?.(post.product_link!)}
-            className="mt-4 w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-105 transition-transform"
-          >
-            <ExternalLink className="w-5 h-5" />
-            Xem sản phẩm
+          <button className="p-1.5 hover:bg-gray-100 rounded-full">
+            <MoreHorizontal className="w-5 h-5 text-gray-500" />
           </button>
+        </div>
+
+        {/* Content - Phần này sẽ co giãn */}
+        <div className="px-3 pb-3 flex-grow min-h-0">
+          <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-line break-words">
+            {post.content}
+          </p>
+
+          {/* Title - Nếu có */}
+          {post.title && (
+            <h3 className="font-semibold text-gray-900 mt-2 text-base">
+              {post.title}
+            </h3>
+          )}
+        </div>
+
+        {/* Image - Giống Facebook, chiều cao tự động */}
+        {post.image_url && (
+          <div className="border-y border-gray-200 flex-shrink-0">
+            <img
+              src={post.image_url}
+              alt={post.title || 'Bài viết hình ảnh'}
+              className="w-full h-auto object-contain"
+            />
+          </div>
+        )}
+
+        {/* Stats - Giống Facebook */}
+        {(likesCount > 0 || commentsCount > 0 || post.views_count > 0) && (
+          <div className="px-3 pt-2 pb-1 flex items-center text-sm text-gray-500 border-b border-gray-200 flex-shrink-0">
+            <div className="flex items-center gap-4">
+              {likesCount > 0 && (
+                <span className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                    <Heart className="w-2.5 h-2.5 text-white fill-current" />
+                  </div>
+                  {likesCount}
+                </span>
+              )}
+
+              {commentsCount > 0 && (
+                <button
+                  onClick={() => setShowCommentsModal(true)}
+                  className="hover:underline"
+                >
+                  {commentsCount} bình luận
+                </button>
+              )}
+            </div>
+
+            {/* Views đẩy sang phải */}
+            {post.views_count > 0 && (
+              <span className="ml-auto text-xs text-gray-600 pr-1">
+                {post.views_count} lượt xem
+              </span>
+            )}
+          </div>
+
+        )}
+
+        {/* Action Buttons - Giống Facebook */}
+        <div className="px-3 py-1 border-b border-gray-200 flex-shrink-0">
+          <div className="grid grid-cols-3">
+            <button
+              onClick={handleLike}
+              disabled={!user || isLiking}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isLiked
+                ? 'text-red-600 font-semibold'
+                : 'text-gray-600 hover:bg-gray-100'
+                } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+              <span className="text-sm">Thích</span>
+            </button>
+
+            <button
+              onClick={() => setShowCommentsModal(true)}
+              className="flex items-center justify-center gap-2 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-sm">Bình luận</span>
+            </button>
+
+            <button className="flex items-center justify-center gap-2 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+              <Share2 className="w-5 h-5" />
+              <span className="text-sm">Chia sẻ</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Product Link - Nếu có */}
+        {post.product_link && (
+          <div className="px-3 py-2 flex-shrink-0">
+            <button
+              onClick={() => onProductClick?.(post.product_link!)}
+              className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Xem sản phẩm liên quan
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="px-5 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-around">
-        <button
-          onClick={handleLike}
-          disabled={!user || isLiking}
-          className={`flex items-center gap-2 transition-colors ${isLiked
-            ? 'text-red-500'
-            : 'text-gray-600 hover:text-red-500'
-            } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
-          <span className="font-bold">{likesCount}</span>
-        </button>
-        <button
-          onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors"
-        >
-          <MessageCircle className="w-6 h-6" />
-          <span className="font-bold">{commentsCount}</span>
-        </button>
-        <div className="flex items-center gap-2 text-gray-600">
-          <Eye className="w-6 h-6" />
-          <span className="font-bold">{post.views_count}</span>
-        </div>
-      </div>
-
-      {/* Comments Section */}
-      {showComments && (
-        <div className="px-5 py-4 border-t border-gray-100">
-          <CommentSection postId={post.id} onCommentAdded={handleCommentAdded} />
-        </div>
-      )}
-    </div>
+      {/* Comments Modal */}
+      <CommentsModal
+        postId={post.id}
+        isOpen={showCommentsModal}
+        onClose={() => setShowCommentsModal(false)}
+        commentsCount={commentsCount}
+        onCommentAdded={handleCommentAdded}
+      />
+    </>
   );
 }
-

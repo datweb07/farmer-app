@@ -19,6 +19,7 @@ export interface PostWithStats extends Post {
     likes_count: number;
     comments_count: number;
     author_username: string;
+    author_avatar?: string | null;
     author_points: number;
     is_liked?: boolean; // Whether current user liked this post
 }
@@ -47,10 +48,15 @@ export interface PostComment {
     post_id: string;
     user_id: string;
     content: string;
+    parent_comment_id?: string | null; // For nested replies
+    reply_count: number; // Number of replies
+    like_count: number; // Number of likes
+    user_liked?: boolean; // Whether current user liked this comment
+    username?: string; // Author username (joined from profiles)
+    avatar_url?: string | null; // Author avatar URL
     created_at: string;
     updated_at: string;
-    author_username?: string;
-    author_avatar?: string;
+    replies?: PostComment[]; // Nested replies (loaded separately)
 }
 
 export interface PostLike {
@@ -101,3 +107,11 @@ export interface UpdateProductData {
     image_url?: string;
     contact?: string;
 }
+
+export interface CommentLike {
+    id: string;
+    comment_id: string;
+    user_id: string;
+    created_at: string;
+}
+

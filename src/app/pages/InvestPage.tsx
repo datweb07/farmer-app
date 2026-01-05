@@ -8,7 +8,7 @@ import {
   Phone,
   MapPin,
   Plus,
-  CheckCircle,
+
   Loader2,
 } from "lucide-react";
 import { InvestmentProjectCard } from "../components/InvestmentProjectCard";
@@ -16,7 +16,6 @@ import { StatsCard } from "../components/StatsCard";
 import { PartnerModal } from "../components/PartnerModal";
 import { overallStats } from "../../data/mockData";
 import { getProjects } from "../../lib/investments/investments.service";
-import { submitContactRequest } from "../../lib/contact/contact.service";
 import type { InvestmentProjectWithStats } from "../../lib/investments/types";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -31,17 +30,8 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
   const [loading, setLoading] = useState(true);
   const [partnerModalType, setPartnerModalType] = useState<'investor' | 'business' | 'research' | null>(null);
 
-  // Contact form state
-  const [contactForm, setContactForm] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    partnershipType: 'investor' as const,
-    message: '',
-  });
-  const [submittingContact, setSubmittingContact] = useState(false);
-  const [contactSuccess, setContactSuccess] = useState(false);
-  const [contactError, setContactError] = useState<string | null>(null);
+
+
 
   // Load projects
   useEffect(() => {
@@ -57,41 +47,7 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
     setLoading(false);
   };
 
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setContactError(null);
 
-    if (!contactForm.fullName || !contactForm.phone || !contactForm.email || !contactForm.message) {
-      setContactError('Vui lòng điền đầy đủ thông tin');
-      return;
-    }
-
-    setSubmittingContact(true);
-
-    const result = await submitContactRequest({
-      full_name: contactForm.fullName,
-      phone_number: contactForm.phone,
-      email: contactForm.email,
-      partnership_type: contactForm.partnershipType,
-      message: contactForm.message,
-    });
-
-    setSubmittingContact(false);
-
-    if (result.success) {
-      setContactSuccess(true);
-      setContactForm({
-        fullName: '',
-        phone: '',
-        email: '',
-        partnershipType: 'investor',
-        message: '',
-      });
-      setTimeout(() => setContactSuccess(false), 5000);
-    } else {
-      setContactError(result.error || 'Không thể gửi yêu cầu');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white">

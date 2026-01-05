@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { X, Image, Loader2, DollarSign, Phone, Package } from "lucide-react";
+import { X, Image, Loader2, Package } from "lucide-react";
 import { createProduct } from "../../lib/community/products.service";
 import { validateImageFile } from "../../lib/community/image-upload";
 import type { CreateProductData } from "../../lib/community/types";
@@ -203,8 +203,8 @@ export function CreateProductModal({
                           setFormData({ ...formData, category: cat.value })
                         }
                         className={`p-2 rounded-lg border text-xs transition-colors ${formData.category === cat.value
-                            ? "border-blue-600 bg-blue-50 text-blue-700"
-                            : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
                           }`}
                         disabled={loading}
                       >

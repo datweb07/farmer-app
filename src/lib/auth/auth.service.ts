@@ -677,7 +677,7 @@ export async function uploadAvatar(file: File): Promise<{
             .from('profiles')
             .select('avatar_url')
             .eq('id', user.id)
-            .single();
+            .single() as { data: { avatar_url: string | null } | null };
 
         if (profile?.avatar_url) {
             const oldPath = profile.avatar_url.split('/avatars/')[1];
@@ -707,7 +707,7 @@ export async function uploadAvatar(file: File): Promise<{
         // Update profile with new avatar URL
         const { error: updateError } = await supabase
             .from('profiles')
-            .update({ avatar_url: publicUrl })
+            .update({ avatar_url: publicUrl } as never)
             .eq('id', user.id);
 
         if (updateError) {
@@ -740,7 +740,7 @@ export async function deleteAvatar(): Promise<{
             .from('profiles')
             .select('avatar_url')
             .eq('id', user.id)
-            .single();
+            .single() as { data: { avatar_url: string | null } | null };
 
         if (!profile?.avatar_url) {
             return { success: true }; // No avatar to delete
@@ -755,7 +755,7 @@ export async function deleteAvatar(): Promise<{
         // Update profile to remove avatar URL
         const { error } = await supabase
             .from('profiles')
-            .update({ avatar_url: null })
+            .update({ avatar_url: null } as never)
             .eq('id', user.id);
 
         if (error) {

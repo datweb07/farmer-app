@@ -268,3 +268,166 @@ export async function getProjectInvestments(projectId: string): Promise<{
         return { investments: [], error: 'Đã xảy ra lỗi không mong muốn' };
     }
 }
+
+/**
+ * Get overall investment statistics
+ */
+export interface OverallStats {
+    totalFarmers: number;
+    affectedArea: number;
+    activeProjects: number;
+    successRate: number;
+}
+
+// Diện tích thực tế của 13 tỉnh ĐBSCL (đơn vị: hecta)
+const MEKONG_DELTA_PROVINCES: Record<string, number> = {
+    'An Giang': 353600,
+    'Bạc Liêu': 250400,
+    'Bến Tre': 236100,
+    'Cà Mau': 531900,
+    'Cần Thơ': 140900,
+    'Đồng Tháp': 332800,
+    'Hậu Giang': 160000,
+    'Kiên Giang': 631500,
+    'Long An': 449600,
+    'Sóc Trăng': 331300,
+    'Tiền Giang': 249700,
+    'Trà Vinh': 229800,
+    'Vĩnh Long': 147900,
+};
+
+/**
+ * Parse province names from area string
+ * Examples: "Vĩnh Long", "Vĩnh Long, Đồng Tháp", "Toàn vùng ĐBSCL"
+ */
+function parseProvinces(areaString: string): string[] {
+    if (!areaString) return [];
+
+    // Check if it's "Toàn vùng ĐBSCL" or similar
+    const fullRegionKeywords = ['toàn vùng', 'đbscl', 'đồng bằng sông cửu long'];
+    const lowerArea = areaString.toLowerCase();
+
+    if (fullRegionKeywords.some(keyword => lowerArea.includes(keyword))) {
+        return Object.keys(MEKONG_DELTA_PROVINCES);
+    }
+
+    // Split by common separators and find matching provinces
+    const parts = areaString.split(/[,;/]/).map(p => p.trim());
+    const foundProvinces: string[] = [];
+
+    for (const part of parts) {
+        // Find province that matches this part
+        const province = Object.keys(MEKONG_DELTA_PROVINCES).find(
+            p => part.includes(p) || p.includes(part)
+        );
+        if (province && !foundProvinces.includes(province)) {
+            foundProvinces.push(province);
+        }
+    }
+
+    return foundProvinces;
+}
+
+/**
+ * Calculate total affected area based on provinces mentioned in projects
+ */
+function calculateAffectedArea(projects: any[]): number {
+    const affectedProvinces = new Set<string>();
+
+    for (const project of projects) {
+        const provinces = parseProvinces(project.area || '');
+        provinces.forEach(p => affectedProvinces.add(p));
+    }
+
+    // Sum up areas of all affected provinces
+    let totalArea = 0;
+    affectedProvinces.forEach(province => {
+        totalArea += MEKONG_DELTA_PROVINCES[province] || 0;
+    });
+
+    return totalArea;
+}
+
+export async function getOverallStats(): Promise<{
+    stats: OverallStats | null;
+    error?: string;
+}> {
+    try {
+        // Get all projects
+        const { data: projects, error: projectsError } = await supabase
+            .from('investment_projects')
+            .select('*');
+
+        if (projectsError || !projects) {
+            console.error('🔴 [Investments] Stats fetch error:', projectsError);
+            return {
+                stats: {
+                    totalFarmers: 0,
+                    affectedArea: 0,
+                    activeProjects: 0,
+                    successRate: 0,
+                },
+                error: 'Không thể tải thống kê',
+            };
+        }
+
+        // Calculate total farmers (sum of farmers_impacted from all projects)
+        const totalFarmers = projects.reduce((sum, p) => sum + (p.farmers_impacted || 0), 0);
+
+        // Calculate affected area based on provinces
+        const affectedArea = calculateAffectedArea(projects);
+
+        // Count active projects
+        const activeProjects = projects.filter(p => p.status === 'active').length;
+
+        // Calculate success rate based on both status and funding progress
+        let completedProjects = 0;
+
+        for (const project of projects) {
+            // A project is considered successful if:
+            // 1. Status is 'completed' or 'funded', OR
+            // 2. Funding progress >= 100%
+            const fundingProgress = project.funding_goal > 0
+                ? (project.current_funding / project.funding_goal) * 100
+                : 0;
+
+            const isCompleted =
+                project.status === 'completed' ||
+                project.status === 'funded' ||
+                fundingProgress >= 100;
+
+            if (isCompleted) {
+                completedProjects++;
+            }
+        }
+
+        const successRate = projects.length > 0
+            ? Math.round((completedProjects / projects.length) * 100)
+            : 0;
+
+        console.log('📊 [Stats] Total Farmers:', totalFarmers);
+        console.log('📊 [Stats] Affected Area:', affectedArea, 'ha');
+        console.log('📊 [Stats] Active Projects:', activeProjects);
+        console.log('📊 [Stats] Success Rate:', successRate, '%', `(${completedProjects}/${projects.length})`);
+
+        return {
+            stats: {
+                totalFarmers,
+                affectedArea,
+                activeProjects,
+                successRate,
+            },
+        };
+    } catch (err) {
+        console.error('🔴 [Investments] Unexpected error:', err);
+        return {
+            stats: {
+                totalFarmers: 0,
+                affectedArea: 0,
+                activeProjects: 0,
+                successRate: 0,
+            },
+            error: 'Đã xảy ra lỗi không mong muốn',
+        };
+    }
+}

@@ -82,3 +82,50 @@ export interface UpdateProjectData {
     end_date?: string;
     status?: 'pending' | 'active' | 'funded' | 'completed' | 'cancelled';
 }
+
+// ============================================
+// Rating System Types
+// ============================================
+
+export interface ProjectRating {
+    id: string;
+    project_id: string;
+    user_id: string;
+    rating: number; // 1-5
+    review?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ProjectRatingStats {
+    avg_rating: number;
+    total_ratings: number;
+    rating_score: number;
+}
+
+export interface ProjectWithRatings extends InvestmentProjectWithStats {
+    avg_rating: number;
+    total_ratings: number;
+    rating_score: number;
+    user_rating?: number; // Current user's rating if exists
+    user_has_invested?: boolean; // Whether current user has invested
+}
+
+export interface LeaderboardProject {
+    project_id: string;
+    title: string;
+    image_url?: string;
+    rating_score: number;
+    avg_rating: number;
+    total_ratings: number;
+    funding_progress: number;
+    current_funding: number;
+    funding_goal: number;
+    creator_username: string;
+}
+
+export interface CreateRatingData {
+    project_id: string;
+    rating: number; // 1-5
+    review?: string;
+}

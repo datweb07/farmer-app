@@ -14,8 +14,8 @@ import {
 import { InvestmentProjectCard } from "../components/InvestmentProjectCard";
 import { StatsCard } from "../components/StatsCard";
 import { PartnerModal } from "../components/PartnerModal";
-import { overallStats } from "../../data/mockData";
-import { getProjects } from "../../lib/investments/investments.service";
+import { ProjectLeaderboard } from "../components/ProjectLeaderboard";
+import { getProjects, getOverallStats, type OverallStats } from "../../lib/investments/investments.service";
 import type { InvestmentProjectWithStats } from "../../lib/investments/types";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -29,13 +29,17 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
   const [projects, setProjects] = useState<InvestmentProjectWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [partnerModalType, setPartnerModalType] = useState<'investor' | 'business' | 'research' | null>(null);
+  const [stats, setStats] = useState<OverallStats>({
+    totalFarmers: 0,
+    affectedArea: 0,
+    activeProjects: 0,
+    successRate: 0,
+  });
 
-
-
-
-  // Load projects
+  // Load projects and stats
   useEffect(() => {
     loadProjects();
+    loadStats();
   }, []);
 
   const loadProjects = async () => {
@@ -45,6 +49,13 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
       setProjects(result.projects);
     }
     setLoading(false);
+  };
+
+  const loadStats = async () => {
+    const result = await getOverallStats();
+    if (result.stats) {
+      setStats(result.stats);
+    }
   };
 
 
@@ -79,28 +90,28 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
             title="Nông dân tham gia"
-            value={overallStats.totalFarmers.toLocaleString("vi-VN")}
+            value={stats.totalFarmers.toLocaleString("vi-VN")}
             icon={Users}
             color="blue"
-            subtitle="Đang hoạt động"
+            subtitle="Được hưởng lợi"
           />
           <StatsCard
             title="Diện tích ảnh hưởng"
-            value={`${overallStats.affectedArea.toLocaleString("vi-VN")} ha`}
+            value={`${stats.affectedArea.toLocaleString("vi-VN")} ha`}
             icon={MapPin}
             color="blue"
             subtitle="Đồng Bằng Sông Cửu Long"
           />
           <StatsCard
             title="Dự án đang triển khai"
-            value={overallStats.activeProjects}
+            value={stats.activeProjects}
             icon={TrendingUp}
             color="blue"
             subtitle="Cần hỗ trợ"
           />
           <StatsCard
             title="Tỷ lệ thành công"
-            value={`${overallStats.successRate}%`}
+            value={`${stats.successRate}%`}
             icon={Award}
             color="blue"
             subtitle="Các dự án đã hoàn thành"
@@ -138,6 +149,14 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Leaderboard Section */}
+        <div className="mb-8">
+          <h2 className="font-semibold text-xl text-gray-900 mb-4">
+            Bảng xếp hạng dự án
+          </h2>
+          <ProjectLeaderboard limit={10} />
         </div>
 
         {/* Investment Projects */}
@@ -399,7 +418,7 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <Mail className="w-6 h-6 text-blue-600 mb-2" />
             <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-            <p className="text-lg font-semibold text-blue-600">uehstudent.edu.vn</p>
+            <p className="text-lg font-semibold text-blue-600">ueh.edu.vn</p>
             <p className="text-sm text-gray-600 mt-1">Phản hồi trong 24h</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">

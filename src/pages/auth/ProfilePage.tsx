@@ -5,12 +5,15 @@
 // User profile management interface with avatar upload
 // ============================================
 
-import { useState, useRef } from 'react';
-import { LogOut, User, Phone, Briefcase, Building2, Upload, Trash2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { LogOut, User, Phone, Briefcase, Building2, Upload, Trash2, FileText, Share2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { uploadAvatar, deleteAvatar } from '../../lib/auth/auth.service';
 import { UserAvatar } from '../../app/components/UserAvatar';
 import { validateImageFile } from '../../lib/utils/image-validation';
+import { getUserPosts, getUserSharedPosts } from '../../lib/community/posts.service';
+import { PostCard } from '../../app/components/PostCard';
+import type { PostWithStats } from '../../lib/community/types';
 
 export function ProfilePage() {
     const { profile, signOut, refreshProfile } = useAuth();
@@ -19,6 +22,36 @@ export function ProfilePage() {
     const [avatarUploading, setAvatarUploading] = useState(false);
     const [avatarError, setAvatarError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+
+    // Activity state
+    const [activeTab, setActiveTab] = useState<'posts' | 'shared'>('posts');
+    const [userPosts, setUserPosts] = useState<PostWithStats[]>([]);
+    const [sharedPosts, setSharedPosts] = useState<any[]>([]);
+    const [loadingPosts, setLoadingPosts] = useState(false);
+
+    useEffect(() => {
+        if (profile?.id) {
+            loadUserActivity();
+        }
+    }, [profile?.id, activeTab]);
+
+    const loadUserActivity = async () => {
+        if (!profile?.id) return;
+
+        setLoadingPosts(true);
+        if (activeTab === 'posts') {
+            const result = await getUserPosts(profile.id);
+            if (!result.error) {
+                setUserPosts(result.posts);
+            }
+        } else {
+            const result = await getUserSharedPosts(profile.id);
+            if (!result.error) {
+                setSharedPosts(result.posts);
+            }
+        }
+        setLoadingPosts(false);
+    };
 
     const handleSignOut = async () => {
         if (confirm('Bạn có chắc muốn đăng xuất?')) {
@@ -82,6 +115,9 @@ export function ProfilePage() {
         );
     }
 
+    const currentPosts = activeTab === 'posts' ? userPosts : sharedPosts;
+    const hasNoPosts = currentPosts.length === 0 && !loadingPosts;
+
     return (
         <div className="min-h-screen bg-white pt-6 pb-12">
             <div className="max-w-4xl mx-auto px-4">
@@ -101,7 +137,7 @@ export function ProfilePage() {
                 )}
 
                 {/* Profile Card */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
                     {/* Avatar Upload Section - Centered */}
                     <div className="mb-6 pb-6 border-b border-gray-200">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4 text-center">
@@ -257,6 +293,62 @@ export function ProfilePage() {
                             Đăng xuất
                         </button>
                     </div>
+                </div>
+
+                {/* Activity Section */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                        Hoạt động của bạn
+                    </h2>
+
+                    {/* Tabs */}
+                    <div className="flex gap-2 mb-6 border-b border-gray-200">
+                        <button
+                            onClick={() => setActiveTab('posts')}
+                            className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === 'posts'
+                                ? 'text-blue-600 border-b-2 border-blue-600'
+                                : 'text-gray-600 hover:text-gray-900'
+                                }`}
+                        >
+                            <FileText className="w-4 h-4" />
+                            Bài viết của tôi
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('shared')}
+                            className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === 'shared'
+                                ? 'text-blue-600 border-b-2 border-blue-600'
+                                : 'text-gray-600 hover:text-gray-900'
+                                }`}
+                        >
+                            <Share2 className="w-4 h-4" />
+                            Đã chia sẻ
+                        </button>
+                    </div>
+
+                    {/* Posts */}
+                    {loadingPosts ? (
+                        <div className="flex justify-center items-center py-12">
+                            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    ) : hasNoPosts ? (
+                        <div className="text-center py-12">
+                            <p className="text-gray-500 text-sm">
+                                {activeTab === 'posts'
+                                    ? 'Bạn chưa có bài viết nào'
+                                    : 'Bạn chưa chia sẻ bài viết nào'}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {currentPosts.map((post: any) => (
+                                <PostCard
+                                    key={post.id}
+                                    post={post}
+                                    onUpdate={loadUserActivity}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Help Text */}

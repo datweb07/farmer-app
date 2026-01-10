@@ -18,10 +18,24 @@ export interface Post {
 export interface PostWithStats extends Post {
     likes_count: number;
     comments_count: number;
+    shares_count: number;
     author_username: string;
     author_avatar?: string | null;
     author_points: number;
     is_liked?: boolean; // Whether current user liked this post
+    is_shared?: boolean; // Whether current user shared this post
+}
+
+export interface PostShare {
+    id: string;
+    post_id: string;
+    user_id: string;
+    original_user_id: string;
+    created_at: string;
+}
+
+export interface SharedPost extends PostWithStats {
+    shared_at: string; // When the post was shared by the user
 }
 
 export interface Product {

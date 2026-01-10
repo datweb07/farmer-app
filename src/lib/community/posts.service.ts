@@ -88,32 +88,19 @@ export async function getPosts(params?: {
     try {
         console.log('🔵 [Posts] Fetching posts...');
 
+        const { data: { user } } = await supabase.auth.getUser();
+
         const { data, error } = await supabase.rpc('get_posts_with_stats', {
             category_filter: params?.category || null,
             search_query: params?.search || null,
             limit_count: params?.limit || 20,
             offset_count: params?.offset || 0,
+            current_user_id: user?.id || null,
         });
 
         if (error) {
             console.error('🔴 [Posts] Fetch error:', error);
             return { posts: [], error: 'Không thể tải bài viết' };
-        }
-
-        // Check if current user liked each post
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && data) {
-            const postIds = data.map((p: PostWithStats) => p.id);
-            const { data: likes } = await supabase
-                .from('post_likes')
-                .select('post_id')
-                .eq('user_id', user.id)
-                .in('post_id', postIds);
-
-            const likedPostIds = new Set(likes?.map(l => l.post_id) || []);
-            data.forEach((post: PostWithStats) => {
-                post.is_liked = likedPostIds.has(post.id);
-            });
         }
 
         console.log('✅ [Posts] Fetched', data?.length || 0, 'posts');
@@ -620,5 +607,144 @@ export async function deleteComment(commentId: string): Promise<{
     } catch (err) {
         console.error('🔴 [Posts] Unexpected error:', err);
         return { success: false, error: 'Đã xảy ra lỗi không mong muốn' };
+    }
+}
+
+/**
+ * Share a post
+ */
+export async function sharePost(postId: string): Promise<{
+    success: boolean;
+    error?: string;
+}> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return { success: false, error: 'Chưa đăng nhập' };
+        }
+
+        // Get the original post to find the author
+        const { data: post } = await supabase
+            .from('posts')
+            .select('user_id')
+            .eq('id', postId)
+            .single();
+
+        if (!post) {
+            return { success: false, error: 'Bài viết không tồn tại' };
+        }
+
+        const { error } = await supabase
+            .from('post_shares')
+            .insert({
+                post_id: postId,
+                user_id: user.id,
+                original_user_id: post.user_id,
+            });
+
+        if (error) {
+            console.error('🔴 [Posts] Share error:', error);
+            return { success: false, error: 'Không thể chia sẻ bài viết' };
+        }
+
+        console.log('✅ [Posts] Post shared:', postId);
+        return { success: true };
+    } catch (err) {
+        console.error('🔴 [Posts] Unexpected error:', err);
+        return { success: false, error: 'Đã xảy ra lỗi không mong muốn' };
+    }
+}
+
+/**
+ * Unshare a post
+ */
+export async function unsharePost(postId: string): Promise<{
+    success: boolean;
+    error?: string;
+}> {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return { success: false, error: 'Chưa đăng nhập' };
+        }
+
+        const { error } = await supabase
+            .from('post_shares')
+            .delete()
+            .eq('post_id', postId)
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error('🔴 [Posts] Unshare error:', error);
+            return { success: false, error: 'Không thể bỏ chia sẻ' };
+        }
+
+        console.log('✅ [Posts] Post unshared:', postId);
+        return { success: true };
+    } catch (err) {
+        console.error('🔴 [Posts] Unexpected error:', err);
+        return { success: false, error: 'Đã xảy ra lỗi không mong muốn' };
+    }
+}
+
+/**
+ * Get posts created by a specific user
+ */
+export async function getUserPosts(userId: string): Promise<{
+    posts: PostWithStats[];
+    error?: string;
+}> {
+    try {
+        console.log('🔵 [Posts] Fetching user posts...');
+
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const { data, error } = await supabase.rpc('get_user_posts', {
+            user_uuid: userId,
+            limit_count: 20,
+            current_user_id: user?.id || null,
+        });
+
+        if (error) {
+            console.error('🔴 [Posts] Fetch error:', error);
+            return { posts: [], error: 'Không thể tải bài viết' };
+        }
+
+        console.log('✅ [Posts] Fetched', data?.length || 0, 'user posts');
+        return { posts: (data as PostWithStats[]) || [] };
+    } catch (err) {
+        console.error('🔴 [Posts] Unexpected error:', err);
+        return { posts: [], error: 'Đã xảy ra lỗi không mong muốn' };
+    }
+}
+
+/**
+ * Get posts shared by a specific user
+ */
+export async function getUserSharedPosts(userId: string): Promise<{
+    posts: any[];
+    error?: string;
+}> {
+    try {
+        console.log('🔵 [Posts] Fetching user shared posts...');
+
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const { data, error } = await supabase.rpc('get_user_shared_posts', {
+            user_uuid: userId,
+            limit_count: 20,
+            current_user_id: user?.id || null,
+        });
+
+        if (error) {
+            console.error('🔴 [Posts] Fetch error:', error);
+            return { posts: [], error: 'Không thể tải bài viết đã chia sẻ' };
+        }
+
+        console.log('✅ [Posts] Fetched', data?.length || 0, 'shared posts');
+        return { posts: data || [] };
+    } catch (err) {
+        console.error('🔴 [Posts] Unexpected error:', err);
+        return { posts: [], error: 'Đã xảy ra lỗi không mong muốn' };
     }
 }

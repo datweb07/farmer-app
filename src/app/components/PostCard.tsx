@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Share2, MoreHorizontal, ExternalLink } from 'lucide-react';
 import type { PostWithStats } from '../../lib/community/types';
-import { likePost, unlikePost, trackPostView } from '../../lib/community/posts.service';
+import { likePost, unlikePost, trackPostView, sharePost, unsharePost } from '../../lib/community/posts.service';
 import { CommentsModal } from './CommentsModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserAvatar } from './UserAvatar';
+import { UserProfileModal } from './UserProfileModal';
 
 interface PostCardProps {
   post: PostWithStats;
@@ -15,10 +16,14 @@ interface PostCardProps {
 export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const { user } = useAuth();
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [showUserProfileModal, setShowUserProfileModal] = useState(false);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [commentsCount, setCommentsCount] = useState(post.comments_count);
+  const [sharesCount, setSharesCount] = useState(post.shares_count || 0);
+  const [isShared, setIsShared] = useState(post.is_shared || false);
   const [isLiking, setIsLiking] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     trackPostView(post.id);
@@ -60,6 +65,28 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
     onUpdate?.();
   };
 
+  const handleShare = async () => {
+    if (!user || isSharing) return;
+
+    setIsSharing(true);
+
+    if (isShared) {
+      const result = await unsharePost(post.id);
+      if (result.success) {
+        setIsShared(false);
+        setSharesCount(prev => Math.max(0, prev - 1));
+      }
+    } else {
+      const result = await sharePost(post.id);
+      if (result.success) {
+        setIsShared(true);
+        setSharesCount(prev => prev + 1);
+      }
+    }
+
+    setIsSharing(false);
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -98,7 +125,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             />
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="font-semibold text-gray-900 text-sm hover:underline cursor-pointer">
+                <h4
+                  className="font-semibold text-gray-900 text-sm hover:underline cursor-pointer"
+                  onClick={() => setShowUserProfileModal(true)}
+                >
                   {post.author_username}
                 </h4>
                 <span className={`text-xs ${badge.color}`}>
@@ -152,7 +182,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         )}
 
         {/* Stats - Giống Facebook */}
-        {(likesCount > 0 || commentsCount > 0 || post.views_count > 0) && (
+        {(likesCount > 0 || commentsCount > 0 || sharesCount > 0 || post.views_count > 0) && (
           <div className="px-3 pt-2 pb-1 flex items-center text-sm text-gray-500 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-center gap-4">
               {likesCount > 0 && (
@@ -171,6 +201,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                 >
                   {commentsCount} bình luận
                 </button>
+              )}
+
+              {sharesCount > 0 && (
+                <span>{sharesCount} lượt chia sẻ</span>
               )}
             </div>
 
@@ -207,7 +241,14 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
               <span className="text-sm">Bình luận</span>
             </button>
 
-            <button className="flex items-center justify-center gap-2 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+            <button
+              onClick={handleShare}
+              disabled={!user || isSharing}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isShared
+                ? 'text-blue-600 font-semibold'
+                : 'text-gray-600 hover:bg-gray-100'
+                } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
               <Share2 className="w-5 h-5" />
               <span className="text-sm">Chia sẻ</span>
             </button>
@@ -235,6 +276,13 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         onClose={() => setShowCommentsModal(false)}
         commentsCount={commentsCount}
         onCommentAdded={handleCommentAdded}
+      />
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        username={post.author_username}
+        isOpen={showUserProfileModal}
+        onClose={() => setShowUserProfileModal(false)}
       />
     </>
   );

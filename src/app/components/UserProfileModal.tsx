@@ -7,6 +7,7 @@ import type { UserProfile } from '../../lib/auth/auth.types';
 import type { PostWithStats } from '../../lib/community/types';
 import { supabase } from '../../lib/supabase/supabase';
 import { getUserPosts, getUserSharedPosts } from '../../lib/community/posts.service';
+import { getUserPoints } from '../../lib/community/leaderboard.service';
 
 interface UserProfileModalProps {
     username: string;
@@ -21,6 +22,7 @@ export function UserProfileModal({ username, isOpen, onClose }: UserProfileModal
     const [userPosts, setUserPosts] = useState<PostWithStats[]>([]);
     const [sharedPosts, setSharedPosts] = useState<any[]>([]);
     const [loadingPosts, setLoadingPosts] = useState(false);
+    const [userPoints, setUserPoints] = useState<number>(0);
 
     useEffect(() => {
         if (isOpen && username) {
@@ -31,6 +33,7 @@ export function UserProfileModal({ username, isOpen, onClose }: UserProfileModal
             setUserPosts([]);
             setSharedPosts([]);
             setActiveTab('posts');
+            setUserPoints(0);
         }
     }, [isOpen, username]);
 
@@ -50,6 +53,11 @@ export function UserProfileModal({ username, isOpen, onClose }: UserProfileModal
 
         if (!error && data) {
             setProfile(data);
+            // Load dynamic points
+            const pointsResult = await getUserPoints(data.id);
+            if (!pointsResult.error) {
+                setUserPoints(pointsResult.points);
+            }
         }
         setLoading(false);
     };
@@ -141,7 +149,7 @@ export function UserProfileModal({ username, isOpen, onClose }: UserProfileModal
                                     <div>
                                         <p className="text-xs text-gray-500">Điểm uy tín</p>
                                         <p className="text-sm font-medium text-blue-700">
-                                            {profile.points || 0} điểm
+                                            {userPoints} điểm
                                         </p>
                                     </div>
                                 </div>

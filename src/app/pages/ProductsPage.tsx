@@ -3,10 +3,15 @@ import { Search, Filter, ShoppingBag, Loader2 } from "lucide-react";
 import { ProductCard } from "../components/ProductCard";
 import { CreateProductModal } from "../components/CreateProductModal";
 import { ProductDetailModal } from "../components/ProductDetailModal";
-import { getProducts } from "../../lib/community/products.service";
+import { getProducts, getProductById } from "../../lib/community/products.service";
 import type { ProductWithStats } from "../../lib/community/types";
 
-export function ProductsPage() {
+interface ProductsPageProps {
+  selectedProductId?: string | null;
+  onProductViewed?: () => void;
+}
+
+export function ProductsPage({ selectedProductId, onProductViewed }: ProductsPageProps) {
   const [products, setProducts] = useState<ProductWithStats[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,6 +33,13 @@ export function ProductsPage() {
   useEffect(() => {
     loadProducts();
   }, [selectedCategory]);
+
+  // Handle navigation from posts with product ID
+  useEffect(() => {
+    if (selectedProductId) {
+      loadAndShowProduct(selectedProductId);
+    }
+  }, [selectedProductId]);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -56,6 +68,15 @@ export function ProductsPage() {
 
   const handleProductCreated = () => {
     loadProducts();
+  };
+
+  const loadAndShowProduct = async (productId: string) => {
+    const product = await getProductById(productId);
+    if (product) {
+      setSelectedProduct(product);
+      setShowDetailModal(true);
+      onProductViewed?.(); // Clear the selectedProductId in parent
+    }
   };
 
   const handleViewDetail = (product: ProductWithStats) => {

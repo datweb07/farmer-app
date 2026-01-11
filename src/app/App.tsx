@@ -19,13 +19,15 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNavigateToProduct = () => {
+  const handleNavigateToProduct = (productId: string) => {
+    setSelectedProductId(productId);
     setCurrentPage('products');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -39,7 +41,7 @@ export default function App() {
       case 'posts':
         return <PostsPage onNavigateToProduct={handleNavigateToProduct} />;
       case 'products':
-        return <ProductsPage />;
+        return <ProductsPage selectedProductId={selectedProductId} onProductViewed={() => setSelectedProductId(null)} />;
       case 'invest':
         return <InvestPage onNavigate={handleNavigate} onEditProject={(id) => {
           setEditProjectId(id);

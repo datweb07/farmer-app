@@ -84,59 +84,20 @@ export async function getProducts(params?: {
     try {
         console.log('🔵 [Products] Fetching products...');
 
-        let query = supabase
-            .from('products')
-            .select(`
-                *,
-                profiles:user_id (
-                    username,
-                    points
-                )
-            `)
-            .order('created_at', { ascending: false });
-
-        // Apply filters
-        if (params?.category) {
-            query = query.eq('category', params.category);
-        }
-
-        if (params?.search) {
-            query = query.or(`name.ilike.%${params.search}%,description.ilike.%${params.search}%`);
-        }
-
-        if (params?.limit) {
-            query = query.limit(params.limit);
-        }
-
-        if (params?.offset) {
-            query = query.range(params.offset, params.offset + (params.limit || 20) - 1);
-        }
-
-        const { data, error } = await query;
+        const { data, error } = await supabase.rpc('get_products_with_stats', {
+            category_filter: params?.category || null,
+            search_query: params?.search || null,
+            limit_count: params?.limit || 20,
+            offset_count: params?.offset || 0,
+        });
 
         if (error) {
             console.error('🔴 [Products] Fetch error:', error);
             return { products: [], error: 'Không thể tải sản phẩm' };
         }
 
-        const products: ProductWithStats[] = (data || []).map((p: any) => ({
-            id: p.id,
-            user_id: p.user_id,
-            name: p.name,
-            description: p.description,
-            price: p.price,
-            category: p.category,
-            image_url: p.image_url,
-            contact: p.contact,
-            views_count: p.views_count,
-            created_at: p.created_at,
-            updated_at: p.updated_at,
-            seller_username: p.profiles?.username || 'Unknown',
-            seller_points: p.profiles?.points || 0,
-        }));
-
-        console.log('✅ [Products] Fetched', products.length, 'products');
-        return { products };
+        console.log('✅ [Products] Fetched', data?.length || 0, 'products');
+        return { products: (data as ProductWithStats[]) || [] };
     } catch (err) {
         console.error('🔴 [Products] Unexpected error:', err);
         return { products: [], error: 'Đã xảy ra lỗi không mong muốn' };
@@ -148,40 +109,16 @@ export async function getProducts(params?: {
  */
 export async function getProductById(productId: string): Promise<ProductWithStats | null> {
     try {
-        const { data, error } = await supabase
-            .from('products')
-            .select(`
-                *,
-                profiles:user_id (
-                    username,
-                    points
-                )
-            `)
-            .eq('id', productId)
-            .single();
+        const { data, error } = await supabase.rpc('get_product_with_stats', {
+            product_uuid: productId,
+        });
 
-        if (error || !data) {
+        if (error || !data || data.length === 0) {
             console.error('🔴 [Products] Fetch error:', error);
             return null;
         }
 
-        const product: ProductWithStats = {
-            id: data.id,
-            user_id: data.user_id,
-            name: data.name,
-            description: data.description,
-            price: data.price,
-            category: data.category,
-            image_url: data.image_url,
-            contact: data.contact,
-            views_count: data.views_count,
-            created_at: data.created_at,
-            updated_at: data.updated_at,
-            seller_username: (data as any).profiles?.username || 'Unknown',
-            seller_points: (data as any).profiles?.points || 0,
-        };
-
-        return product;
+        return data[0] as ProductWithStats;
     } catch (err) {
         console.error('🔴 [Products] Unexpected error:', err);
         return null;

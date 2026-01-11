@@ -102,9 +102,9 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 <div className="bg-white rounded-xl shadow-md border border-green-100 p-6">
                     {/* Header */}
                     <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl mb-4 shadow-sm">
+                        {/* <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl mb-4 shadow-sm">
                             <span className="text-2xl text-white">🌾</span>
-                        </div>
+                        </div> */}
                         <h1 className="text-2xl font-bold text-gray-800">
                             Đăng ký tài khoản
                         </h1>

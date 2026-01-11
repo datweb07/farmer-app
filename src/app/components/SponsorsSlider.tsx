@@ -1,5 +1,3 @@
-import React from 'react';
-
 const SponsorsSlider = () => {
     const sponsors = [
         { id: 1, name: 'Vinamilk', logo: './assets/images/MUFG_logo.svg.png' },

@@ -34,6 +34,7 @@ export interface ProjectInvestment {
     investor_email: string;
     investor_phone?: string;
     message?: string;
+    user_type: 'farmer' | 'business'; // Type of investor
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
     created_at: string;
     updated_at: string;
@@ -69,6 +70,7 @@ export interface CreateInvestmentData {
     investor_email: string;
     investor_phone?: string;
     message?: string;
+    user_type: 'farmer' | 'business'; // Type of investor
 }
 
 export interface UpdateProjectData {

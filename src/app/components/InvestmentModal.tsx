@@ -21,6 +21,7 @@ export function InvestmentModal({
   const [investorName, setInvestorName] = useState("");
   const [investorEmail, setInvestorEmail] = useState("");
   const [investorPhone, setInvestorPhone] = useState("");
+  const [userType, setUserType] = useState<'farmer' | 'business'>('farmer');
   const [message, setMessage] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -51,8 +52,14 @@ export function InvestmentModal({
       return;
     }
 
-    if (!investorName || !investorEmail) {
-      setError("Vui lòng điền đầy đủ thông tin");
+    if (!investorName) {
+      setError("Vui lòng nhập họ và tên");
+      return;
+    }
+
+    // Email is required for businesses only
+    if (userType === 'business' && !investorEmail) {
+      setError("Vui lòng nhập email (bắt buộc cho doanh nghiệp)");
       return;
     }
 
@@ -82,6 +89,7 @@ export function InvestmentModal({
       investor_email: investorEmail,
       investor_phone: investorPhone,
       message: message,
+      user_type: userType,
     });
 
     setSubmitting(false);
@@ -97,6 +105,7 @@ export function InvestmentModal({
         setInvestorEmail("");
         setInvestorPhone("");
         setMessage("");
+        setUserType('farmer');
         setAcceptTerms(false);
       }, 2000);
     } else {
@@ -217,6 +226,37 @@ export function InvestmentModal({
           </p>
         </div>
 
+        {/* User Type Selection */}
+        <div>
+          <label className="block text-gray-700 font-medium mb-2 text-sm">
+            Loại người đầu tư *
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setUserType('farmer')}
+              className={`p-3 border-2 rounded-lg transition-all text-sm ${userType === 'farmer'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-300 hover:border-blue-400'
+                }`}
+              disabled={submitting}
+            >
+              <div className="font-medium text-gray-900">Nông dân</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setUserType('business')}
+              className={`p-3 border-2 rounded-lg transition-all text-sm ${userType === 'business'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-300 hover:border-blue-400'
+                }`}
+              disabled={submitting}
+            >
+              <div className="font-medium text-gray-900">Doanh nghiệp</div>
+            </button>
+          </div>
+        </div>
+
         {/* Investor Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
@@ -234,7 +274,7 @@ export function InvestmentModal({
           </div>
           <div>
             <label className="block text-gray-700 font-medium mb-1 text-sm">
-              Email *
+              Email {userType === 'business' ? '*' : '(không bắt buộc)'}
             </label>
             <input
               type="email"

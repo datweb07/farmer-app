@@ -21,7 +21,7 @@ export interface Database {
                     id: string
                     username: string
                     phone_number: string | null
-                    role: 'farmer' | 'organization'
+                    role: 'farmer' | 'business'
                     organization_id: string | null
                     points: number
                     created_at: string
@@ -31,7 +31,7 @@ export interface Database {
                     id: string
                     username: string
                     phone_number?: string | null
-                    role?: 'farmer' | 'organization'
+                    role?: 'farmer' | 'business'
                     organization_id?: string | null
                     points?: number
                     created_at?: string
@@ -41,7 +41,7 @@ export interface Database {
                     id?: string
                     username?: string
                     phone_number?: string | null
-                    role?: 'farmer' | 'organization'
+                    role?: 'farmer' | 'business'
                     organization_id?: string | null
                     points?: number
                     created_at?: string

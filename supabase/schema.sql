@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT UNIQUE NOT NULL,
   phone_number TEXT,
-  role TEXT NOT NULL DEFAULT 'farmer' CHECK (role IN ('farmer', 'organization')),
+  role TEXT NOT NULL DEFAULT 'farmer' CHECK (role IN ('farmer', 'business')),
   organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

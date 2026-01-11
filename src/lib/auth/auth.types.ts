@@ -10,6 +10,15 @@ import type { Database } from '../supabase/database.types';
 // User Profile type from database
 export type UserProfile = Database['public']['Tables']['profiles']['Row'];
 
+// User role types
+export type UserRole = 'farmer' | 'business';
+
+// Role display names
+export const UserRoleNames: Record<UserRole, string> = {
+    farmer: 'Nông dân',
+    business: 'Doanh nghiệp',
+};
+
 // Organization type from database
 export type Organization = Database['public']['Tables']['organizations']['Row'];
 
@@ -18,6 +27,7 @@ export interface SignUpData {
     username: string;
     password: string;
     phoneNumber: string;
+    role?: UserRole; // Optional, defaults to 'farmer'
 }
 
 // Sign in data required from user

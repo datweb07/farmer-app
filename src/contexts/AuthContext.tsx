@@ -31,7 +31,7 @@ interface AuthContextType {
     loading: boolean;
 
     // Methods
-    signUp: (username: string, password: string, phoneNumber: string) => Promise<{
+    signUp: (username: string, password: string, phoneNumber: string, role?: 'farmer' | 'business') => Promise<{
         success: boolean;
         error?: string;
     }>;
@@ -237,9 +237,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     /**
      * Sign up new user
      */
-    const signUp = async (username: string, password: string, phoneNumber: string) => {
+    const signUp = async (username: string, password: string, phoneNumber: string, role?: 'farmer' | 'business') => {
         try {
-            const result = await authService.signUp({ username, password, phoneNumber });
+            const result = await authService.signUp({ username, password, phoneNumber, role });
 
             if (result.error) {
                 return { success: false, error: result.error.message };

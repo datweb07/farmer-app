@@ -1,5 +1,6 @@
 import { Home, Droplet, FileText, ShoppingBag, TrendingUp, Menu, X, User } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface NavigationProps {
   currentPage: string;
@@ -8,15 +9,21 @@ interface NavigationProps {
 
 export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { profile } = useAuth();
 
-  const navItems = [
-    { id: 'dashboard', label: 'Trang chủ', icon: Home },
-    { id: 'salinity', label: 'Độ mặn', icon: Droplet },
-    { id: 'posts', label: 'Cộng đồng', icon: FileText },
-    { id: 'products', label: 'Sản phẩm', icon: ShoppingBag },
-    { id: 'invest', label: 'Đầu tư', icon: TrendingUp },
-    { id: 'profile', label: 'Hồ sơ', icon: User },
+  const allNavItems = [
+    { id: 'dashboard', label: 'Trang chủ', icon: Home, roles: ['farmer'] },
+    { id: 'salinity', label: 'Độ mặn', icon: Droplet, roles: ['farmer'] },
+    { id: 'posts', label: 'Cộng đồng', icon: FileText, roles: ['farmer'] },
+    { id: 'products', label: 'Sản phẩm', icon: ShoppingBag, roles: ['farmer'] },
+    { id: 'invest', label: 'Đầu tư', icon: TrendingUp, roles: ['farmer', 'business'] },
+    { id: 'profile', label: 'Hồ sơ', icon: User, roles: ['farmer', 'business'] },
   ];
+
+  // Filter navigation items based on user role
+  const navItems = allNavItems.filter(item =>
+    item.roles.includes(profile?.role || 'farmer')
+  );
 
   return (
     <>

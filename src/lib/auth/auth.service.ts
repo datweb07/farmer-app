@@ -72,7 +72,7 @@ export async function signUp(data: SignUpData): Promise<
                 data: {
                     username: data.username,
                     phone_number: normalizedPhone,
-                    role: 'farmer',
+                    role: data.role || 'farmer', // Default to farmer if not specified
                 },
             },
         });

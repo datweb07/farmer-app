@@ -18,6 +18,7 @@ import { ProjectLeaderboard } from "../components/ProjectLeaderboard";
 import { getProjects, getOverallStats, type OverallStats } from "../../lib/investments/investments.service";
 import type { InvestmentProjectWithStats } from "../../lib/investments/types";
 import { useAuth } from "../../contexts/AuthContext";
+import SponsorsSlider from '../components/SponsorsSlider';
 
 interface InvestPageProps {
   onNavigate?: (page: string) => void;
@@ -196,6 +197,8 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
             </div>
           )}
         </div>
+
+
 
         {/* Partner Types */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -406,6 +409,8 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
             </button>
           </form>
         </div> */}
+
+        <SponsorsSlider />
 
         {/* Direct Contact */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

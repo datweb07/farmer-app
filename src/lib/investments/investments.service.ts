@@ -225,6 +225,7 @@ export async function investInProject(data: CreateInvestmentData): Promise<{
                 investor_email: data.investor_email,
                 investor_phone: data.investor_phone,
                 message: data.message,
+                user_type: data.user_type, // Include user type
                 status: 'confirmed', // Auto-confirm for now
             })
             .select()

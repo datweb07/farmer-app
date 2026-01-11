@@ -17,6 +17,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [role, setRole] = useState<'farmer' | 'business'>('farmer');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -83,7 +84,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
         setLoading(true);
 
         try {
-            const result = await signUp(username, password, phoneNumber);
+            const result = await signUp(username, password, phoneNumber, role);
 
             if (!result.success) {
                 setError(result.error || 'Đăng ký thất bại');
@@ -109,7 +110,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                             Đăng ký tài khoản
                         </h1>
                         <p className="text-green-700 text-sm mt-1 font-medium">
-                            Tham gia cộng đồng nông dân ngay hôm nay
+                            Tham gia cộng đồng nông nghiệp ĐBSCL
                         </p>
                     </div>
 
@@ -146,6 +147,39 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                             {fieldErrors.username && (
                                 <p className="mt-1 text-sm text-red-600">{fieldErrors.username}</p>
                             )}
+                        </div>
+
+                        {/* Role Selection */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Loại tài khoản <span className="text-red-500">*</span>
+                            </label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setRole('farmer')}
+                                    className={`p-3 border-2 rounded-lg transition-all ${role === 'farmer'
+                                        ? 'border-green-500 bg-green-50'
+                                        : 'border-gray-200 hover:border-green-300'
+                                        }`}
+                                    disabled={loading}
+                                >
+                                    <div className="font-medium text-gray-900">Nông dân</div>
+                                    <div className="text-xs text-gray-600 mt-1">Truy cập đầy đủ tính năng</div>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setRole('business')}
+                                    className={`p-3 border-2 rounded-lg transition-all ${role === 'business'
+                                        ? 'border-green-500 bg-green-50'
+                                        : 'border-gray-200 hover:border-green-300'
+                                        }`}
+                                    disabled={loading}
+                                >
+                                    <div className="font-medium text-gray-900">Doanh nghiệp</div>
+                                    <div className="text-xs text-gray-600 mt-1">Tập trung đầu tư</div>
+                                </button>
+                            </div>
                         </div>
 
                         {/* Password Input */}

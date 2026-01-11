@@ -158,7 +158,7 @@ export function LoginPage({ onNavigateToRegister }: LoginPageProps) {
                             {showReset ? 'Đặt lại mật khẩu' : 'Đăng nhập'}
                         </h1>
                         <p className="text-green-700 text-sm mt-1 font-medium">
-                            Nền tảng Nông nghiệp ĐBSCL
+                            Nền tảng Nông nghiệp ĐBSCL - Nông dân & Doanh nghiệp
                         </p>
                     </div>
 

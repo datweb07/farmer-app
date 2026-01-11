@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share2, MoreHorizontal, ExternalLink } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Heart, MessageCircle, Share2, MoreHorizontal, ExternalLink, Trash2, Flag, Link as LinkIcon, Edit2 } from 'lucide-react';
 import type { PostWithStats } from '../../lib/community/types';
-import { likePost, unlikePost, trackPostView, sharePost, unsharePost } from '../../lib/community/posts.service';
+import { likePost, unlikePost, trackPostView, sharePost, unsharePost, deletePost } from '../../lib/community/posts.service';
 import { CommentsModal } from './CommentsModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserAvatar } from './UserAvatar';
@@ -24,10 +24,28 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const [isShared, setIsShared] = useState(post.is_shared || false);
   const [isLiking, setIsLiking] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     trackPostView(post.id);
   }, [post.id]);
+
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showMenu]);
 
   const getCategoryBadge = () => {
     const badges = {
@@ -86,6 +104,36 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
 
     setIsSharing(false);
   };
+
+  const handleDelete = async () => {
+    if (!user || isDeleting) return;
+
+    setIsDeleting(true);
+    const result = await deletePost(post.id);
+
+    if (result.success) {
+      setShowDeleteConfirm(false);
+      onUpdate?.(); // Refresh parent component
+    } else {
+      alert(result.error || 'Không thể xóa bài viết');
+    }
+
+    setIsDeleting(false);
+  };
+
+  const handleCopyLink = () => {
+    const postUrl = `${window.location.origin}?post=${post.id}`;
+    navigator.clipboard.writeText(postUrl);
+    setShowMenu(false);
+    // Could add a toast notification here
+  };
+
+  const handleReport = () => {
+    setShowMenu(false);
+    alert('Tính năng báo cáo sẽ được cập nhật sớm');
+  };
+
+  const isOwner = user?.id === post.user_id;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -151,9 +199,65 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
               </div>
             </div>
           </div>
-          <button className="p-1.5 hover:bg-gray-100 rounded-full">
-            <MoreHorizontal className="w-5 h-5 text-gray-500" />
-          </button>
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <MoreHorizontal className="w-5 h-5 text-gray-500" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {showMenu && (
+              <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <div className="py-1">
+                  {isOwner ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          alert('Tính năng chỉnh sửa sẽ được cập nhật sớm');
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                        Chỉnh sửa bài viết
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowDeleteConfirm(true);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Xóa bài viết
+                      </button>
+                      <div className="border-t border-gray-200 my-1"></div>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleReport}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors"
+                      >
+                        <Flag className="w-4 h-4" />
+                        Báo cáo bài viết
+                      </button>
+                      <div className="border-t border-gray-200 my-1"></div>
+                    </>
+                  )}
+                  <button
+                    onClick={handleCopyLink}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors"
+                  >
+                    <LinkIcon className="w-4 h-4" />
+                    Sao chép liên kết
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Content - Phần này sẽ co giãn */}
@@ -284,6 +388,52 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         isOpen={showUserProfileModal}
         onClose={() => setShowUserProfileModal(false)}
       />
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            onClick={() => !isDeleting && setShowDeleteConfirm(false)}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Xóa bài viết?
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Đang xóa...
+                    </>
+                  ) : (
+                    'Xóa'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

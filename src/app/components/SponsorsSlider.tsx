@@ -1,11 +1,11 @@
 const SponsorsSlider = () => {
     const sponsors = [
-        { id: 1, name: 'Vinamilk', logo: './assets/images/MUFG_logo.svg.png' },
-        { id: 2, name: 'Vietcombank', logo: './assets/images/National_Australia_Bank.svg.png' },
-        { id: 3, name: 'BIDV', logo: './assets/images/Nvidia_logo.svg.png' },
-        { id: 4, name: 'Vinamilk', logo: './assets/images/VNPT_Logo.svg.png' },
-        { id: 5, name: 'BIDV', logo: './assets/images/EPAM_LOGO_Black.png   ' },
-        { id: 6, name: 'Katalon', logo: './assets/images/Katalon_Studio_logo.png' },
+        { id: 1, name: 'Vinamilk', logo: '../assets/images/MUFG_logo.svg.png' },
+        { id: 2, name: 'Vietcombank', logo: '../assets/images/National_Australia_Bank.svg.png' },
+        { id: 3, name: 'BIDV', logo: '../assets/images/Nvidia_logo.svg.png' },
+        { id: 4, name: 'Vinamilk', logo: '../assets/images/VNPT_Logo.svg.png' },
+        { id: 5, name: 'BIDV', logo: '../assets/images/EPAM_LOGO_Black.png   ' },
+        { id: 6, name: 'Katalon', logo: '../assets/images/Katalon_Studio_logo.png' },
     ];
 
     // Nhân đôi list để tạo vòng lặp vô hạn

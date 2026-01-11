@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, Filter, ShoppingBag, Loader2 } from "lucide-react";
 import { ProductCard } from "../components/ProductCard";
 import { CreateProductModal } from "../components/CreateProductModal";
+import { ProductDetailModal } from "../components/ProductDetailModal";
 import { getProducts } from "../../lib/community/products.service";
 import type { ProductWithStats } from "../../lib/community/types";
 
@@ -11,6 +12,8 @@ export function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithStats | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const categories = [
     { id: "all", label: "Tất cả" },
@@ -53,6 +56,16 @@ export function ProductsPage() {
 
   const handleProductCreated = () => {
     loadProducts();
+  };
+
+  const handleViewDetail = (product: ProductWithStats) => {
+    setSelectedProduct(product);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetail = () => {
+    setShowDetailModal(false);
+    setSelectedProduct(null);
   };
 
   return (
@@ -165,7 +178,11 @@ export function ProductsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                onViewDetail={() => handleViewDetail(product)}
+              />
             ))}
           </div>
         )}
@@ -222,6 +239,13 @@ export function ProductsPage() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={handleProductCreated}
+      />
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={showDetailModal}
+        onClose={handleCloseDetail}
       />
     </div>
   );

@@ -90,7 +90,7 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
                   <div>
                     <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                      <span className="text-2xl">💧</span>
+
                       Nông nghiệp ĐBSCL
                     </h3>
                     <p className="text-gray-300 text-sm">
@@ -138,16 +138,16 @@ export default function App() {
                   <div>
                     <h4 className="font-bold mb-3">Liên hệ hỗ trợ</h4>
                     <ul className="space-y-2 text-sm text-gray-300">
-                      <li>📞 Hotline: 1800-2468</li>
-                      <li>✉️ Email: support@dbscl.vn</li>
-                      <li>📍 Cần Thơ, Việt Nam</li>
+                      <li>📞 Hotline: 1800-1234</li>
+                      <li>✉️ Email: dat82770@gmail.com</li>
+                      <li>📍 TP.HCM, Việt Nam</li>
                       <li>🕐 8:00 - 20:00 hàng ngày</li>
                     </ul>
                   </div>
                 </div>
                 <div className="border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
                   <p>© 2025 Nền tảng Nông nghiệp ĐBSCL. Phát triển bởi đội ngũ công nghệ vì nông dân.</p>
-                  <p className="mt-2">🌾 Cùng nhau xây dựng nông nghiệp bền vững 🌾</p>
+                  <p className="mt-2">Cùng nhau xây dựng nông nghiệp bền vững</p>
                 </div>
               </div>
             </footer>

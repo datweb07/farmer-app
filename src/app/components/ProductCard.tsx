@@ -5,9 +5,10 @@ import { trackProductView, formatPrice, getZaloLink } from '../../lib/community/
 
 interface ProductCardProps {
   product: ProductWithStats;
+  onViewDetail?: () => void;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, onViewDetail }: ProductCardProps) {
   useEffect(() => {
     trackProductView(product.id);
   }, [product.id]);
@@ -18,7 +19,10 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div
+      className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={onViewDetail}
+    >
       {/* Image */}
       <div className="relative">
         {product.image_url ? (
@@ -69,7 +73,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Contact Button */}
         <button
-          onClick={handleZaloContact}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleZaloContact();
+          }}
           className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
         >
           <Phone className="w-4 h-4" />

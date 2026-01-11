@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { X, Image, Loader2 } from "lucide-react";
 import { createPost } from "../../lib/community/posts.service";
+import { getProducts } from "../../lib/community/products.service";
 import { validateImageFile } from "../../lib/community/image-upload";
-import type { CreatePostData } from "../../lib/community/types";
+import type { CreatePostData, ProductWithStats } from "../../lib/community/types";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -24,14 +25,32 @@ export function CreatePostModal({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [products, setProducts] = useState<ProductWithStats[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
-  if (!isOpen) return null;
+  // Load products when category is "product"
+  useEffect(() => {
+    const loadProductsList = async () => {
+      setLoadingProducts(true);
+      const result = await getProducts({ limit: 100 });
+      if (!result.error) {
+        setProducts(result.products);
+      }
+      setLoadingProducts(false);
+    };
+
+    if (formData.category === "product" && isOpen) {
+      loadProductsList();
+    }
+  }, [formData.category, isOpen]);
 
   const categories = [
     { value: "experience", label: "Kinh nghiệm" },
     { value: "salinity-solution", label: "Giải pháp mặn" },
     { value: "product", label: "Sản phẩm" },
   ];
+
+  if (!isOpen) return null;
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -167,8 +186,8 @@ export function CreatePostModal({
                           })
                         }
                         className={`p-3 rounded-lg border text-sm transition-colors ${formData.category === cat.value
-                            ? "border-blue-600 bg-blue-50 text-blue-700"
-                            : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
                           }`}
                         disabled={loading}
                       >
@@ -214,25 +233,37 @@ export function CreatePostModal({
                   />
                 </div>
 
-                {/* Product Link (only for product category) */}
+                {/* Product Selection (only for product category) */}
                 {formData.category === "product" && (
                   <div className="space-y-1">
                     <label className="block text-sm font-medium text-gray-700">
-                      ID sản phẩm liên quan (tùy chọn)
+                      Sản phẩm liên quan (tùy chọn)
                     </label>
-                    <input
-                      type="text"
-                      value={formData.product_link || ""}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          product_link: e.target.value,
-                        })
-                      }
-                      placeholder="Nhập ID sản phẩm từ chợ nông sản..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
-                      disabled={loading}
-                    />
+                    {loadingProducts ? (
+                      <div className="flex items-center justify-center py-3 border border-gray-300 rounded-lg">
+                        <Loader2 className="w-4 h-4 animate-spin text-blue-600 mr-2" />
+                        <span className="text-sm text-gray-600">Đang tải danh sách sản phẩm...</span>
+                      </div>
+                    ) : (
+                      <select
+                        value={formData.product_link || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            product_link: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
+                        disabled={loading}
+                      >
+                        <option value="">-- Chọn sản phẩm --</option>
+                        {products.map((product) => (
+                          <option key={product.id} value={product.id}>
+                            {product.name} - {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                     <p className="text-xs text-gray-500">
                       Sản phẩm sẽ được hiển thị kèm theo bài viết
                     </p>

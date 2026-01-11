@@ -1,9 +1,3 @@
-// ============================================
-// Register Page
-// ============================================
-// User registration interface with real-time validation
-// ============================================
-
 import { useState, type FormEvent, useEffect } from 'react';
 import { UserPlus, User, Lock, Phone, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -27,10 +21,8 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-    // Real-time password strength
     const passwordStrength = password.length > 0 ? getPasswordStrength(password) : null;
 
-    // Validate username on blur
     const handleUsernameBlur = () => {
         const validationError = validateUsername(username);
         if (validationError) {
@@ -43,7 +35,6 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
         }
     };
 
-    // Validate password on change
     useEffect(() => {
         if (password.length > 0) {
             const validationError = validatePassword(password);
@@ -58,7 +49,6 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
         }
     }, [password]);
 
-    // Validate phone on blur
     const handlePhoneBlur = () => {
         const validationError = validatePhoneNumber(phoneNumber);
         if (validationError) {
@@ -75,7 +65,6 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
         e.preventDefault();
         setError('');
 
-        // Validate all fields
         const usernameError = validateUsername(username);
         const passwordError = validatePassword(password);
         const phoneError = validatePhoneNumber(phoneNumber);
@@ -99,7 +88,6 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
             if (!result.success) {
                 setError(result.error || 'Đăng ký thất bại');
             }
-            // On success, AuthContext will update and user will be auto-logged in
         } catch (err) {
             setError('Đã xảy ra lỗi không mong muốn');
         } finally {
@@ -108,53 +96,48 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-green-50 relative overflow-hidden py-8">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 left-10 w-64 h-64 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-                <div className="absolute top-40 right-10 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-                <div className="absolute -bottom-8 left-1/2 w-64 h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
-            </div>
-
-            <div className="relative z-10 w-full max-w-md px-6">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-emerald-50">
+            <div className="w-full max-w-md px-4">
                 {/* Register Card */}
-                <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/50">
+                <div className="bg-white rounded-xl shadow-md border border-green-100 p-6">
                     {/* Header */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-blue-500 rounded-full mb-4 shadow-lg">
-                            <span className="text-4xl">🌾</span>
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl mb-4 shadow-sm">
+                            <span className="text-2xl text-white">🌾</span>
                         </div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                        <h1 className="text-2xl font-bold text-gray-800">
                             Đăng ký tài khoản
                         </h1>
-                        <p className="text-gray-600 mt-2">Tham gia cộng đồng nông dân ngày hôm nay</p>
+                        <p className="text-green-700 text-sm mt-1 font-medium">
+                            Tham gia cộng đồng nông dân ngay hôm nay
+                        </p>
                     </div>
 
                     {/* Error Alert */}
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 animate-shake">
-                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
                             <p className="text-sm text-red-800">{error}</p>
                         </div>
                     )}
 
                     {/* Register Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Username Input */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Tên đăng nhập <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <User className="h-5 w-5 text-gray-400" />
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <User className="h-4 w-4 text-green-600" />
                                 </div>
                                 <input
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     onBlur={handleUsernameBlur}
-                                    className={`block w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white/50 ${fieldErrors.username ? 'border-red-300' : 'border-gray-300'
+                                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${fieldErrors.username ? 'border-red-300' : 'border-green-200'
                                         }`}
                                     placeholder="3-20 ký tự, chỉ chữ cái, số và _"
                                     disabled={loading}
@@ -167,18 +150,18 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
 
                         {/* Password Input */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Mật khẩu <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400" />
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Lock className="h-4 w-4 text-green-600" />
                                 </div>
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className={`block w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white/50 ${fieldErrors.password ? 'border-red-300' : 'border-gray-300'
+                                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${fieldErrors.password ? 'border-red-300' : 'border-green-200'
                                         }`}
                                     placeholder="Ít nhất 8 ký tự, có chữ và số"
                                     disabled={loading}
@@ -190,13 +173,13 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                             {/* Password Strength Indicator */}
                             {passwordStrength && !fieldErrors.password && (
                                 <div className="mt-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full transition-all duration-300 ${passwordStrength.level === 'weak'
                                                     ? 'bg-red-500 w-1/3'
                                                     : passwordStrength.level === 'medium'
-                                                        ? 'bg-yellow-500 w-2/3'
+                                                        ? 'bg-amber-500 w-2/3'
                                                         : 'bg-green-500 w-full'
                                                     }`}
                                             />
@@ -205,7 +188,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                                             className={`text-xs font-medium ${passwordStrength.level === 'weak'
                                                 ? 'text-red-600'
                                                 : passwordStrength.level === 'medium'
-                                                    ? 'text-yellow-600'
+                                                    ? 'text-amber-600'
                                                     : 'text-green-600'
                                                 }`}
                                         >
@@ -216,25 +199,28 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                                                     : 'Mạnh'}
                                         </span>
                                     </div>
+                                    <p className="text-xs text-green-700">
+                                        Gợi ý: Sử dụng chữ hoa, số và ký tự đặc biệt để tăng độ mạnh
+                                    </p>
                                 </div>
                             )}
                         </div>
 
                         {/* Phone Number Input */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Số điện thoại <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Phone className="h-5 w-5 text-gray-400" />
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Phone className="h-4 w-4 text-green-600" />
                                 </div>
                                 <input
                                     type="tel"
                                     value={phoneNumber}
                                     onChange={(e) => setPhoneNumber(e.target.value)}
                                     onBlur={handlePhoneBlur}
-                                    className={`block w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white/50 ${fieldErrors.phoneNumber ? 'border-red-300' : 'border-gray-300'
+                                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${fieldErrors.phoneNumber ? 'border-red-300' : 'border-green-200'
                                         }`}
                                     placeholder="VD: 0912345678"
                                     disabled={loading}
@@ -245,26 +231,53 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                             )}
                             {!fieldErrors.phoneNumber && phoneNumber.length > 0 && (
                                 <div className="mt-1 flex items-center gap-1 text-sm text-green-600">
-                                    <CheckCircle className="w-4 h-4" />
+                                    <CheckCircle className="w-3 h-3" />
                                     Số điện thoại hợp lệ
                                 </div>
                             )}
+                            {!fieldErrors.phoneNumber && phoneNumber.length === 0 && (
+                                <p className="mt-1 text-xs text-green-700">
+                                    Số điện thoại dùng để khôi phục mật khẩu
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Terms and Conditions */}
+                        <div className="flex items-start gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                            <input
+                                type="checkbox"
+                                id="terms"
+                                required
+                                className="mt-0.5 w-4 h-4 text-green-600 border-green-300 rounded focus:ring-green-500"
+                                disabled={loading}
+                            />
+                            <label htmlFor="terms" className="text-xs text-gray-700">
+                                Tôi đồng ý với{' '}
+                                <a href="#" className="text-green-700 font-medium hover:underline">
+                                    Điều khoản dịch vụ
+                                </a>{' '}
+                                và{' '}
+                                <a href="#" className="text-green-700 font-medium hover:underline">
+                                    Chính sách bảo mật
+                                </a>{' '}
+                                của nền tảng
+                            </label>
                         </div>
 
                         {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={loading || Object.keys(fieldErrors).length > 0}
-                            className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all shadow-sm hover:shadow disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader2 className="w-4 h-4 animate-spin" />
                                     Đang đăng ký...
                                 </>
                             ) : (
                                 <>
-                                    <UserPlus className="w-5 h-5" />
+                                    <UserPlus className="w-4 h-4" />
                                     Đăng ký
                                 </>
                             )}
@@ -272,12 +285,12 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                     </form>
 
                     {/* Login Link */}
-                    <div className="mt-6 text-center">
-                        <p className="text-gray-600">
+                    <div className="mt-6 text-center pt-4 border-t border-green-100">
+                        <p className="text-gray-600 text-sm">
                             Đã có tài khoản?{' '}
                             <button
                                 onClick={onNavigateToLogin}
-                                className="text-green-600 font-semibold hover:text-green-700 transition-colors"
+                                className="text-green-700 font-semibold hover:text-green-800 hover:underline"
                             >
                                 Đăng nhập ngay
                             </button>
@@ -286,7 +299,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-8 text-center text-sm text-gray-600">
+                <div className="mt-6 text-center text-xs text-green-800">
                     <p>© 2025 Nền tảng Nông nghiệp ĐBSCL</p>
                 </div>
             </div>

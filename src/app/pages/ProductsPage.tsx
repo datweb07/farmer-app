@@ -3,22 +3,35 @@ import { Search, Filter, ShoppingBag, Loader2 } from "lucide-react";
 import { ProductCard } from "../components/ProductCard";
 import { CreateProductModal } from "../components/CreateProductModal";
 import { ProductDetailModal } from "../components/ProductDetailModal";
-import { getProducts, getProductById } from "../../lib/community/products.service";
+import { EditProductModal } from "../components/EditProductModal";
+import {
+  deleteProduct,
+  getProducts,
+  getProductById,
+} from "../../lib/community/products.service";
 import type { ProductWithStats } from "../../lib/community/types";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface ProductsPageProps {
   selectedProductId?: string | null;
   onProductViewed?: () => void;
 }
 
-export function ProductsPage({ selectedProductId, onProductViewed }: ProductsPageProps) {
+export function ProductsPage({
+  selectedProductId,
+  onProductViewed,
+}: ProductsPageProps) {
+  const { user } = useAuth();
   const [products, setProducts] = useState<ProductWithStats[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<ProductWithStats | null>(null);
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductWithStats | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const categories = [
     { id: "all", label: "Tất cả" },
@@ -82,6 +95,32 @@ export function ProductsPage({ selectedProductId, onProductViewed }: ProductsPag
   const handleViewDetail = (product: ProductWithStats) => {
     setSelectedProduct(product);
     setShowDetailModal(true);
+  };
+
+  const handleEditSuccess = async (productId?: string) => {
+    await loadProducts();
+    if (productId) {
+      const refreshed = await getProductById(productId);
+      setSelectedProduct(refreshed);
+      setShowDetailModal(!!refreshed);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!selectedProduct) return;
+    const confirmed = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?");
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    const result = await deleteProduct(selectedProduct.id);
+    if (result.success) {
+      setShowDetailModal(false);
+      setSelectedProduct(null);
+      await loadProducts();
+    } else {
+      alert(result.error || "Không thể xóa sản phẩm");
+    }
+    setIsDeleting(false);
   };
 
   const handleCloseDetail = () => {
@@ -163,8 +202,6 @@ export function ProductsPage({ selectedProductId, onProductViewed }: ProductsPag
           Đăng bán sản phẩm của bạn
         </button>
 
-
-
         {/* Category Filter */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -176,20 +213,17 @@ export function ProductsPage({ selectedProductId, onProductViewed }: ProductsPag
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${selectedCategory === category.id
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                  selectedCategory === category.id
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
               >
                 {category.label}
               </button>
             ))}
           </div>
         </div>
-
-
-
-
 
         {/* Products Grid */}
         {loading ? (
@@ -267,6 +301,17 @@ export function ProductsPage({ selectedProductId, onProductViewed }: ProductsPag
         product={selectedProduct}
         isOpen={showDetailModal}
         onClose={handleCloseDetail}
+        isOwner={!!user && selectedProduct?.user_id === user.id}
+        onEdit={() => setShowEditModal(true)}
+        onDelete={handleDeleteProduct}
+        deleting={isDeleting}
+      />
+
+      <EditProductModal
+        isOpen={showEditModal}
+        product={selectedProduct}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={handleEditSuccess}
       />
     </div>
   );

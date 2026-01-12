@@ -1,11 +1,29 @@
-import { useState, useEffect, useRef } from 'react';
-import { Heart, MessageCircle, Share2, MoreHorizontal, ExternalLink, Trash2, Flag, Link as LinkIcon, Edit2 } from 'lucide-react';
-import type { PostWithStats } from '../../lib/community/types';
-import { likePost, unlikePost, trackPostView, sharePost, unsharePost, deletePost } from '../../lib/community/posts.service';
-import { CommentsModal } from './CommentsModal';
-import { useAuth } from '../../contexts/AuthContext';
-import { UserAvatar } from './UserAvatar';
-import { UserProfileModal } from './UserProfileModal';
+import { useState, useEffect, useRef } from "react";
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  MoreHorizontal,
+  ExternalLink,
+  Trash2,
+  Flag,
+  Link as LinkIcon,
+  Edit2,
+} from "lucide-react";
+import type { PostWithStats } from "../../lib/community/types";
+import {
+  likePost,
+  unlikePost,
+  trackPostView,
+  sharePost,
+  unsharePost,
+  deletePost,
+} from "../../lib/community/posts.service";
+import { CommentsModal } from "./CommentsModal";
+import { useAuth } from "../../contexts/AuthContext";
+import { UserAvatar } from "./UserAvatar";
+import { UserProfileModal } from "./UserProfileModal";
+import { EditPostModal } from "./EditPostModal";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -27,6 +45,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,16 +61,17 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
     };
 
     if (showMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showMenu]);
 
   const getCategoryBadge = () => {
     const badges = {
-      experience: { text: 'Kinh nghiệm', color: 'text-blue-600' },
-      'salinity-solution': { text: 'Giải pháp mặn', color: 'text-green-600' },
-      product: { text: 'Sản phẩm', color: 'text-purple-600' },
+      experience: { text: "Kinh nghiệm", color: "text-blue-600" },
+      "salinity-solution": { text: "Giải pháp mặn", color: "text-green-600" },
+      product: { text: "Sản phẩm", color: "text-purple-600" },
     };
     return badges[post.category];
   };
@@ -65,13 +85,13 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
       const result = await unlikePost(post.id);
       if (result.success) {
         setIsLiked(false);
-        setLikesCount(prev => Math.max(0, prev - 1));
+        setLikesCount((prev) => Math.max(0, prev - 1));
       }
     } else {
       const result = await likePost(post.id);
       if (result.success) {
         setIsLiked(true);
-        setLikesCount(prev => prev + 1);
+        setLikesCount((prev) => prev + 1);
       }
     }
 
@@ -79,7 +99,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   };
 
   const handleCommentAdded = () => {
-    setCommentsCount(prev => prev + 1);
+    setCommentsCount((prev) => prev + 1);
     onUpdate?.();
   };
 
@@ -92,13 +112,13 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
       const result = await unsharePost(post.id);
       if (result.success) {
         setIsShared(false);
-        setSharesCount(prev => Math.max(0, prev - 1));
+        setSharesCount((prev) => Math.max(0, prev - 1));
       }
     } else {
       const result = await sharePost(post.id);
       if (result.success) {
         setIsShared(true);
-        setSharesCount(prev => prev + 1);
+        setSharesCount((prev) => prev + 1);
       }
     }
 
@@ -115,7 +135,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
       setShowDeleteConfirm(false);
       onUpdate?.(); // Refresh parent component
     } else {
-      alert(result.error || 'Không thể xóa bài viết');
+      alert(result.error || "Không thể xóa bài viết");
     }
 
     setIsDeleting(false);
@@ -130,7 +150,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
 
   const handleReport = () => {
     setShowMenu(false);
-    alert('Tính năng báo cáo sẽ được cập nhật sớm');
+    alert("Tính năng báo cáo sẽ được cập nhật sớm");
   };
 
   const isOwner = user?.id === post.user_id;
@@ -141,20 +161,20 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 1) return "Vừa xong";
     if (diffMins < 60) return `${diffMins} phút trước`;
 
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours} giờ trước`;
 
     const diffDays = Math.floor(diffHours / 24);
-    if (diffDays === 1) return 'Hôm qua';
+    if (diffDays === 1) return "Hôm qua";
     if (diffDays < 7) return `${diffDays} ngày trước`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
 
-    return date.toLocaleDateString('vi-VN', {
-      day: 'numeric',
-      month: 'short',
+    return date.toLocaleDateString("vi-VN", {
+      day: "numeric",
+      month: "short",
     });
   };
 
@@ -179,9 +199,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                 >
                   {post.author_username}
                 </h4>
-                <span className={`text-xs ${badge.color}`}>
-                  • {badge.text}
-                </span>
+                <span className={`text-xs ${badge.color}`}>• {badge.text}</span>
               </div>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-xs text-gray-500">
@@ -216,7 +234,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                       <button
                         onClick={() => {
                           setShowMenu(false);
-                          alert('Tính năng chỉnh sửa sẽ được cập nhật sớm');
+                          setShowEditModal(true);
                         }}
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors"
                       >
@@ -279,14 +297,17 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
           <div className="border-y border-gray-200 flex-shrink-0">
             <img
               src={post.image_url}
-              alt={post.title || 'Bài viết hình ảnh'}
+              alt={post.title || "Bài viết hình ảnh"}
               className="w-full h-auto object-contain"
             />
           </div>
         )}
 
         {/* Stats - Giống Facebook */}
-        {(likesCount > 0 || commentsCount > 0 || sharesCount > 0 || post.views_count > 0) && (
+        {(likesCount > 0 ||
+          commentsCount > 0 ||
+          sharesCount > 0 ||
+          post.views_count > 0) && (
           <div className="px-3 pt-2 pb-1 flex items-center text-sm text-gray-500 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-center gap-4">
               {likesCount > 0 && (
@@ -307,9 +328,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                 </button>
               )}
 
-              {sharesCount > 0 && (
-                <span>{sharesCount} lượt chia sẻ</span>
-              )}
+              {sharesCount > 0 && <span>{sharesCount} lượt chia sẻ</span>}
             </div>
 
             {/* Views đẩy sang phải */}
@@ -319,7 +338,6 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
               </span>
             )}
           </div>
-
         )}
 
         {/* Action Buttons - Giống Facebook */}
@@ -328,12 +346,13 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             <button
               onClick={handleLike}
               disabled={!user || isLiking}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isLiked
-                ? 'text-red-600 font-semibold'
-                : 'text-gray-600 hover:bg-gray-100'
-                } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
+                isLiked
+                  ? "text-red-600 font-semibold"
+                  : "text-gray-600 hover:bg-gray-100"
+              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+              <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
               <span className="text-sm">Thích</span>
             </button>
 
@@ -348,10 +367,11 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             <button
               onClick={handleShare}
               disabled={!user || isSharing}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isShared
-                ? 'text-blue-600 font-semibold'
-                : 'text-gray-600 hover:bg-gray-100'
-                } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
+                isShared
+                  ? "text-blue-600 font-semibold"
+                  : "text-gray-600 hover:bg-gray-100"
+              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <Share2 className="w-5 h-5" />
               <span className="text-sm">Chia sẻ</span>
@@ -389,6 +409,15 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         onClose={() => setShowUserProfileModal(false)}
       />
 
+      <EditPostModal
+        isOpen={showEditModal}
+        post={post}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={() => {
+          onUpdate?.();
+        }}
+      />
+
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <>
@@ -405,7 +434,8 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                 Xóa bài viết?
               </h3>
               <p className="text-sm text-gray-600 mb-6">
-                Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.
+                Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể
+                hoàn tác.
               </p>
               <div className="flex gap-3">
                 <button
@@ -426,7 +456,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                       Đang xóa...
                     </>
                   ) : (
-                    'Xóa'
+                    "Xóa"
                   )}
                 </button>
               </div>

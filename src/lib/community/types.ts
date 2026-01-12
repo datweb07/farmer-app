@@ -122,6 +122,8 @@ export interface UpdateProductData {
   category?: string;
   image_url?: string;
   contact?: string;
+  image?: File | null;
+  removeImage?: boolean;
 }
 
 export interface CommentLike {

@@ -9,6 +9,8 @@ import {
   Flag,
   Link as LinkIcon,
   Edit2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type { PostWithStats } from "../../lib/community/types";
 import {
@@ -46,11 +48,31 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showReadMore, setShowReadMore] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     trackPostView(post.id);
   }, [post.id]);
+
+  // Check if content is too long and needs "Read more"
+  useEffect(() => {
+    if (contentRef.current) {
+      const contentHeight = contentRef.current.scrollHeight;
+      const lineHeight = 20; // Approximate line height in pixels (text-sm leading-relaxed)
+      const maxLines = 6; // Show max 6 lines before "Read more"
+      const maxHeight = lineHeight * maxLines;
+
+      setShowReadMore(contentHeight > maxHeight);
+
+      // Auto-expand if content is not too long
+      if (contentHeight <= maxHeight) {
+        setIsExpanded(true);
+      }
+    }
+  }, [post.content]);
 
   // Close menu on outside click
   useEffect(() => {
@@ -151,6 +173,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const handleReport = () => {
     setShowMenu(false);
     alert("Tính năng báo cáo sẽ được cập nhật sớm");
+  };
+
+  const toggleContent = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const isOwner = user?.id === post.user_id;
@@ -280,16 +306,55 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
 
         {/* Content - Phần này sẽ co giãn */}
         <div className="px-3 pb-3 flex-grow min-h-0">
-          <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-line break-words">
-            {post.content}
-          </p>
-
-          {/* Title - Nếu có */}
+          {/* Title - ĐƯA LÊN TRÊN NỘI DUNG */}
           {post.title && (
-            <h3 className="font-semibold text-gray-900 mt-2 text-base">
+            <h3 className="font-semibold text-gray-900 mb-3 text-base">
               {post.title}
             </h3>
           )}
+
+          {/* Content with "Read more" feature */}
+          <div className="relative">
+            <div
+              ref={contentRef}
+              className={`text-gray-900 text-sm leading-relaxed whitespace-pre-line break-words transition-all duration-300 ${!isExpanded && showReadMore
+                ? "max-h-32 overflow-hidden"
+                : ""
+                }`}
+              style={{
+                maskImage: !isExpanded && showReadMore
+                  ? "linear-gradient(to bottom, black 60%, transparent 100%)"
+                  : "none",
+                WebkitMaskImage: !isExpanded && showReadMore
+                  ? "linear-gradient(to bottom, black 60%, transparent 100%)"
+                  : "none"
+              }}
+            >
+              {post.content}
+            </div>
+
+            {/* "Read more" button */}
+            {showReadMore && (
+              <div className="mt-2 flex justify-end">
+                <button
+                  onClick={toggleContent}
+                  className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 transition-colors"
+                >
+                  {isExpanded ? (
+                    <>
+                      <span>Thu gọn</span>
+                      <ChevronUp className="w-4 h-4" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Xem thêm</span>
+                      <ChevronDown className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Image - Giống Facebook, chiều cao tự động */}
@@ -308,37 +373,37 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
           commentsCount > 0 ||
           sharesCount > 0 ||
           post.views_count > 0) && (
-          <div className="px-3 pt-2 pb-1 flex items-center text-sm text-gray-500 border-b border-gray-200 flex-shrink-0">
-            <div className="flex items-center gap-4">
-              {likesCount > 0 && (
-                <span className="flex items-center gap-1">
-                  <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                    <Heart className="w-2.5 h-2.5 text-white fill-current" />
-                  </div>
-                  {likesCount}
+            <div className="px-3 pt-2 pb-1 flex items-center text-sm text-gray-500 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center gap-4">
+                {likesCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                      <Heart className="w-2.5 h-2.5 text-white fill-current" />
+                    </div>
+                    {likesCount}
+                  </span>
+                )}
+
+                {commentsCount > 0 && (
+                  <button
+                    onClick={() => setShowCommentsModal(true)}
+                    className="hover:underline"
+                  >
+                    {commentsCount} bình luận
+                  </button>
+                )}
+
+                {sharesCount > 0 && <span>{sharesCount} lượt chia sẻ</span>}
+              </div>
+
+              {/* Views đẩy sang phải */}
+              {post.views_count > 0 && (
+                <span className="ml-auto text-xs text-gray-600 pr-1">
+                  {post.views_count} lượt xem
                 </span>
               )}
-
-              {commentsCount > 0 && (
-                <button
-                  onClick={() => setShowCommentsModal(true)}
-                  className="hover:underline"
-                >
-                  {commentsCount} bình luận
-                </button>
-              )}
-
-              {sharesCount > 0 && <span>{sharesCount} lượt chia sẻ</span>}
             </div>
-
-            {/* Views đẩy sang phải */}
-            {post.views_count > 0 && (
-              <span className="ml-auto text-xs text-gray-600 pr-1">
-                {post.views_count} lượt xem
-              </span>
-            )}
-          </div>
-        )}
+          )}
 
         {/* Action Buttons - Giống Facebook */}
         <div className="px-3 py-1 border-b border-gray-200 flex-shrink-0">
@@ -346,11 +411,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             <button
               onClick={handleLike}
               disabled={!user || isLiking}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
-                isLiked
-                  ? "text-red-600 font-semibold"
-                  : "text-gray-600 hover:bg-gray-100"
-              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isLiked
+                ? "text-red-600 font-semibold"
+                : "text-gray-600 hover:bg-gray-100"
+                } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
               <span className="text-sm">Thích</span>
@@ -367,11 +431,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             <button
               onClick={handleShare}
               disabled={!user || isSharing}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
-                isShared
-                  ? "text-blue-600 font-semibold"
-                  : "text-gray-600 hover:bg-gray-100"
-              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isShared
+                ? "text-blue-600 font-semibold"
+                : "text-gray-600 hover:bg-gray-100"
+                } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <Share2 className="w-5 h-5" />
               <span className="text-sm">Chia sẻ</span>

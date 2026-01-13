@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Target, Users, MapPin, TrendingUp, Edit, Trash2, UserCheck, Star } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Target, Users, MapPin, TrendingUp, Edit, Trash2, UserCheck, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import type { InvestmentProjectWithStats } from '../../lib/investments/types';
 import { InvestmentModal } from './InvestmentModal';
 import { InvestorsListModal } from './InvestorsListModal';
@@ -23,11 +23,31 @@ export function InvestmentProjectCard({ project, onUpdate, onEdit }: InvestmentP
   const [avgRating, setAvgRating] = useState<number>(0);
   const [totalRatings, setTotalRatings] = useState<number>(0);
   const [canRate, setCanRate] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showReadMore, setShowReadMore] = useState(false);
+  const descriptionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadRatingStats();
     checkCanRate();
   }, [project.id, user]);
+
+  // Check if description is too long and needs "Read more" - GIỐNG HỆT PostCard
+  useEffect(() => {
+    if (descriptionRef.current) {
+      const descriptionHeight = descriptionRef.current.scrollHeight;
+      const lineHeight = 20; // Approximate line height in pixels (text-sm)
+      const maxLines = 6; // Show max 6 lines before "Read more"
+      const maxHeight = lineHeight * maxLines;
+
+      setShowReadMore(descriptionHeight > maxHeight);
+
+      // Auto-expand if description is not too long
+      if (descriptionHeight <= maxHeight) {
+        setIsExpanded(true);
+      }
+    }
+  }, [project.description]);
 
   const loadRatingStats = async () => {
     const result = await getProjectRatingStats(project.id);
@@ -56,6 +76,10 @@ export function InvestmentProjectCard({ project, onUpdate, onEdit }: InvestmentP
       return `${(amount / 1000000000).toFixed(1)} tỷ VNĐ`;
     }
     return `${(amount / 1000000).toFixed(0)} triệu VNĐ`;
+  };
+
+  const toggleDescription = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const progress = project.progress_percentage || 0;
@@ -100,9 +124,9 @@ export function InvestmentProjectCard({ project, onUpdate, onEdit }: InvestmentP
   return (
     <>
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-        {/* Header */}
+        {/* Header - GIỐNG CẤU TRÚC PostCard */}
         <div className="p-4 border-b border-gray-100">
-          <div className="flex justify-between items-start mb-2">
+          <div className="flex justify-between items-start mb-3">
             <h3 className="font-semibold text-gray-900 text-lg leading-tight pr-2">
               {project.title}
             </h3>
@@ -110,7 +134,49 @@ export function InvestmentProjectCard({ project, onUpdate, onEdit }: InvestmentP
               {statusBadge.text}
             </span>
           </div>
-          <p className="text-gray-600 text-sm line-clamp-2">{project.description}</p>
+
+          {/* Description với "Read more" feature - GIỐNG HỆT PostCard */}
+          <div className="relative">
+            <div
+              ref={descriptionRef}
+              className={`text-gray-600 text-sm leading-relaxed whitespace-pre-line break-words transition-all duration-300 ${!isExpanded && showReadMore
+                  ? "max-h-32 overflow-hidden"
+                  : ""
+                }`}
+              style={{
+                maskImage: !isExpanded && showReadMore
+                  ? "linear-gradient(to bottom, black 60%, transparent 100%)"
+                  : "none",
+                WebkitMaskImage: !isExpanded && showReadMore
+                  ? "linear-gradient(to bottom, black 60%, transparent 100%)"
+                  : "none"
+              }}
+            >
+              {project.description}
+            </div>
+
+            {/* "Read more" button - GIỐNG HỆT PostCard */}
+            {showReadMore && (
+              <div className="mt-2 flex justify-end">
+                <button
+                  onClick={toggleDescription}
+                  className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 transition-colors"
+                >
+                  {isExpanded ? (
+                    <>
+                      <span>Thu gọn</span>
+                      <ChevronUp className="w-4 h-4" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Xem thêm</span>
+                      <ChevronDown className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Project Image */}

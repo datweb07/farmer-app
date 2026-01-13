@@ -217,45 +217,7 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
                 </div>
             </div>
 
-            {/* Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-2 bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200 rounded-xl p-4">
-                    <p className="text-sm font-semibold text-red-700 mb-1">Tổng quan</p>
-                    <p className="text-3xl font-bold text-red-600">{areas.length} tỉnh</p>
-                    <div className="mt-4 pt-4 border-t border-red-200 grid grid-cols-3 gap-3">
-                        <div>
-                            <p className="text-xs text-red-600">Nguy hiểm</p>
-                            <p className="text-xl font-bold text-red-700">{dangerAreas.length}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-yellow-600">Cảnh báo</p>
-                            <p className="text-xl font-bold text-yellow-600">{warningAreas.length}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-green-600">An toàn</p>
-                            <p className="text-xl font-bold text-green-600">{safeAreas.length}</p>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                    <p className="text-sm font-semibold text-blue-700 mb-1">Diện tích ảnh hưởng</p>
-                    <p className="text-3xl font-bold text-blue-600">
-                        {areas.reduce((sum, area) => sum + (area.affectedAreaKm || 0), 0) > 0
-                            ? `${areas.reduce((sum, area) => sum + (area.affectedAreaKm || 0), 0).toLocaleString()} km²`
-                            : "--"}
-                    </p>
-                </div>
-
-                <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
-                    <p className="text-sm font-semibold text-purple-700 mb-1">Dân số ảnh hưởng</p>
-                    <p className="text-3xl font-bold text-purple-600">
-                        {areas.reduce((sum, area) => sum + (area.population || 0), 0) > 0
-                            ? `${(areas.reduce((sum, area) => sum + (area.population || 0), 0) / 1000).toFixed(1)}K`
-                            : "--"}
-                    </p>
-                </div>
-            </div>
 
             {/* Province List */}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -301,6 +263,46 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
                             )}
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="md:col-span-2 bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200 rounded-xl p-4">
+                    <p className="text-sm font-semibold text-red-700 mb-1">Tổng quan</p>
+                    <p className="text-3xl font-bold text-red-600">{areas.length} tỉnh</p>
+                    <div className="mt-4 pt-4 border-t border-red-200 grid grid-cols-3 gap-3">
+                        <div>
+                            <p className="text-xs text-red-600">Nguy hiểm</p>
+                            <p className="text-xl font-bold text-red-700">{dangerAreas.length}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-yellow-600">Cảnh báo</p>
+                            <p className="text-xl font-bold text-yellow-600">{warningAreas.length}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-green-600">An toàn</p>
+                            <p className="text-xl font-bold text-green-600">{safeAreas.length}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                    <p className="text-sm font-semibold text-blue-700 mb-1">Diện tích ảnh hưởng</p>
+                    <p className="text-3xl font-bold text-blue-600">
+                        {areas.reduce((sum, area) => sum + (area.affectedAreaKm || 0), 0) > 0
+                            ? `${areas.reduce((sum, area) => sum + (area.affectedAreaKm || 0), 0).toLocaleString()} km²`
+                            : "--"}
+                    </p>
+                </div>
+
+                <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                    <p className="text-sm font-semibold text-purple-700 mb-1">Dân số ảnh hưởng</p>
+                    <p className="text-3xl font-bold text-purple-600">
+                        {areas.reduce((sum, area) => sum + (area.population || 0), 0) > 0
+                            ? `${(areas.reduce((sum, area) => sum + (area.population || 0), 0) / 1000).toFixed(1)}K`
+                            : "--"}
+                    </p>
                 </div>
             </div>
         </div>

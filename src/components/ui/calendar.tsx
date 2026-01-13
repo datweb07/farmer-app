@@ -7,6 +7,14 @@ import { DayPicker } from "react-day-picker";
 import { cn } from "./utils";
 import { buttonVariants } from "./button";
 
+/**
+ * Render a DayPicker calendar preconfigured with project styles, layout, and custom navigation chevrons.
+ *
+ * @param className - Additional CSS class names appended to the calendar container
+ * @param classNames - ClassNames object merged with the component's default class mappings to customize internal DayPicker parts
+ * @param showOutsideDays - When true, display days from adjacent months in the calendar grid
+ * @returns A React element containing a configured DayPicker calendar
+ */
 function Calendar({
   className,
   classNames,

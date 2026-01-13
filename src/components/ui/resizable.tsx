@@ -6,6 +6,15 @@ import * as ResizablePrimitive from "react-resizable-panels";
 
 import { cn } from "./utils";
 
+/**
+ * Wraps `ResizablePrimitive.Group` with project-specific layout classes and a `data-slot`.
+ *
+ * Applies a base flex layout (vertical when the panel group direction is `vertical`), merges any
+ * provided `className`, sets `data-slot="resizable-panel-group"`, and forwards all other props to
+ * the underlying `ResizablePrimitive.Group`.
+ *
+ * @returns A `ResizablePrimitive.Group` element with the composed classes, `data-slot`, and forwarded props.
+ */
 function ResizablePanelGroup({
   className,
   ...props
@@ -22,12 +31,25 @@ function ResizablePanelGroup({
   );
 }
 
+/**
+ * Wraps `ResizablePrimitive.Panel`, setting a data-slot and forwarding all props.
+ *
+ * @returns A `ResizablePrimitive.Panel` element with `data-slot="resizable-panel"` and the provided props applied.
+ */
 function ResizablePanel({
   ...props
 }: React.ComponentProps<typeof ResizablePrimitive.Panel>) {
   return <ResizablePrimitive.Panel data-slot="resizable-panel" {...props} />;
 }
 
+/**
+ * Render a styled resizable separator that optionally shows a grip handle.
+ *
+ * Renders a wrapped `ResizablePrimitive.Separator` with project-specific classes, data-slot="resizable-handle", and an optional visual grip. The separator's layout adapts to the parent panel group's direction via data attributes; passing `withHandle` adds a small grip icon inside the separator for affordance.
+ *
+ * @param withHandle - If true, render a visible grip element inside the separator
+ * @returns The resizable separator element with applied styling and optional grip
+ */
 function ResizableHandle({
   withHandle,
   className,

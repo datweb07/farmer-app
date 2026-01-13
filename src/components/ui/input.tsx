@@ -2,6 +2,12 @@ import * as React from "react";
 
 import { cn } from "./utils";
 
+/**
+ * Renders a styled input element with sensible default classes and optional custom classes.
+ *
+ * @param className - Additional class names to append to the default style set.
+ * @returns The input element with composed styling, a `data-slot="input"` attribute, and any other passed props applied.
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input

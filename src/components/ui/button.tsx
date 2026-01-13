@@ -34,6 +34,15 @@ const buttonVariants = cva(
   },
 );
 
+/**
+ * Render a configurable button with variant and size styles from `buttonVariants`.
+ *
+ * @param className - Additional class names to merge with the generated variant classes
+ * @param variant - Visual style variant to apply (e.g., "default", "destructive", "outline", "secondary", "ghost", "link")
+ * @param size - Size option to apply (e.g., "default", "sm", "lg", "icon")
+ * @param asChild - If `true`, render a Radix `Slot` so the caller can provide the underlying element; otherwise render a native `button`
+ * @returns A JSX element representing the styled button (or a `Slot`-wrapped element when `asChild` is `true`)
+ */
 function Button({
   className,
   variant,

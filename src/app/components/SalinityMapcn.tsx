@@ -79,6 +79,16 @@ const getStatusColor = (status: string) => {
     }
 };
 
+/**
+ * Render an interactive salinity map and accompanying UI for Delta provinces based on the provided area data.
+ *
+ * Displays a MapLibre-based map with status-colored province markers and click-to-focus popups, a legend, aggregated statistics
+ * (counts by status, total affected area, total affected population), and a responsive list of provinces. Clicking a province
+ * marker or list item sets the selected province and animates the map to that province's coordinates.
+ *
+ * @param areas - Array of AffectedArea objects describing each province's salinity, status, and optional metadata (population, affectedAreaKm, lastUpdate).
+ * @returns The JSX element that renders the map, markers, popups, legend, statistics, and province list.
+ */
 export function SalinityMapcn({ areas }: SalinityMapcnProps) {
     const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
     const mapRef = useRef<MapLibreGL.Map | null>(null);

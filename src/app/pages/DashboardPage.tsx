@@ -1,25 +1,26 @@
-import { Users, Droplet, TrendingUp, CheckCircle } from "lucide-react";
-import { StatsCard } from "../components/StatsCard";
-import { SalinityCard } from "../components/SalinityCard";
-import { RecommendationCard } from "../components/RecommendationCard";
-import { overallStats, getSalinityRecommendations } from "../../data/mockData";
+// import { Users, Droplet, TrendingUp, CheckCircle } from "lucide-react";
+// import { StatsCard } from "../components/StatsCard";
+// import { SalinityCard } from "../components/SalinityCard";
+// import { RecommendationCard } from "../components/RecommendationCard";
+// import { overallStats, getSalinityRecommendations } from "../../data/mockData";
+// import { getSalinityRecommendations } from "../../data/mockData";
 
 interface DashboardPageProps {
   onNavigate?: (page: string) => void;
 }
 
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
-  const currentSalinity = 4.2;
-  const forecastSalinity = 6.3;
-  const recommendations = getSalinityRecommendations(forecastSalinity);
+  // const currentSalinity = 4.2;
+  // const forecastSalinity = 6.3;
+  // const recommendations = getSalinityRecommendations(forecastSalinity);
 
-  const getSalinityLevel = (
-    salinity: number
-  ): "safe" | "warning" | "danger" => {
-    if (salinity < 4) return "safe";
-    if (salinity < 6) return "warning";
-    return "danger";
-  };
+  // const getSalinityLevel = (
+  //   salinity: number
+  // ): "safe" | "warning" | "danger" => {
+  //   if (salinity < 4) return "safe";
+  //   if (salinity < 6) return "warning";
+  //   return "danger";
+  // };
 
   return (
     <div className="min-h-screen bg-white">

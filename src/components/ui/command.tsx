@@ -13,6 +13,14 @@ import {
   DialogTitle,
 } from "./dialog";
 
+/**
+ * Renders a styled Command primitive used as the command-palette container.
+ *
+ * Applies a default full-size, rounded, columnar layout and sets `data-slot="command"`;
+ * any provided `className` is merged with these defaults.
+ *
+ * @returns The rendered CommandPrimitive element with slot and styling applied.
+ */
 function Command({
   className,
   ...props
@@ -29,6 +37,17 @@ function Command({
   );
 }
 
+/**
+ * Render a Dialog-wrapped command palette with configurable header text.
+ *
+ * Renders a Dialog containing an accessible header (title and description) and a Command container
+ * prewired with styling for the command palette layout.
+ *
+ * @param title - Visible title for the dialog header
+ * @param description - Short description shown under the title for screen readers
+ * @param children - Command primitive children (input, list, groups, items, etc.) to render inside the palette
+ * @returns A Dialog element containing the command palette layout
+ */
 function CommandDialog({
   title = "Command Palette",
   description = "Search for a command to run...",
@@ -53,6 +72,14 @@ function CommandDialog({
   );
 }
 
+/**
+ * Renders the command palette's search input with an inline search icon.
+ *
+ * Wraps the Cmdk Input in a styled wrapper, sets data-slot attributes for styling/slot targeting,
+ * and accepts all props supported by `CommandPrimitive.Input`.
+ *
+ * @returns The wrapper element containing the search icon and the styled command input
+ */
 function CommandInput({
   className,
   ...props
@@ -75,6 +102,15 @@ function CommandInput({
   );
 }
 
+/**
+ * Renders the scrollable list container used by the command palette.
+ *
+ * The returned element is a `CommandPrimitive.List` preconfigured with a maximum
+ * height, vertical scrolling, and merged `className` support.
+ *
+ * @returns The `CommandPrimitive.List` element serving as the command list container
+ * with max-height 300px, vertical overflow enabled, and horizontal overflow hidden.
+ */
 function CommandList({
   className,
   ...props
@@ -91,6 +127,12 @@ function CommandList({
   );
 }
 
+/**
+ * Renders the empty-state placeholder shown when the command list has no items.
+ *
+ * @param props - Props forwarded to the underlying `CommandPrimitive.Empty` element.
+ * @returns The empty-state element displayed inside the command list when there are no matching items.
+ */
 function CommandEmpty({
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Empty>) {
@@ -103,6 +145,11 @@ function CommandEmpty({
   );
 }
 
+/**
+ * Renders a styled group container for organizing command palette items.
+ *
+ * @returns A `CommandPrimitive.Group` element with applied layout and heading styles.
+ */
 function CommandGroup({
   className,
   ...props
@@ -119,6 +166,11 @@ function CommandGroup({
   );
 }
 
+/**
+ * Renders a thin visual separator used between command groups or items in the command palette.
+ *
+ * @returns A styled separator element.
+ */
 function CommandSeparator({
   className,
   ...props
@@ -132,6 +184,16 @@ function CommandSeparator({
   );
 }
 
+/**
+ * Renders a styled command list item element for use inside the command palette.
+ *
+ * The component applies a data-slot of "command-item", merges provided `className` with
+ * the component's default styling, and forwards all other props to the underlying item.
+ *
+ * @param className - Additional CSS class names to merge with the component's defaults
+ * @param props - Props forwarded to the underlying command item element
+ * @returns A React element representing a command palette item
+ */
 function CommandItem({
   className,
   ...props
@@ -148,6 +210,14 @@ function CommandItem({
   );
 }
 
+/**
+ * Renders a styled span for displaying a keyboard shortcut or key hint.
+ *
+ * The element is marked with `data-slot="command-shortcut"` and applies muted,
+ * right-aligned, small-caps-like styling suitable for shortcut labels.
+ *
+ * @returns A span element containing the shortcut text or nodes
+ */
 function CommandShortcut({
   className,
   ...props

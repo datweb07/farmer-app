@@ -8,6 +8,11 @@ import {
 import { cn } from "./utils";
 import { Button, buttonVariants } from "./button";
 
+/**
+ * Renders a centered navigation container for pagination controls.
+ *
+ * @returns A `<nav>` element with role="navigation", aria-label="pagination", `data-slot="pagination"`, and a centered flex layout; merges any provided `className` and forwards remaining props.
+ */
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
@@ -20,6 +25,11 @@ function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   );
 }
 
+/**
+ * Renders the pagination content container used to group pagination items.
+ *
+ * @returns The rendered `ul` element with layout classes and `data-slot="pagination-content"`.
+ */
 function PaginationContent({
   className,
   ...props
@@ -33,6 +43,11 @@ function PaginationContent({
   );
 }
 
+/**
+ * Renders a list item element marked as a pagination item.
+ *
+ * @returns An `<li>` element with `data-slot="pagination-item"` and any provided props applied to it.
+ */
 function PaginationItem({ ...props }: React.ComponentProps<"li">) {
   return <li data-slot="pagination-item" {...props} />;
 }
@@ -42,6 +57,15 @@ type PaginationLinkProps = {
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
   React.ComponentProps<"a">;
 
+/**
+ * Renders a styled pagination link element that reflects and exposes its active state.
+ *
+ * @param className - Additional CSS classes to apply to the link.
+ * @param isActive - When `true`, marks the link as the current page (sets `aria-current="page"` and applies active styling).
+ * @param size - Button size variant to use for styling; defaults to `"icon"`.
+ * @param props - Additional anchor and button props which are forwarded to the underlying `<a>` element.
+ * @returns The rendered anchor element for a pagination item.
+ */
 function PaginationLink({
   className,
   isActive,
@@ -65,6 +89,11 @@ function PaginationLink({
   );
 }
 
+/**
+ * Renders a pagination "previous" link with a left chevron and a responsive "Previous" label.
+ *
+ * @returns A `PaginationLink` element configured for the previous page: it has `aria-label="Go to previous page"`, `size="default"`, a left chevron icon, and a "Previous" text label that is hidden on small screens.
+ */
 function PaginationPrevious({
   className,
   ...props
@@ -82,6 +111,11 @@ function PaginationPrevious({
   );
 }
 
+/**
+ * Renders a "Next" pagination control that shows a right chevron and a label hidden on small screens.
+ *
+ * @returns A PaginationLink element representing the "Next" page button.
+ */
 function PaginationNext({
   className,
   ...props
@@ -99,6 +133,13 @@ function PaginationNext({
   );
 }
 
+/**
+ * Renders a visual, non-interactive ellipsis used to indicate additional pages.
+ *
+ * The element contains a horizontal-more icon and an offscreen "More pages" label for accessibility.
+ *
+ * @returns A span element used as the pagination ellipsis (icon plus screen-reader text).
+ */
 function PaginationEllipsis({
   className,
   ...props

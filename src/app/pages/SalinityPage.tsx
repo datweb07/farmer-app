@@ -9,6 +9,11 @@ import {
   getSalinityRecommendations,
 } from "../../data/mockData";
 
+/**
+ * Render the salinity monitoring dashboard with charts, recommendations, affected-area map, guidance, and emergency contacts.
+ *
+ * @returns A React element containing the salinity page UI: header, main salinity chart, recommendation card, comparison chart, affected-areas map, informational panels, and contact cards.
+ */
 export function SalinityPage() {
   const latestData = salinityData[salinityData.length - 1];
   const recommendations = getSalinityRecommendations(latestData.salinity);

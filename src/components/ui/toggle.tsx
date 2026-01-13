@@ -28,6 +28,14 @@ const toggleVariants = cva(
   },
 );
 
+/**
+ * Render a styled Toggle root element with variant and size styling applied.
+ *
+ * @param className - Additional CSS classes to merge with the component styles
+ * @param variant - Visual variant to apply; `"default"` or `"outline"`
+ * @param size - Size variant to apply; `"sm"`, `"default"`, or `"lg"`
+ * @returns The configured TogglePrimitive.Root element with composed class names and forwarded props
+ */
 function Toggle({
   className,
   variant,

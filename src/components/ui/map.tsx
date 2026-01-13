@@ -28,6 +28,15 @@ type MapContextValue = {
 
 const MapContext = createContext<MapContextValue | null>(null);
 
+/**
+ * Provides access to the current MapContext containing the MapLibre map instance and load state.
+ *
+ * @returns The context object with:
+ * - `map`: the MapLibre GL map instance or `null` if not created yet
+ * - `isLoaded`: `true` when the map and its style are ready, `false` otherwise
+ *
+ * @throws Error if invoked outside of a `Map` provider
+ */
 function useMap() {
   const context = useContext(MapContext);
   if (!context) {
@@ -184,6 +193,12 @@ type MarkerContextValue = {
 
 const MarkerContext = createContext<MarkerContextValue | null>(null);
 
+/**
+ * Retrieve the current MarkerContext for the nearest parent MapMarker.
+ *
+ * @returns The marker context object containing the `marker` instance and `map`.
+ * @throws Error if no MarkerContext is available (i.e., the hook is used outside a `MapMarker`).
+ */
 function useMarkerContext() {
   const context = useContext(MarkerContext);
   if (!context) {
@@ -213,6 +228,24 @@ type MapMarkerProps = {
   onDragEnd?: (lngLat: { lng: number; lat: number }) => void;
 } & Omit<MarkerOptions, "element">;
 
+/**
+ * Create and manage a MapLibre GL marker at the specified longitude/latitude and expose the marker via MarkerContext.
+ *
+ * The component creates a DOM-backed marker, keeps its position and options in sync with props, wires mouse and drag callbacks, and provides the marker and map instances to descendant components through MarkerContext.
+ *
+ * @param longitude - Marker longitude in decimal degrees
+ * @param latitude - Marker latitude in decimal degrees
+ * @param children - React children rendered into the marker's DOM element (via the MarkerContext)
+ * @param onClick - Called with the native MouseEvent when the marker element is clicked
+ * @param onMouseEnter - Called with the native MouseEvent when the cursor enters the marker element
+ * @param onMouseLeave - Called with the native MouseEvent when the cursor leaves the marker element
+ * @param onDragStart - Called with `{ lng, lat }` when a drag starts (if draggable)
+ * @param onDrag - Called with `{ lng, lat }` while dragging (if draggable)
+ * @param onDragEnd - Called with `{ lng, lat }` when a drag ends (if draggable)
+ * @param draggable - Whether the marker is draggable
+ * @param markerOptions - Additional MapLibre GL Marker options (e.g., `offset`, `rotation`, `rotationAlignment`, `pitchAlignment`)
+ * @returns A MarkerContext.Provider that supplies `{ marker, map }` to its children
+ */
 function MapMarker({
   longitude,
   latitude,
@@ -324,6 +357,16 @@ type MarkerContentProps = {
   className?: string;
 };
 
+/**
+ * Renders content into the DOM element of the current MapMarker.
+ *
+ * Renders the provided `children` (or a default marker icon when `children` is not supplied)
+ * into the marker's underlying DOM element so the content appears at the marker position on the map.
+ *
+ * @param children - Custom content to render inside the marker; if omitted a default marker icon is used
+ * @param className - Additional CSS classes applied to the marker content container
+ * @returns A React element that mounts the content into the marker's DOM element on the map
+ */
 function MarkerContent({ children, className }: MarkerContentProps) {
   const { marker } = useMarkerContext();
 
@@ -335,6 +378,11 @@ function MarkerContent({ children, className }: MarkerContentProps) {
   );
 }
 
+/**
+ * Renders a small circular blue marker icon used as the default marker content.
+ *
+ * @returns A JSX element containing a 16×16px blue dot with a white border and shadow.
+ */
 function DefaultMarkerIcon() {
   return (
     <div className="relative h-4 w-4 rounded-full border-2 border-white bg-blue-500 shadow-lg" />
@@ -350,6 +398,17 @@ type MarkerPopupProps = {
   closeButton?: boolean;
 } & Omit<PopupOptions, "className" | "closeButton">;
 
+/**
+ * Attaches a MapLibre Popup to the current marker and renders the provided content into it.
+ *
+ * When the popup is open, changes to `offset` or `maxWidth` in `popupOptions` are applied to the existing popup.
+ *
+ * @param children - Content rendered inside the popup
+ * @param className - Additional CSS classes applied to the popup container
+ * @param closeButton - Show a close button inside the popup that removes the popup when clicked
+ * @param popupOptions - Additional MapLibre Popup options forwarded to the underlying popup (e.g., `offset`, `maxWidth`)
+ * @returns A React portal element that mounts the popup content into a DOM node used by the marker's popup
+ */
 function MarkerPopup({
   children,
   className,
@@ -431,6 +490,15 @@ type MarkerTooltipProps = {
   className?: string;
 } & Omit<PopupOptions, "className" | "closeButton" | "closeOnClick">;
 
+/**
+ * Render a hover-triggered tooltip bound to the surrounding marker.
+ *
+ * The tooltip is shown when the marker receives a mouse enter and hidden on mouse leave.
+ *
+ * @param className - Additional CSS classes applied to the tooltip container.
+ * @param popupOptions - Options forwarded to the underlying MapLibre `Popup` (for example `offset` or `maxWidth`). Defaults used by this component include `offset: 16`, `closeOnClick: true`, `closeButton: false`, and `maxWidth: "none"`.
+ * @returns A portal element that renders `children` into a MapLibre popup attached to the marker and displayed while hovering the marker.
+ */
 function MarkerTooltip({
   children,
   className,
@@ -508,6 +576,13 @@ type MarkerLabelProps = {
   position?: "top" | "bottom";
 };
 
+/**
+ * Renders a compact label anchored to a marker, positioned either above or below it.
+ *
+ * @param position - Where to place the label relative to the marker: `"top"` places it above, `"bottom"` places it below.
+ * @param className - Additional CSS classes applied to the label container.
+ * @returns The label element positioned relative to its marker.
+ */
 function MarkerLabel({
   children,
   className,
@@ -556,6 +631,12 @@ const positionClasses = {
   "bottom-right": "bottom-10 right-2",
 };
 
+/**
+ * Renders a vertically stacked container that visually groups control buttons.
+ *
+ * @param children - Content to place inside the control group (typically one or more control buttons)
+ * @returns The container element that arranges its children in a bordered, rounded, stacked layout
+ */
 function ControlGroup({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col rounded-md border border-border bg-background shadow-sm overflow-hidden [&>button:not(:last-child)]:border-b [&>button:not(:last-child)]:border-border">
@@ -564,6 +645,15 @@ function ControlGroup({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Renders an accessible control button used by the map UI controls.
+ *
+ * @param onClick - Callback invoked when the button is activated
+ * @param label - Accessibility label applied to the button's `aria-label`
+ * @param children - Visual content rendered inside the button (icon or text)
+ * @param disabled - When `true`, the button is disabled and styled as non-interactive
+ * @returns A styled button element configured for use in the map control toolbar
+ */
 function ControlButton({
   onClick,
   label,
@@ -591,6 +681,18 @@ function ControlButton({
   );
 }
 
+/**
+ * Render map control buttons (zoom, compass, locate, fullscreen) positioned on the map container.
+ *
+ * The controls shown are determined by the corresponding boolean props; the component renders nothing until the map is loaded.
+ *
+ * @param position - One of `"top-left" | "top-right" | "bottom-left" | "bottom-right"` determining control placement
+ * @param showZoom - Show zoom in/out controls when `true`
+ * @param showCompass - Show a compass button that resets bearing/pitch when `true`
+ * @param showLocate - Show a locate button that centers the map on the user's current position when `true`
+ * @param showFullscreen - Show a fullscreen toggle button when `true`
+ * @param onLocate - Optional callback invoked with `{ longitude, latitude }` after a successful geolocation
+ */
 function MapControls({
   position = "bottom-right",
   showZoom = true,
@@ -701,6 +803,12 @@ function MapControls({
   );
 }
 
+/**
+ * Renders a compass control button that visually reflects the map's bearing and pitch and invokes a handler when clicked.
+ *
+ * @param onClick - Callback invoked when the compass button is activated (used to reset the map bearing to north)
+ * @returns The compass control button element
+ */
 function CompassButton({ onClick }: { onClick: () => void }) {
   const { isLoaded, map } = useMap();
   const compassRef = useRef<SVGSVGElement>(null);
@@ -758,6 +866,20 @@ type MapPopupProps = {
   closeButton?: boolean;
 } & Omit<PopupOptions, "className" | "closeButton">;
 
+/**
+ * Renders a MapLibre popup at the given longitude and latitude and portals the provided content into it.
+ *
+ * Binds the popup lifecycle to the map: adds the popup when the map is available, updates its position and options when changed, and removes it on unmount. Optionally renders an internal close button that removes the popup and calls `onClose`.
+ *
+ * @param longitude - Longitude where the popup should be anchored
+ * @param latitude - Latitude where the popup should be anchored
+ * @param onClose - Callback invoked when the popup is closed (either via the close button or the popup's close event)
+ * @param children - Content to render inside the popup
+ * @param className - Additional CSS classes applied to the popup container
+ * @param closeButton - When true, render an internal close button inside the popup
+ * @param popupOptions - Additional MapLibre Popup options (offset, maxWidth, etc.)
+ * @returns A React portal that mounts the popup content into a MapLibre Popup container attached to the map
+ */
 function MapPopup({
   longitude,
   latitude,
@@ -873,6 +995,24 @@ type MapRouteProps = {
   interactive?: boolean;
 };
 
+/**
+ * Render a styled polyline route on the map using a MapLibre GL line layer.
+ *
+ * Updates the route geometry and paint properties when `coordinates`, `color`,
+ * `width`, `opacity`, or `dashArray` change, and optionally wires click/hover
+ * callbacks when `interactive` is true.
+ *
+ * @param id - Optional identifier to scope the map source and layer; a stable id is generated if omitted
+ * @param coordinates - Ordered array of `[longitude, latitude]` pairs defining the route; requires at least two points
+ * @param color - Line color (CSS hex or valid color string)
+ * @param width - Line width in pixels
+ * @param opacity - Line opacity from 0 to 1
+ * @param dashArray - Optional dash pattern for the line (e.g., [2, 4])
+ * @param onClick - Callback invoked when the route layer is clicked
+ * @param onMouseEnter - Callback invoked when the pointer enters the route layer; cursor becomes `pointer`
+ * @param onMouseLeave - Callback invoked when the pointer leaves the route layer; cursor is reset
+ * @param interactive - When `true`, enables map event listeners for clicks and hover interactions
+ */
 function MapRoute({
   id: propId,
   coordinates,
@@ -1019,6 +1159,22 @@ type MapClusterLayerProps<
   ) => void;
 };
 
+/**
+ * Renders a cluster-enabled GeoJSON point layer and manages its source, styling, and interactions.
+ *
+ * Adds a clustered GeoJSON source and three layers (cluster circles, cluster counts, unclustered points),
+ * keeps the source data and paint properties in sync when props change, and wires click/hover handlers
+ * for clusters and individual points.
+ *
+ * @param data - A GeoJSON FeatureCollection of Point features or a URL string pointing to GeoJSON data.
+ * @param clusterMaxZoom - Maximum zoom level at which points are clustered.
+ * @param clusterRadius - Radius (in pixels) used to cluster points.
+ * @param clusterColors - Array of three color stops used for cluster circle colors from smallest to largest clusters.
+ * @param clusterThresholds - Two numeric thresholds that partition cluster sizes for color/size steps.
+ * @param pointColor - Color for unclustered point circles.
+ * @param onPointClick - Callback invoked when an unclustered point is clicked; receives the feature and its [lng, lat] coordinates.
+ * @param onClusterClick - Callback invoked when a cluster is clicked; receives the cluster id, cluster center [lng, lat], and point count.
+ */
 function MapClusterLayer<
   P extends GeoJSON.GeoJsonProperties = GeoJSON.GeoJsonProperties
 >({

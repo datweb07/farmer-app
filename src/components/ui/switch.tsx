@@ -5,6 +5,16 @@ import * as SwitchPrimitive from "@radix-ui/react-switch";
 
 import { cn } from "./utils";
 
+/**
+ * Renders a styled switch control built on Radix UI's Switch primitive.
+ *
+ * Accepts all props valid for `SwitchPrimitive.Root`; any additional `className`
+ * is merged into the root element's classes. The component contains a thumb element
+ * and exposes state-aware styling for checked/unchecked, focus, disabled, and dark-mode variants.
+ *
+ * @param className - Optional additional CSS class names to apply to the root element
+ * @returns A `SwitchPrimitive.Root` element with an internal `SwitchPrimitive.Thumb` configured for state-based styling
+ */
 function Switch({
   className,
   ...props

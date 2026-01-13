@@ -35,16 +35,16 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
 
         {/* Current Salinity Status */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <SalinityCard
             currentSalinity={currentSalinity}
             forecastSalinity={forecastSalinity}
             level={getSalinityLevel(forecastSalinity)}
           />
-        </div>
+        </div> */}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
             title="Nông dân tham gia"
             value={overallStats.totalFarmers.toLocaleString("vi-VN")}
@@ -73,16 +73,16 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             color="blue"
             subtitle="Trung bình"
           />
-        </div>
+        </div> */}
 
         {/* Recommendations */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <RecommendationCard
             title={recommendations.title}
             recommendations={recommendations.recommendations}
             color={recommendations.color as "green" | "yellow" | "red"}
           />
-        </div>
+        </div> */}
 
         {/* Quick Actions */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">

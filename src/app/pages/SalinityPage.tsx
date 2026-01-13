@@ -1,6 +1,6 @@
 import { SalinityChart } from "../components/SalinityChart";
 import { ComparisonChart } from "../components/ComparisonChart";
-import { AffectedAreasMap } from "../components/AffectedAreasMap";
+import { SalinityMapcn } from "../components/SalinityMapcn";
 import { RecommendationCard } from "../components/RecommendationCard";
 import {
   salinityData,
@@ -47,7 +47,7 @@ export function SalinityPage() {
 
         {/* Affected Areas Map */}
         <div className="mb-8">
-          <AffectedAreasMap areas={affectedAreas} />
+          <SalinityMapcn areas={affectedAreas} />
         </div>
 
         {/* Additional Info */}

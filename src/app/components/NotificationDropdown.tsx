@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Bell,
-  Check,
   Trash2,
   X,
   Loader2,

@@ -212,11 +212,17 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         {/* Header - Giống Facebook */}
         <div className="p-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <UserAvatar
-              avatarUrl={post.author_avatar}
-              username={post.author_username}
-              size="lg"
-            />
+            {/* THÊM onClick VÀO UserAvatar */}
+            <div
+              className="cursor-pointer"
+              onClick={() => setShowUserProfileModal(true)}
+            >
+              <UserAvatar
+                avatarUrl={post.author_avatar}
+                username={post.author_username}
+                size="lg"
+              />
+            </div>
             <div>
               <div className="flex items-center gap-2">
                 <h4

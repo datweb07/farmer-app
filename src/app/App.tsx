@@ -22,6 +22,18 @@ function AppContent() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const { profile } = useAuth();
 
+  // Hiển thị tutorial mỗi khi user login thành công
+  useEffect(() => {
+    if (profile) {
+      setShowTutorial(true);
+    }
+  }, [profile?.id]); // Chỉ trigger khi user ID thay đổi (login mới)
+
+  // Đóng tutorial
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+  };
+
   // Redirect business users to invest page if they try to access restricted pages
   useEffect(() => {
     if (profile?.role === 'business') {
@@ -82,13 +94,12 @@ function AppContent() {
     }
   };
 
-
   return (
     <PublicRoute
       redirectTo={
         // Authenticated content
         <div className="min-h-screen bg-gray-50">
-          {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+          {showTutorial && <Tutorial onClose={handleTutorialClose} />}
 
           <Navigation currentPage={currentPage} onNavigate={handleNavigate} />
           <main>{renderAuthenticatedPage()}</main>
@@ -109,7 +120,6 @@ function AppContent() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
                 <div>
                   <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-
                     Nông nghiệp ĐBSCL
                   </h3>
                   <p className="text-gray-300 text-sm">

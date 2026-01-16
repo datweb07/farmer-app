@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   X,
   Phone,
@@ -10,6 +11,8 @@ import {
 } from "lucide-react";
 import type { ProductWithStats } from "../../lib/community/types";
 import { formatPrice, getZaloLink } from "../../lib/community/products.service";
+import { supabase } from "../../lib/supabase/supabase";
+import { ImageGallery } from "./ImageGallery";
 
 interface ProductDetailModalProps {
   product: ProductWithStats | null;
@@ -30,6 +33,44 @@ export function ProductDetailModal({
   onDelete,
   deleting,
 }: ProductDetailModalProps) {
+  const [productImages, setProductImages] = useState<string[]>([]);
+  const [loadingImages, setLoadingImages] = useState(true);
+
+  // Fetch product images
+  useEffect(() => {
+    if (!product || !isOpen) return;
+
+    const loadProductImages = async () => {
+      setLoadingImages(true);
+      try {
+        const { data, error } = await supabase
+          .from("product_images")
+          .select("image_url")
+          .eq("product_id", product.id)
+          .order("display_order");
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setProductImages(data.map((img: any) => img.image_url));
+        } else if (product.image_url) {
+          // Fallback to legacy single image
+          setProductImages([product.image_url]);
+        }
+      } catch (error) {
+        console.error("Error loading product images:", error);
+        // Fallback to legacy single image
+        if (product.image_url) {
+          setProductImages([product.image_url]);
+        }
+      } finally {
+        setLoadingImages(false);
+      }
+    };
+
+    loadProductImages();
+  }, [product, isOpen]);
+
   if (!isOpen || !product) return null;
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -85,14 +126,17 @@ export function ProductDetailModal({
 
             {/* Modal Body */}
             <div className="max-h-[70vh] overflow-y-auto">
-              {/* Product Image */}
-              {product.image_url ? (
-                <div className="w-full">
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="w-full h-96 object-cover"
-                  />
+              {/* Product Images - Gallery */}
+              {!loadingImages && productImages.length > 0 ? (
+                <div className="w-full bg-gray-900">
+                  <ImageGallery images={productImages} />
+                </div>
+              ) : loadingImages ? (
+                <div className="w-full h-96 bg-gray-100 flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="text-sm text-gray-500">Đang tải ảnh...</p>
+                  </div>
                 </div>
               ) : (
                 <div className="w-full h-64 bg-gray-100 flex items-center justify-center">

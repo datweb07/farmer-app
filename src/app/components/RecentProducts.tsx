@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { ShoppingBag, ArrowRight } from "lucide-react";
 import type { ProductWithStats } from "../../lib/community/types";
+import { supabase } from "../../lib/supabase/supabase";
 
 interface RecentProductsProps {
   products: ProductWithStats[];
@@ -12,6 +14,56 @@ export function RecentProducts({
   loading,
   onNavigate,
 }: RecentProductsProps) {
+  const [productImages, setProductImages] = useState<Record<string, string>>(
+    {}
+  );
+  const [loadingImages, setLoadingImages] = useState(true);
+
+  // Fetch first image for each product
+  useEffect(() => {
+    const loadProductImages = async () => {
+      if (products.length === 0) {
+        setLoadingImages(false);
+        return;
+      }
+
+      setLoadingImages(true);
+      const imagesMap: Record<string, string> = {};
+
+      // Load images for all products in parallel
+      await Promise.all(
+        products.map(async (product) => {
+          try {
+            const { data, error } = await supabase
+              .from("product_images")
+              .select("image_url")
+              .eq("product_id", product.id)
+              .order("display_order")
+              .limit(1)
+              .maybeSingle();
+
+            if (!error && data) {
+              imagesMap[product.id] = (data as any).image_url;
+            } else if (product.image_url) {
+              // Fallback to legacy single image
+              imagesMap[product.id] = product.image_url;
+            }
+          } catch (error) {
+            // If query fails, use legacy image_url
+            if (product.image_url) {
+              imagesMap[product.id] = product.image_url;
+            }
+          }
+        })
+      );
+
+      setProductImages(imagesMap);
+      setLoadingImages(false);
+    };
+
+    loadProductImages();
+  }, [products]);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -72,9 +124,11 @@ export function RecentProducts({
             key={product.id}
             className="border border-gray-200 rounded-lg overflow-hidden hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer group"
           >
-            {product.image_url ? (
+            {loadingImages ? (
+              <div className="w-full aspect-square bg-gray-200 animate-pulse" />
+            ) : productImages[product.id] ? (
               <img
-                src={product.image_url}
+                src={productImages[product.id]}
                 alt={product.name}
                 className="w-full aspect-square object-cover"
               />

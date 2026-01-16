@@ -27,6 +27,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { UserAvatar } from "./UserAvatar";
 import { UserProfileModal } from "./UserProfileModal";
 import { EditPostModal } from "./EditPostModal";
+import { PostDetailModal } from "./PostDetailModal";
 import { ImageCarousel } from "./ImageGallery";
 
 interface PostCardProps {
@@ -50,6 +51,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReadMore, setShowReadMore] = useState(false);
   const [postImages, setPostImages] = useState<string[]>([]);
@@ -347,7 +349,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         <div className="px-3 pb-3 flex-grow min-h-0">
           {/* Title - ĐƯA LÊN TRÊN NỘI DUNG */}
           {post.title && (
-            <h3 className="font-semibold text-gray-900 mb-3 text-base">
+            <h3
+              className="font-semibold text-gray-900 mb-3 text-base cursor-pointer hover:text-blue-600 transition-colors"
+              onClick={() => setShowDetailModal(true)}
+            >
               {post.title}
             </h3>
           )}
@@ -399,7 +404,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
 
         {/* Multiple Images - Image Carousel */}
         {!loadingImages && postImages.length > 0 && (
-          <div className="border-y border-gray-200 flex-shrink-0">
+          <div
+            className="border-y border-gray-200 flex-shrink-0 cursor-pointer"
+            onClick={() => setShowDetailModal(true)}
+          >
             <ImageCarousel images={postImages} className="h-96" />
           </div>
         )}
@@ -519,8 +527,25 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         }}
       />
 
+      {/* Post Detail Modal */}
+      <PostDetailModal
+        post={post}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        isOwner={isOwner}
+        onEdit={() => {
+          setShowDetailModal(false);
+          setShowEditModal(true);
+        }}
+        onDelete={() => {
+          setShowDetailModal(false);
+          setShowDeleteConfirm(true);
+        }}
+        deleting={isDeleting}
+      />
+
       {/* Delete Confirmation Dialog */}
-      {showDeleteConfirm && (
+      {showDeleteConfirm ? (
         <>
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
@@ -564,7 +589,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             </div>
           </div>
         </>
-      )}
+      ) : null}
     </>
   );
 }

@@ -1,6 +1,16 @@
-import { Home, Droplet, FileText, ShoppingBag, TrendingUp, Menu, X, User } from 'lucide-react';
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import {
+  Home,
+  Droplet,
+  FileText,
+  ShoppingBag,
+  TrendingUp,
+  Menu,
+  X,
+  User,
+} from "lucide-react";
+import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 interface NavigationProps {
   currentPage: string;
@@ -12,17 +22,27 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const { profile } = useAuth();
 
   const allNavItems = [
-    { id: 'dashboard', label: 'Trang chủ', icon: Home, roles: ['farmer'] },
-    { id: 'salinity', label: 'Độ mặn', icon: Droplet, roles: ['farmer'] },
-    { id: 'posts', label: 'Cộng đồng', icon: FileText, roles: ['farmer'] },
-    { id: 'products', label: 'Sản phẩm', icon: ShoppingBag, roles: ['farmer'] },
-    { id: 'invest', label: 'Đầu tư', icon: TrendingUp, roles: ['farmer', 'business'] },
-    { id: 'profile', label: 'Hồ sơ', icon: User, roles: ['farmer', 'business'] },
+    { id: "dashboard", label: "Trang chủ", icon: Home, roles: ["farmer"] },
+    { id: "salinity", label: "Độ mặn", icon: Droplet, roles: ["farmer"] },
+    { id: "posts", label: "Cộng đồng", icon: FileText, roles: ["farmer"] },
+    { id: "products", label: "Sản phẩm", icon: ShoppingBag, roles: ["farmer"] },
+    {
+      id: "invest",
+      label: "Đầu tư",
+      icon: TrendingUp,
+      roles: ["farmer", "business"],
+    },
+    {
+      id: "profile",
+      label: "Hồ sơ",
+      icon: User,
+      roles: ["farmer", "business"],
+    },
   ];
 
   // Filter navigation items based on user role
-  const navItems = allNavItems.filter(item =>
-    item.roles.includes(profile?.role || 'farmer')
+  const navItems = allNavItems.filter((item) =>
+    item.roles.includes(profile?.role || "farmer")
   );
 
   return (
@@ -37,7 +57,9 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                 <Droplet className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-xl text-gray-900">Nông nghiệp ĐBSCL</h1>
+                <h1 className="font-bold text-xl text-gray-900">
+                  Nông nghiệp ĐBSCL
+                </h1>
                 <p className="text-sm text-gray-500">Hỗ trợ nông dân</p>
               </div>
             </div>
@@ -51,25 +73,36 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                   <button
                     key={item.id}
                     onClick={() => onNavigate(item.id)}
-                    className={`flex flex-col items-center gap-1 px-6 py-3 rounded-xl transition-all ${isActive
-                      ? 'bg-blue-500 text-white shadow-lg scale-105'
-                      : 'text-gray-600 hover:bg-gray-100'
-                      }`}
+                    className={`flex flex-col items-center gap-1 px-6 py-3 rounded-xl transition-all ${
+                      isActive
+                        ? "bg-blue-500 text-white shadow-lg scale-105"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
                   >
                     <Icon className="w-6 h-6" />
                     <span className="text-sm font-medium">{item.label}</span>
                   </button>
                 );
               })}
+
+              {/* Notification Bell */}
+              <NotificationDropdown />
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-3 rounded-xl bg-gray-100"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            {/* Mobile Menu Button & Notifications */}
+            <div className="md:hidden flex items-center gap-2">
+              <NotificationDropdown />
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-3 rounded-xl bg-gray-100"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -87,10 +120,11 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                       onNavigate(item.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all ${isActive
-                      ? 'bg-blue-500 text-white shadow-lg'
-                      : 'text-gray-700 hover:bg-gray-100'
-                      }`}
+                    className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all ${
+                      isActive
+                        ? "bg-blue-500 text-white shadow-lg"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
                   >
                     <Icon className="w-7 h-7" />
                     <span className="text-lg font-medium">{item.label}</span>

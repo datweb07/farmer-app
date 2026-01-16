@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react";
 import { X, Image, Loader2, Package } from "lucide-react";
 import { createProduct } from "../../lib/community/products.service";
 import { validateImageFile } from "../../lib/community/image-upload";
+import { uploadMultipleImages } from "../../lib/media/media-upload.service";
+import { supabase } from "../../lib/supabase/supabase";
 import type { CreateProductData } from "../../lib/community/types";
 
 interface CreateProductModalProps {
@@ -22,8 +24,8 @@ export function CreateProductModal({
     category: "Thiết bị đo",
     contact: "",
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,23 +41,35 @@ export function CreateProductModal({
   ];
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    const validation = validateImageFile(file);
-    if (!validation.valid) {
-      setError(validation.error);
+    // Limit to 5 images
+    if (imageFiles.length + files.length > 5) {
+      setError("Tối đa 5 ảnh cho một sản phẩm");
       return;
     }
 
-    setImageFile(file);
+    // Validate each file
+    for (const file of files) {
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        setError(validation.error);
+        return;
+      }
+    }
+
+    setImageFiles((prev) => [...prev, ...files]);
     setError(null);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // Generate previews
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -92,31 +106,72 @@ export function CreateProductModal({
     setLoading(true);
 
     try {
+      // Create product without image first
       const result = await createProduct({
         name: formData.name!,
         description: formData.description!,
         price: formData.price!,
         category: formData.category!,
         contact: cleanPhone,
-        image: imageFile || undefined,
       });
 
-      if (result.success) {
-        setFormData({
-          name: "",
-          description: "",
-          price: 0,
-          category: "Thiết bị đo",
-          contact: "",
-        });
-        setImageFile(null);
-        setImagePreview(null);
-        onSuccess();
-        onClose();
-      } else {
+      if (!result.success || !result.product) {
         setError(result.error || "Không thể tạo sản phẩm");
+        return;
       }
+
+      // Upload multiple images if any
+      if (imageFiles.length > 0) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          setError("Không tìm thấy thông tin người dùng");
+          return;
+        }
+
+        const uploadResult = await uploadMultipleImages(
+          imageFiles,
+          "product-images",
+          userData.user.id
+        );
+
+        if (uploadResult.error) {
+          setError(uploadResult.error);
+          return;
+        }
+
+        // Save images to product_images table
+        const imageRecords = uploadResult.images.map((img, index) => ({
+          product_id: result.product!.id,
+          image_url: img.url,
+          display_order: index,
+          is_primary: index === 0, // First image is primary
+        }));
+
+        const { error: dbError } = await supabase
+          .from("product_images")
+          .insert(imageRecords as any);
+
+        if (dbError) {
+          console.error("Error saving images:", dbError);
+          setError("Không thể lưu ảnh");
+          return;
+        }
+      }
+
+      // Success
+      setFormData({
+        name: "",
+        description: "",
+        price: 0,
+        category: "Thiết bị đo",
+        contact: "",
+      });
+      setImageFiles([]);
+      setImagePreviews([]);
+      onSuccess();
+      onClose();
     } catch (err) {
+      console.error("Error creating product:", err);
       setError("Đã xảy ra lỗi không mong muốn");
     } finally {
       setLoading(false);
@@ -202,10 +257,11 @@ export function CreateProductModal({
                         onClick={() =>
                           setFormData({ ...formData, category: cat.value })
                         }
-                        className={`p-2 rounded-lg border text-xs transition-colors ${formData.category === cat.value
-                          ? "border-blue-600 bg-blue-50 text-blue-700"
-                          : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
-                          }`}
+                        className={`p-2 rounded-lg border text-xs transition-colors ${
+                          formData.category === cat.value
+                            ? "border-blue-600 bg-blue-50 text-blue-700"
+                            : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
+                        }`}
                         disabled={loading}
                       >
                         {cat.label}
@@ -294,37 +350,58 @@ export function CreateProductModal({
                   </p>
                 </div>
 
-                {/* Image Upload */}
+                {/* Multiple Images Upload */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Hình ảnh sản phẩm
+                    Hình ảnh sản phẩm (tối đa 5 ảnh)
                   </label>
 
-                  {imagePreview ? (
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-48 object-cover rounded-lg border border-gray-300"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setImageFile(null);
-                            setImagePreview(null);
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                          disabled={loading}
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
+                  {/* Image Previews Grid */}
+                  {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mb-2">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative aspect-square">
+                          <img
+                            src={preview}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-cover rounded-lg border border-gray-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImageFiles((prev) =>
+                                prev.filter((_, i) => i !== index)
+                              );
+                              setImagePreviews((prev) =>
+                                prev.filter((_, i) => i !== index)
+                              );
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                            disabled={loading}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          {/* Primary badge for first image */}
+                          {index === 0 && (
+                            <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-medium">
+                              Chính
+                            </div>
+                          )}
+                          {/* Image number badge */}
+                          <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-0.5 rounded text-xs font-medium">
+                            {index + 1}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
+                  )}
+
+                  {/* Upload Button */}
+                  {imagePreviews.length < 5 && (
                     <label
-                      className={`block cursor-pointer ${loading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                      className={`block cursor-pointer ${
+                        loading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     >
                       <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
                         <div className="flex flex-col items-center justify-center gap-2">
@@ -333,20 +410,28 @@ export function CreateProductModal({
                           </div>
                           <div>
                             <p className="text-gray-700 text-sm mb-1">
-                              Tải ảnh sản phẩm lên
+                              {imagePreviews.length === 0
+                                ? "Tải ảnh sản phẩm lên"
+                                : `Thêm ảnh (${imagePreviews.length}/5)`}
                             </p>
                             <p className="text-xs text-gray-500">
-                              JPG, PNG, GIF, WebP (tối đa 5MB)
+                              JPG, PNG, GIF, WebP (tối đa 5MB mỗi ảnh)
                             </p>
+                            {imagePreviews.length === 0 && (
+                              <p className="text-xs text-blue-600 mt-1">
+                                Ảnh đầu tiên sẽ là ảnh chính
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
                       <input
                         type="file"
                         accept="image/*"
+                        multiple
                         onChange={handleImageChange}
                         className="hidden"
-                        disabled={loading}
+                        disabled={loading || imagePreviews.length >= 5}
                       />
                     </label>
                   )}

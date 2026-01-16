@@ -3,7 +3,12 @@ import { X, Image, Loader2 } from "lucide-react";
 import { createPost } from "../../lib/community/posts.service";
 import { getProducts } from "../../lib/community/products.service";
 import { validateImageFile } from "../../lib/community/image-upload";
-import type { CreatePostData, ProductWithStats } from "../../lib/community/types";
+import { uploadMultipleImages } from "../../lib/media/media-upload.service";
+import { supabase } from "../../lib/supabase/supabase";
+import type {
+  CreatePostData,
+  ProductWithStats,
+} from "../../lib/community/types";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -21,8 +26,8 @@ export function CreatePostModal({
     content: "",
     category: "experience",
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductWithStats[]>([]);
@@ -53,23 +58,35 @@ export function CreatePostModal({
   if (!isOpen) return null;
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    const validation = validateImageFile(file);
-    if (!validation.valid) {
-      setError(validation.error);
+    // Limit to 5 images
+    if (imageFiles.length + files.length > 5) {
+      setError("Tối đa 5 ảnh cho một bài viết");
       return;
     }
 
-    setImageFile(file);
+    // Validate each file
+    for (const file of files) {
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        setError(validation.error);
+        return;
+      }
+    }
+
+    setImageFiles((prev) => [...prev, ...files]);
     setError(null);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // Generate previews
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -94,6 +111,7 @@ export function CreatePostModal({
     setLoading(true);
 
     try {
+      // Create post without image first
       const result = await createPost({
         title: formData.title!,
         content: formData.content!,
@@ -101,20 +119,59 @@ export function CreatePostModal({
           | "experience"
           | "salinity-solution"
           | "product",
-        image: imageFile || undefined,
         product_link: formData.product_link,
       });
 
-      if (result.success) {
-        setFormData({ title: "", content: "", category: "experience" });
-        setImageFile(null);
-        setImagePreview(null);
-        onSuccess();
-        onClose();
-      } else {
+      if (!result.success || !result.post) {
         setError(result.error || "Không thể tạo bài viết");
+        return;
       }
+
+      // Upload multiple images if any
+      if (imageFiles.length > 0) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          setError("Không tìm thấy thông tin người dùng");
+          return;
+        }
+
+        const uploadResult = await uploadMultipleImages(
+          imageFiles,
+          "post-images",
+          userData.user.id
+        );
+
+        if (uploadResult.error) {
+          setError(uploadResult.error);
+          return;
+        }
+
+        // Save images to post_images table
+        const imageRecords = uploadResult.images.map((img, index) => ({
+          post_id: result.post!.id,
+          image_url: img.url,
+          display_order: index,
+        }));
+
+        const { error: dbError } = await supabase
+          .from("post_images")
+          .insert(imageRecords as any);
+
+        if (dbError) {
+          console.error("Error saving images:", dbError);
+          setError("Không thể lưu ảnh");
+          return;
+        }
+      }
+
+      // Success
+      setFormData({ title: "", content: "", category: "experience" });
+      setImageFiles([]);
+      setImagePreviews([]);
+      onSuccess();
+      onClose();
     } catch (err) {
+      console.error("Error creating post:", err);
       setError("Đã xảy ra lỗi không mong muốn");
     } finally {
       setLoading(false);
@@ -185,10 +242,11 @@ export function CreatePostModal({
                             category: cat.value as any,
                           })
                         }
-                        className={`p-3 rounded-lg border text-sm transition-colors ${formData.category === cat.value
-                          ? "border-blue-600 bg-blue-50 text-blue-700"
-                          : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
-                          }`}
+                        className={`p-3 rounded-lg border text-sm transition-colors ${
+                          formData.category === cat.value
+                            ? "border-blue-600 bg-blue-50 text-blue-700"
+                            : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
+                        }`}
                         disabled={loading}
                       >
                         {cat.label}
@@ -242,7 +300,9 @@ export function CreatePostModal({
                     {loadingProducts ? (
                       <div className="flex items-center justify-center py-3 border border-gray-300 rounded-lg">
                         <Loader2 className="w-4 h-4 animate-spin text-blue-600 mr-2" />
-                        <span className="text-sm text-gray-600">Đang tải danh sách sản phẩm...</span>
+                        <span className="text-sm text-gray-600">
+                          Đang tải danh sách sản phẩm...
+                        </span>
                       </div>
                     ) : (
                       <select
@@ -259,7 +319,11 @@ export function CreatePostModal({
                         <option value="">-- Chọn sản phẩm --</option>
                         {products.map((product) => (
                           <option key={product.id} value={product.id}>
-                            {product.name} - {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+                            {product.name} -{" "}
+                            {new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }).format(product.price)}
                           </option>
                         ))}
                       </select>
@@ -270,37 +334,52 @@ export function CreatePostModal({
                   </div>
                 )}
 
-                {/* Image Upload */}
+                {/* Multiple Images Upload */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Hình ảnh minh họa (tùy chọn)
+                    Hình ảnh minh họa (tùy chọn, tối đa 5 ảnh)
                   </label>
 
-                  {imagePreview ? (
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-48 object-cover rounded-lg border border-gray-300"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setImageFile(null);
-                            setImagePreview(null);
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                          disabled={loading}
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
+                  {/* Image Previews Grid */}
+                  {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mb-2">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative aspect-square">
+                          <img
+                            src={preview}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-cover rounded-lg border border-gray-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImageFiles((prev) =>
+                                prev.filter((_, i) => i !== index)
+                              );
+                              setImagePreviews((prev) =>
+                                prev.filter((_, i) => i !== index)
+                              );
+                            }}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                            disabled={loading}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          {/* Image number badge */}
+                          <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-0.5 rounded text-xs font-medium">
+                            {index + 1}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
+                  )}
+
+                  {/* Upload Button */}
+                  {imagePreviews.length < 5 && (
                     <label
-                      className={`block cursor-pointer ${loading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                      className={`block cursor-pointer ${
+                        loading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     >
                       <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
                         <div className="flex flex-col items-center justify-center gap-2">
@@ -309,10 +388,12 @@ export function CreatePostModal({
                           </div>
                           <div>
                             <p className="text-gray-700 text-sm mb-1">
-                              Tải ảnh lên
+                              {imagePreviews.length === 0
+                                ? "Tải ảnh lên"
+                                : `Thêm ảnh (${imagePreviews.length}/5)`}
                             </p>
                             <p className="text-xs text-gray-500">
-                              JPG, PNG, GIF, WebP (tối đa 5MB)
+                              JPG, PNG, GIF, WebP (tối đa 5MB mỗi ảnh)
                             </p>
                           </div>
                         </div>
@@ -320,9 +401,10 @@ export function CreatePostModal({
                       <input
                         type="file"
                         accept="image/*"
+                        multiple
                         onChange={handleImageChange}
                         className="hidden"
-                        disabled={loading}
+                        disabled={loading || imagePreviews.length >= 5}
                       />
                     </label>
                   )}
@@ -333,7 +415,9 @@ export function CreatePostModal({
                   <div className="flex items-center gap-2">
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">+10</span>
+                        <span className="text-white text-sm font-medium">
+                          +10
+                        </span>
                       </div>
                     </div>
                     <div>

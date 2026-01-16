@@ -10,19 +10,17 @@ export function Tutorial({ onClose }: TutorialProps) {
 
   const steps = [
     {
-      title: 'Chào mừng đến với nền tảng! 👋',
+      title: 'Chào mừng đến với nền tảng',
       description: 'Hệ thống hỗ trợ nông dân ĐBSCL với giao diện đơn giản, dễ sử dụng',
-      image: '🌾',
       tips: [
-        'Tất cả thông tin hiển thị bằng tiếng Việt dễ hiểu',
-        'Các nút to, dễ bấm trên cả điện thoại',
+        'Thông tin hiển thị bằng tiếng Việt dễ hiểu',
+        'Các nút to, dễ bấm trên điện thoại',
         'Màu sắc rõ ràng: Xanh (an toàn), Vàng (cảnh báo), Đỏ (nguy hiểm)',
       ],
     },
     {
-      title: 'Theo dõi độ mặn 💧',
+      title: 'Theo dõi độ mặn',
       description: 'Xem dự báo xâm nhập mặn 7-14 ngày',
-      image: '📊',
       tips: [
         'Kiểm tra biểu đồ độ mặn mỗi ngày',
         'Đọc phần khuyến nghị màu sắc',
@@ -31,36 +29,30 @@ export function Tutorial({ onClose }: TutorialProps) {
       ],
     },
     {
-      title: 'Học hỏi từ cộng đồng 👥',
+      title: 'Học hỏi từ cộng đồng',
       description: 'Đọc và chia sẻ kinh nghiệm canh tác',
-      image: '💬',
       tips: [
         'Đọc bài viết kinh nghiệm từ nông dân khác',
         'Đăng bài để nhận điểm uy tín',
         'Like và comment để tương tác',
-        'Càng nhiều điểm, càng được tin tưởng',
       ],
     },
     {
-      title: 'Mua bán thiết bị 🛒',
+      title: 'Mua bán thiết bị',
       description: 'Tìm và mua thiết bị hỗ trợ canh tác',
-      image: '📱',
       tips: [
         'Xem thông tin sản phẩm chi tiết',
         'Kiểm tra điểm uy tín người bán',
         'Liên hệ trực tiếp qua số điện thoại',
-        'Hỏi kỹ trước khi mua',
       ],
     },
     {
-      title: 'Tìm nguồn vốn đầu tư 💰',
+      title: 'Tìm nguồn vốn đầu tư',
       description: 'Kết nối với nhà đầu tư và doanh nghiệp',
-      image: '🤝',
       tips: [
         'Xem các dự án đang kêu gọi vốn',
         'Tham gia các chương trình hỗ trợ',
         'Kết nối với doanh nghiệp',
-        'Liên hệ để được tư vấn',
       ],
     },
   ];
@@ -84,57 +76,50 @@ export function Tutorial({ onClose }: TutorialProps) {
   const step = steps[currentStep];
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full shadow-xl border border-gray-200">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-green-600 p-6 text-white relative">
-          <button
-            onClick={handleSkip}
-            className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <div className="text-center mb-4">
-            <span className="text-7xl">{step.image}</span>
-          </div>
-          <h2 className="text-2xl font-bold text-center mb-2">{step.title}</h2>
-          <p className="text-center text-white/90">{step.description}</p>
-        </div>
-
-        {/* Content */}
-        <div className="p-8">
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
-            <h3 className="font-bold text-lg text-gray-900 mb-4">📝 Điều cần biết:</h3>
-            <ul className="space-y-3">
-              {step.tips.map((tip, index) => (
-                <li key={index} className="flex items-start gap-3 text-gray-700">
-                  <span className="bg-blue-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                    {index + 1}
-                  </span>
-                  <span className="pt-1">{tip}</span>
-                </li>
-              ))}
-            </ul>
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">{step.title}</h2>
+              <p className="text-gray-600 mt-1">{step.description}</p>
+            </div>
+            <button
+              onClick={handleSkip}
+              className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Progress */}
-          <div className="mb-6">
-            <div className="flex justify-center gap-2">
-              {steps.map((_, index) => (
-                <div
-                  key={index}
-                  className={`h-2 rounded-full transition-all ${index === currentStep
-                      ? 'bg-blue-500 w-8'
-                      : index < currentStep
-                        ? 'bg-green-500 w-2'
-                        : 'bg-gray-300 w-2'
-                    }`}
-                />
-              ))}
-            </div>
-            <p className="text-center text-sm text-gray-600 mt-3">
-              Bước {currentStep + 1} / {steps.length}
-            </p>
+          <div className="flex items-center gap-2">
+            {steps.map((_, index) => (
+              <div
+                key={index}
+                className={`flex-1 h-1.5 rounded-full ${index === currentStep
+                  ? 'bg-blue-500'
+                  : index < currentStep
+                    ? 'bg-blue-300'
+                    : 'bg-gray-200'
+                  }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="space-y-4 mb-8">
+            {step.tips.map((tip, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-medium flex-shrink-0 mt-0.5">
+                  {index + 1}
+                </div>
+                <p className="text-gray-700">{tip}</p>
+              </div>
+            ))}
           </div>
 
           {/* Navigation */}
@@ -142,35 +127,40 @@ export function Tutorial({ onClose }: TutorialProps) {
             <button
               onClick={handlePrev}
               disabled={currentStep === 0}
-              className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 ${currentStep === 0
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${currentStep === 0
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
             >
-              <ChevronLeft className="w-5 h-5" />
-              Quay lại
+              <div className="flex items-center justify-center gap-1">
+                <ChevronLeft className="w-4 h-4" />
+                Quay lại
+              </div>
             </button>
+
             {currentStep < steps.length - 1 ? (
               <button
                 onClick={handleNext}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-105 transition-transform"
+                className="flex-1 bg-blue-500 text-white py-2.5 rounded-lg font-medium hover:bg-blue-600 transition-colors"
               >
-                Tiếp theo
-                <ChevronRight className="w-5 h-5" />
+                <div className="flex items-center justify-center gap-1">
+                  Tiếp theo
+                  <ChevronRight className="w-4 h-4" />
+                </div>
               </button>
             ) : (
               <button
                 onClick={handleSkip}
-                className="flex-1 bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform"
+                className="flex-1 bg-blue-500 text-white py-2.5 rounded-lg font-medium hover:bg-blue-600 transition-colors"
               >
-                Bắt đầu sử dụng 🚀
+                Bắt đầu sử dụng
               </button>
             )}
           </div>
 
           <button
             onClick={handleSkip}
-            className="w-full mt-3 text-gray-500 hover:text-gray-700 py-2 text-sm"
+            className="w-full text-center text-gray-500 hover:text-gray-700 py-3 text-sm hover:bg-gray-50 rounded-lg transition-colors"
           >
             Bỏ qua hướng dẫn
           </button>

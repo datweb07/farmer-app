@@ -5,6 +5,7 @@ import {
     validateUsername,
     validatePassword,
     validatePhoneNumber,
+    validateConfirmPassword,
     getPasswordStrength,
 } from '../../lib/auth/validation';
 
@@ -16,12 +17,14 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
     const { signUp } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [role, setRole] = useState<'farmer' | 'business'>('farmer');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const passwordStrength = password.length > 0 ? getPasswordStrength(password) : null;
 
@@ -51,6 +54,20 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
         }
     }, [password]);
 
+    useEffect(() => {
+        if (confirmPassword.length > 0) {
+            const validationError = validateConfirmPassword(password, confirmPassword);
+            if (validationError) {
+                setFieldErrors((prev) => ({ ...prev, confirmPassword: validationError.message }));
+            } else {
+                setFieldErrors((prev) => {
+                    const { confirmPassword, ...rest } = prev;
+                    return rest;
+                });
+            }
+        }
+    }, [confirmPassword, password]);
+
     const handlePhoneBlur = () => {
         const validationError = validatePhoneNumber(phoneNumber);
         if (validationError) {
@@ -69,11 +86,13 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
 
         const usernameError = validateUsername(username);
         const passwordError = validatePassword(password);
+        const confirmPasswordError = validateConfirmPassword(password, confirmPassword);
         const phoneError = validatePhoneNumber(phoneNumber);
 
         const errors: Record<string, string> = {};
         if (usernameError) errors.username = usernameError.message;
         if (passwordError) errors.password = passwordError.message;
+        if (confirmPasswordError) errors.confirmPassword = confirmPasswordError.message;
         if (phoneError) errors.phoneNumber = phoneError.message;
 
         if (Object.keys(errors).length > 0) {
@@ -180,7 +199,7 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                             </div>
                         </div>
 
-                        {/* Password Input - GIỐNG NHƯ TRANG LOGIN */}
+                        {/* Password Input */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Mật khẩu <span className="text-red-500">*</span>
@@ -246,6 +265,48 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                                     <p className="text-xs text-green-700">
                                         Gợi ý: Sử dụng chữ hoa, số và ký tự đặc biệt để tăng độ mạnh
                                     </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Confirm Password Input */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Xác nhận mật khẩu <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Lock className="h-4 w-4 text-green-600" />
+                                </div>
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className={`block w-full pl-10 pr-10 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${fieldErrors.confirmPassword ? 'border-red-300' : 'border-green-200'
+                                        }`}
+                                    placeholder="Nhập lại mật khẩu"
+                                    disabled={loading}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-green-600 hover:text-green-700"
+                                    disabled={loading}
+                                >
+                                    {showConfirmPassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </button>
+                            </div>
+                            {fieldErrors.confirmPassword && (
+                                <p className="mt-1 text-sm text-red-600">{fieldErrors.confirmPassword}</p>
+                            )}
+                            {!fieldErrors.confirmPassword && confirmPassword.length > 0 && password === confirmPassword && (
+                                <div className="mt-1 flex items-center gap-1 text-sm text-green-600">
+                                    <CheckCircle className="w-3 h-3" />
+                                    Mật khẩu khớp
                                 </div>
                             )}
                         </div>

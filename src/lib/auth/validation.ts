@@ -64,6 +64,24 @@ export function validatePassword(password: string): ValidationError | null {
 }
 
 /**
+ * Validates confirmation password
+ * Rules:
+ * - Must not be empty
+ * - Must match the original password
+ */
+export function validateConfirmPassword(password: string, confirmPassword: string): ValidationError | null {
+    if (!confirmPassword || confirmPassword.length === 0) {
+        return { field: 'confirmPassword', message: 'Xác nhận mật khẩu không được để trống' };
+    }
+
+    if (password !== confirmPassword) {
+        return { field: 'confirmPassword', message: 'Mật khẩu xác nhận không khớp' };
+    }
+
+    return null;
+}
+
+/**
  * Validates phone number format
  * Supports Vietnamese phone numbers
  * Format: +84xxxxxxxxx hoặc 0xxxxxxxxx
@@ -147,6 +165,32 @@ export function validateSignUpData(data: {
 
     const passwordError = validatePassword(data.password);
     if (passwordError) errors.push(passwordError);
+
+    const phoneError = validatePhoneNumber(data.phoneNumber);
+    if (phoneError) errors.push(phoneError);
+
+    return errors;
+}
+
+/**
+ * Validate all sign up data with confirmation password
+ */
+export function validateSignUpDataWithConfirmation(data: {
+    username: string;
+    password: string;
+    confirmPassword: string;
+    phoneNumber: string;
+}): ValidationError[] {
+    const errors: ValidationError[] = [];
+
+    const usernameError = validateUsername(data.username);
+    if (usernameError) errors.push(usernameError);
+
+    const passwordError = validatePassword(data.password);
+    if (passwordError) errors.push(passwordError);
+
+    const confirmPasswordError = validateConfirmPassword(data.password, data.confirmPassword);
+    if (confirmPasswordError) errors.push(confirmPasswordError);
 
     const phoneError = validatePhoneNumber(data.phoneNumber);
     if (phoneError) errors.push(phoneError);

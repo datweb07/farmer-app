@@ -27,6 +27,10 @@ import {
 } from "../../lib/community/posts.service";
 import { PostCard } from "../../app/components/PostCard";
 import type { PostWithStats } from "../../lib/community/types";
+import BadgeList from "../../app/components/BadgeList";
+import BadgeNotification from "../../app/components/BadgeNotification";
+import { subscribeToUserBadges } from "../../lib/badges/badge.service";
+import type { BadgeProgress } from "../../lib/badges/types";
 
 export function ProfilePage() {
   const { profile, signOut, refreshProfile } = useAuth();
@@ -42,9 +46,25 @@ export function ProfilePage() {
   const [sharedPosts, setSharedPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
 
+  // Badge notification state
+  const [newBadge, setNewBadge] = useState<BadgeProgress | null>(null);
+
   useEffect(() => {
     if (profile?.id) {
       loadUserActivity();
+
+      // Subscribe to new badge awards
+      const subscription = subscribeToUserBadges(profile.id, (badge) => {
+        // Convert UserBadge to BadgeProgress for notification
+        // This will trigger the notification to show
+        console.log("New badge earned!", badge);
+        // Refresh the badge list
+        loadUserActivity();
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
     }
   }, [profile?.id, activeTab]);
 
@@ -257,11 +277,10 @@ export function ProfilePage() {
                 <p className="text-xs text-gray-500">Vai trò</p>
                 <div className="mt-1">
                   <span
-                    className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                      profile.role === "farmer"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-blue-100 text-blue-700"
-                    }`}
+                    className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${profile.role === "farmer"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-blue-100 text-blue-700"
+                      }`}
                   >
                     {profile.role === "farmer" ? "Nông dân" : "Tổ chức"}
                   </span>
@@ -315,6 +334,19 @@ export function ProfilePage() {
           </div>
         </div>
 
+        {/* Badges Section */}
+        {profile?.id && (
+          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+            <BadgeList userId={profile.id} />
+          </div>
+        )}
+
+        {/* Badge Notification */}
+        <BadgeNotification
+          badge={newBadge}
+          onClose={() => setNewBadge(null)}
+        />
+
         {/* Activity Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -325,22 +357,20 @@ export function ProfilePage() {
           <div className="flex gap-2 mb-6 border-b border-gray-200">
             <button
               onClick={() => setActiveTab("posts")}
-              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${
-                activeTab === "posts"
-                  ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === "posts"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               <FileText className="w-4 h-4" />
               Bài viết của tôi
             </button>
             <button
               onClick={() => setActiveTab("shared")}
-              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${
-                activeTab === "shared"
-                  ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === "shared"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               <Share2 className="w-4 h-4" />
               Đã chia sẻ

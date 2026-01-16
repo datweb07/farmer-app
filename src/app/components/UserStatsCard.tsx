@@ -24,7 +24,7 @@ export function UserStatsCard({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 transition-shadow">
       <div className="flex items-start gap-3">
         <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
           <Icon className="w-6 h-6" />

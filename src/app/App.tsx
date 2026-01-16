@@ -107,7 +107,7 @@ function AppContent() {
           {/* Help Button */}
           <button
             onClick={() => setShowTutorial(true)}
-            className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-green-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform z-40 flex items-center gap-2"
+            className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform z-40 flex items-center gap-2"
             title="Mở hướng dẫn"
           >
             <HelpCircle className="w-6 h-6" />

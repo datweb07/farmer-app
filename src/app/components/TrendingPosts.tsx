@@ -1,10 +1,4 @@
-import {
-  TrendingUp,
-  MessageCircle,
-  Heart,
-  Eye,
-  ArrowRight,
-} from "lucide-react";
+import { MessageCircle, Heart, Eye, ArrowRight } from "lucide-react";
 import type { PostWithStats } from "../../lib/community/types";
 import { formatDistanceToNow } from "../../lib/utils/date-utils";
 

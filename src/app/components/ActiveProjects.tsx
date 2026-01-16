@@ -1,4 +1,4 @@
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { InvestmentProjectWithStats } from "../../lib/investments/types";
 
 interface ActiveProjectsProps {

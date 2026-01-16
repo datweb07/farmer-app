@@ -119,9 +119,8 @@ export async function signUp(data: SignUpData): Promise<
       return {
         data: null,
         error: {
-          message: `Đăng ký thành công nhưng không thể tạo hồ sơ: ${
-            profileError?.message || "Unknown error"
-          }`,
+          message: `Đăng ký thành công nhưng không thể tạo hồ sơ: ${profileError?.message || "Unknown error"
+            }`,
           code: "profile_creation_failed",
         },
       };
@@ -142,9 +141,8 @@ export async function signUp(data: SignUpData): Promise<
     return {
       data: null,
       error: {
-        message: `Đã xảy ra lỗi không mong muốn: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
+        message: `Đã xảy ra lỗi không mong muốn: ${err instanceof Error ? err.message : String(err)
+          }`,
         code: "unknown_error",
       },
     };
@@ -270,9 +268,8 @@ export async function signOut(): Promise<AuthResponse<void>> {
     return {
       data: null,
       error: {
-        message: `Đã xảy ra lỗi không mong muốn: ${
-          err instanceof Error ? err.message : String(err)
-        }`,
+        message: `Đã xảy ra lỗi không mong muốn: ${err instanceof Error ? err.message : String(err)
+          }`,
         code: "unknown_error",
       },
     };
@@ -619,76 +616,46 @@ export async function resetPasswordWithCode(
   try {
     console.log("🔵 [ResetPassword] Resetting password with code");
 
-    // First verify the code
-    const verifyResult = await verifyResetCode(phoneNumber, code);
-    if (verifyResult.error || !verifyResult.data) {
-      return {
-        data: null,
-        error: verifyResult.error,
-      };
-    }
-
+    // Normalize phone number
     const normalizedPhone = normalizePhoneNumber(phoneNumber);
 
-    // Call database function to verify and get username
-    const { data: verifyData } = (await supabase.rpc(
-      "verify_password_reset_code",
-      {
-        reset_phone_number: normalizedPhone,
-        reset_code: code,
-      } as never
-    )) as {
-      data: Array<{ valid: boolean; user_id: string; username: string }> | null;
-    };
+    // Call Edge Function to reset password using Admin API
+    const { data, error } = await supabase.functions.invoke("reset-password", {
+      body: {
+        phoneNumber: normalizedPhone,
+        code: code,
+        newPassword: newPassword,
+      },
+    });
 
-    if (!verifyData || verifyData.length === 0 || !verifyData[0].username) {
+    if (error) {
+      console.error("🔴 [ResetPassword] Edge Function error:", error);
       return {
         data: null,
         error: {
-          message: "Không tìm thấy thông tin người dùng",
-          code: "user_not_found",
+          message: "Đã xảy ra lỗi khi đặt lại mật khẩu",
+          code: "edge_function_error",
         },
       };
     }
 
-    // For now, we'll use a workaround: update via SQL using the database function
-
-    // Update password via auth.users table (requires SECURITY DEFINER function)
-    const { error: updateError } = await supabase.rpc(
-      "update_user_password" as any,
-      {
-        p_user_id: verifyResult.data.userId,
-        p_new_password: newPassword,
-      } as any
-    );
-
-    if (updateError) {
-      console.error(
-        "🔴 [ResetPassword] Failed to update password:",
-        updateError
-      );
-      // Fallback: Try to update using updateUser (won't work without session)
-      // This is a limitation - in production, you'd need Supabase admin API
+    // Check if the response contains an error
+    if (data && data.error) {
+      console.error("🔴 [ResetPassword] API error:", data.error);
       return {
         data: null,
         error: {
-          message: "Lỗi cập nhật mật khẩu. Vui lòng liên hệ hỗ trợ.",
-          code: "update_failed",
+          message: data.error,
+          code: data.code || "api_error",
         },
       };
     }
-
-    // Mark code as used using database function
-    await supabase.rpc("mark_reset_code_used", {
-      reset_phone_number: normalizedPhone,
-      reset_code: code,
-    } as never);
 
     console.log("✅ [ResetPassword] Password reset successfully");
 
     return {
       data: {
-        message: "Mật khẩu đã được cập nhật thành công",
+        message: data.message || "Mật khẩu đã được cập nhật thành công",
       },
       error: null,
     };

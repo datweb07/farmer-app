@@ -54,11 +54,20 @@ export function ProfilePage() {
       loadUserActivity();
 
       // Subscribe to new badge awards
-      const subscription = subscribeToUserBadges(profile.id, (badge) => {
-        // Convert UserBadge to BadgeProgress for notification
-        // This will trigger the notification to show
+      const subscription = subscribeToUserBadges(profile.id, async (badge) => {
         console.log("New badge earned!", badge);
-        // Refresh the badge list
+
+        // Fetch the full badge progress to get all details for notification
+        const { getUserBadgeProgress } = await import('../../lib/badges/badge.service');
+        const badgeProgress = await getUserBadgeProgress(profile.id);
+        const earnedBadge = badgeProgress.find(b => b.badge_id === badge.badge_id);
+
+        if (earnedBadge) {
+          // Show notification
+          setNewBadge(earnedBadge);
+        }
+
+        // Refresh the badge list (triggers re-render of BadgeList)
         loadUserActivity();
       });
 

@@ -86,6 +86,7 @@ export interface TopContributor {
   total_points: number;
   posts_count: number;
   likes_received: number;
+  rank: number; // BIGINT from PostgreSQL
 }
 
 export interface CreatePostData {

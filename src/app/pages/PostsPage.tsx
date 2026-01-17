@@ -74,14 +74,14 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {topContributors.length > 0 ? (
-              topContributors.map((contributor, index) => (
+              topContributors.map((contributor) => (
                 <div
                   key={contributor.user_id}
                   className="border border-gray-200 rounded-lg p-4"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-lg font-semibold text-gray-400">
-                      #{index + 1}
+                      #{contributor.rank}
                     </span>
                     <div>
                       <p className="font-semibold text-gray-900">

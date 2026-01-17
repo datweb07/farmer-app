@@ -3,6 +3,8 @@ import { HelpCircle } from 'lucide-react';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { PublicRoute } from '../components/auth/PublicRoute';
 import { Navigation } from './components/Navigation';
+import { MobileTopBar } from './components/MobileTopBar';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { Tutorial } from './components/Tutorial';
 import { DashboardPage } from './pages/DashboardPage';
 import { SalinityPage } from './pages/SalinityPage';
@@ -101,17 +103,36 @@ function AppContent() {
         <div className="min-h-screen bg-gray-50">
           {showTutorial && <Tutorial onClose={handleTutorialClose} />}
 
-          <Navigation currentPage={currentPage} onNavigate={handleNavigate} />
-          <main>{renderAuthenticatedPage()}</main>
+          {/* Desktop Navigation - Hidden on mobile */}
+          <div className="hidden md:block">
+            <Navigation currentPage={currentPage} onNavigate={handleNavigate} />
+          </div>
 
-          {/* Help Button */}
+          {/* Mobile Top Bar - Only visible on mobile */}
+          <MobileTopBar
+            profile={profile}
+            onNavigateToProfile={() => handleNavigate('profile')}
+          />
+
+          {/* Main Content - Add padding for mobile top/bottom nav */}
+          <main className="md:pt-0 pt-14 pb-24 md:pb-0">
+            {renderAuthenticatedPage()}
+          </main>
+
+          {/* Mobile Bottom Navigation - Only visible on mobile */}
+          <MobileBottomNav
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+          />
+
+          {/* Help Button - Hide on mobile */}
           <button
             onClick={() => setShowTutorial(true)}
-            className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform z-40 flex items-center gap-2"
+            className="hidden md:flex fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform z-40 items-center gap-2"
             title="Mở hướng dẫn"
           >
             <HelpCircle className="w-6 h-6" />
-            <span className="hidden md:inline font-bold">Trợ giúp</span>
+            <span className="font-bold">Trợ giúp</span>
           </button>
 
           {/* Footer */}

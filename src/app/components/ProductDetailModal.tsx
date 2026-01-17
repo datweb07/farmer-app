@@ -12,7 +12,8 @@ import {
 import type { ProductWithStats } from "../../lib/community/types";
 import { formatPrice, getZaloLink } from "../../lib/community/products.service";
 import { supabase } from "../../lib/supabase/supabase";
-import { ImageGallery } from "./ImageGallery";
+import { MediaCarousel } from "./MediaCarousel";
+import type { MediaItem } from "./MediaCarousel";
 
 interface ProductDetailModalProps {
   product: ProductWithStats | null;
@@ -33,42 +34,84 @@ export function ProductDetailModal({
   onDelete,
   deleting,
 }: ProductDetailModalProps) {
-  const [productImages, setProductImages] = useState<string[]>([]);
-  const [loadingImages, setLoadingImages] = useState(true);
+  const [productMedia, setProductMedia] = useState<MediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
 
-  // Fetch product images
+  // Fetch product images and videos
   useEffect(() => {
     if (!product || !isOpen) return;
 
-    const loadProductImages = async () => {
-      setLoadingImages(true);
+    const loadProductMedia = async () => {
+      setLoadingMedia(true);
       try {
-        const { data, error } = await supabase
+        // Load images
+        const { data: imagesData, error: imagesError } = await supabase
           .from("product_images")
-          .select("image_url")
+          .select("image_url, display_order")
           .eq("product_id", product.id)
           .order("display_order");
 
-        if (error) throw error;
+        // Load videos
+        const { data: videosData, error: videosError } = await supabase
+          .from("product_videos")
+          .select("video_url, thumbnail_url")
+          .eq("product_id", product.id);
 
-        if (data && data.length > 0) {
-          setProductImages(data.map((img: any) => img.image_url));
+        if (imagesError) throw imagesError;
+        if (videosError) throw videosError;
+
+        const media: MediaItem[] = [];
+
+        // Add images
+        if (imagesData && imagesData.length > 0) {
+          imagesData.forEach((img: any) => {
+            media.push({
+              type: 'image',
+              url: img.image_url,
+              display_order: img.display_order,
+            });
+          });
         } else if (product.image_url) {
           // Fallback to legacy single image
-          setProductImages([product.image_url]);
+          media.push({
+            type: 'image',
+            url: product.image_url,
+            display_order: 0,
+          });
         }
+
+        // Add videos
+        if (videosData && videosData.length > 0) {
+          videosData.forEach((video: any) => {
+            media.push({
+              type: 'video',
+              url: video.video_url,
+              thumbnail_url: video.thumbnail_url,
+              display_order: 999,
+            });
+          });
+        }
+
+        // Sort by display_order
+        media.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+        setProductMedia(media);
       } catch (error) {
-        console.error("Error loading product images:", error);
+        console.error("Error loading product media:", error);
         // Fallback to legacy single image
         if (product.image_url) {
-          setProductImages([product.image_url]);
+          setProductMedia([{
+            type: 'image',
+            url: product.image_url,
+            display_order: 0,
+          }]);
         }
       } finally {
-        setLoadingImages(false);
+        setLoadingMedia(false);
       }
     };
 
-    loadProductImages();
+    loadProductMedia();
   }, [product, isOpen]);
 
   if (!isOpen || !product) return null;
@@ -126,16 +169,16 @@ export function ProductDetailModal({
 
             {/* Modal Body */}
             <div className="max-h-[70vh] overflow-y-auto">
-              {/* Product Images - Gallery */}
-              {!loadingImages && productImages.length > 0 ? (
+              {/* Product Media - Gallery with Images and Videos */}
+              {!loadingMedia && productMedia.length > 0 ? (
                 <div className="w-full bg-gray-900">
-                  <ImageGallery images={productImages} />
+                  <MediaCarousel media={productMedia} className="h-96" objectFit="contain" />
                 </div>
-              ) : loadingImages ? (
+              ) : loadingMedia ? (
                 <div className="w-full h-96 bg-gray-100 flex items-center justify-center">
                   <div className="flex flex-col items-center gap-2">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <p className="text-sm text-gray-500">Đang tải ảnh...</p>
+                    <p className="text-sm text-gray-500">Đang tải media...</p>
                   </div>
                 </div>
               ) : (
@@ -223,9 +266,8 @@ export function ProductDetailModal({
             {/* Modal Footer */}
             <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
               <div
-                className={`grid grid-cols-1 ${
-                  isOwner ? "md:grid-cols-3" : "md:grid-cols-2"
-                } gap-3`}
+                className={`grid grid-cols-1 ${isOwner ? "md:grid-cols-3" : "md:grid-cols-2"
+                  } gap-3`}
               >
                 <button
                   onClick={onClose}

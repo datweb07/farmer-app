@@ -7,7 +7,8 @@ import {
   getZaloLink,
 } from "../../lib/community/products.service";
 import { supabase } from "../../lib/supabase/supabase";
-import { ImageCarousel } from "./ImageGallery";
+import { MediaCarousel } from "./MediaCarousel";
+import type { MediaItem } from "./MediaCarousel";
 
 interface ProductCardProps {
   product: ProductWithStats;
@@ -15,41 +16,81 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onViewDetail }: ProductCardProps) {
-  const [productImages, setProductImages] = useState<string[]>([]);
-  const [loadingImages, setLoadingImages] = useState(true);
+  const [productMedia, setProductMedia] = useState<MediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
 
   useEffect(() => {
     trackProductView(product.id);
-    loadProductImages();
+    loadProductMedia();
   }, [product.id]);
 
-  // Fetch product images
-  const loadProductImages = async () => {
+  // Fetch product images and videos
+  const loadProductMedia = async () => {
     try {
-      const { data, error } = await supabase
+      // Load images
+      const { data: imagesData, error: imagesError } = await supabase
         .from("product_images")
-        .select("image_url")
+        .select("image_url, display_order")
         .eq("product_id", product.id)
         .order("display_order");
 
-      if (error) throw error;
+      // Load videos
+      const { data: videosData, error: videosError } = await supabase
+        .from("product_videos")
+        .select("video_url, thumbnail_url")
+        .eq("product_id", product.id);
 
-      if (data && data.length > 0) {
-        setProductImages(
-          (data as { image_url: string }[]).map((img) => img.image_url)
-        );
+      if (imagesError) throw imagesError;
+      if (videosError) throw videosError;
+
+      const media: MediaItem[] = [];
+
+      // Add images
+      if (imagesData && imagesData.length > 0) {
+        imagesData.forEach((img: any) => {
+          media.push({
+            type: 'image',
+            url: img.image_url,
+            display_order: img.display_order,
+          });
+        });
       } else if (product.image_url) {
         // Fallback to legacy single image
-        setProductImages([product.image_url]);
+        media.push({
+          type: 'image',
+          url: product.image_url,
+          display_order: 0,
+        });
       }
+
+      // Add videos
+      if (videosData && videosData.length > 0) {
+        videosData.forEach((video: any) => {
+          media.push({
+            type: 'video',
+            url: video.video_url,
+            thumbnail_url: video.thumbnail_url,
+            display_order: 999, // Videos come after images by default
+          });
+        });
+      }
+
+      // Sort by display_order
+      media.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+      setProductMedia(media);
     } catch (error) {
-      console.error("Error loading product images:", error);
+      console.error("Error loading product media:", error);
       // Fallback to legacy single image
       if (product.image_url) {
-        setProductImages([product.image_url]);
+        setProductMedia([{
+          type: 'image',
+          url: product.image_url,
+          display_order: 0,
+        }]);
       }
     } finally {
-      setLoadingImages(false);
+      setLoadingMedia(false);
     }
   };
 
@@ -63,10 +104,10 @@ export function ProductCard({ product, onViewDetail }: ProductCardProps) {
       className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
       onClick={onViewDetail}
     >
-      {/* Multiple Images - Image Carousel */}
+      {/* Multiple Images/Videos - Media Carousel */}
       <div className="relative">
-        {!loadingImages && productImages.length > 0 ? (
-          <ImageCarousel images={productImages} className="h-64" />
+        {!loadingMedia && productMedia.length > 0 ? (
+          <MediaCarousel media={productMedia} className="h-64" />
         ) : (
           <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
             <Tag className="w-12 h-12 text-gray-400" />

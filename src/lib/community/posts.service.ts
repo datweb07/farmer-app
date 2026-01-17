@@ -38,7 +38,7 @@ export async function createPost(data: CreatePostData): Promise<{
       const { url, error } = await uploadImage(
         data.image,
         "post-images",
-        user.id
+        user.id,
       );
       if (error) {
         return { success: false, error };
@@ -56,6 +56,7 @@ export async function createPost(data: CreatePostData): Promise<{
         category: data.category,
         image_url: imageUrl,
         product_link: data.product_link,
+        moderation_status: "pending", // Luôn chờ duyệt khi tạo mới
       })
       .select()
       .single();
@@ -65,14 +66,34 @@ export async function createPost(data: CreatePostData): Promise<{
       return { success: false, error: "Không thể tạo bài viết" };
     }
 
-    // Fetch full post with stats
-    const fullPost = await getPostById(post.id);
-    if (!fullPost) {
-      return {
-        success: false,
-        error: "Bài viết đã tạo nhưng không thể tải lại",
-      };
-    }
+    // Fetch user profile for author info
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username, avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    // Construct full post with initial stats (since it's just created)
+    const fullPost: PostWithStats = {
+      id: post.id,
+      user_id: post.user_id,
+      title: post.title,
+      content: post.content,
+      category: post.category,
+      image_url: post.image_url,
+      product_link: post.product_link,
+      views_count: post.views_count || 0,
+      likes_count: 0,
+      comments_count: 0,
+      shares_count: 0,
+      is_liked: false,
+      is_shared: false,
+      created_at: post.created_at,
+      updated_at: post.updated_at,
+      author_username: profile?.username || "",
+      author_avatar: profile?.avatar_url || null,
+      author_points: 0, // Will be calculated later
+    };
 
     console.log("✅ [Posts] Post created:", post.id);
     return { success: true, post: fullPost };
@@ -126,11 +147,16 @@ export async function getPosts(params?: {
  * Get single post by ID
  */
 export async function getPostById(
-  postId: string
+  postId: string,
 ): Promise<PostWithStats | null> {
   try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     const { data, error } = await supabase.rpc("get_post_with_stats", {
       post_uuid: postId,
+      current_user_id: user?.id || null,
     });
 
     if (error || !data || data.length === 0) {
@@ -141,9 +167,6 @@ export async function getPostById(
     const post = data[0] as PostWithStats;
 
     // Check if current user liked this post
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
     if (user) {
       const { data: like } = await supabase
         .from("post_likes")
@@ -166,7 +189,7 @@ export async function getPostById(
  */
 export async function updatePost(
   postId: string,
-  updates: UpdatePostData
+  updates: UpdatePostData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const {
@@ -193,7 +216,7 @@ export async function updatePost(
       const { url, error: uploadError } = await uploadImage(
         updates.image,
         "post-images",
-        user.id
+        user.id,
       );
 
       if (uploadError) {
@@ -373,7 +396,7 @@ export async function getComments(postId: string): Promise<{
                     username,
                     avatar_url
                 )
-            `
+            `,
       )
       .eq("post_id", postId)
       // Removed .is('parent_comment_id', null) to get ALL comments for tree building
@@ -424,7 +447,7 @@ export async function getComments(postId: string): Promise<{
 export async function createCommentReply(
   postId: string,
   parentCommentId: string,
-  content: string
+  content: string,
 ): Promise<{
   success: boolean;
   comment?: PostComment;
@@ -484,7 +507,7 @@ export async function getCommentReplies(commentId: string): Promise<{
         `
                 *,
                 profiles:user_id (username, avatar_url)
-            `
+            `,
       )
       .eq("parent_comment_id", commentId)
       .order("created_at", { ascending: true });
@@ -603,7 +626,7 @@ export async function unlikeComment(commentId: string): Promise<{
  */
 export async function addComment(
   postId: string,
-  content: string
+  content: string,
 ): Promise<{
   success: boolean;
   comment?: PostComment;
@@ -630,7 +653,7 @@ export async function addComment(
                 profiles:user_id (
                     username
                 )
-            `
+            `,
       )
       .single();
 

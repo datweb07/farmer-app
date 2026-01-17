@@ -37,7 +37,7 @@ export async function createProduct(data: CreateProductData): Promise<{
       const { url, error } = await uploadImage(
         data.image,
         "product-images",
-        user.id
+        user.id,
       );
       if (error) {
         return { success: false, error };
@@ -56,6 +56,7 @@ export async function createProduct(data: CreateProductData): Promise<{
         category: data.category,
         image_url: imageUrl,
         contact: data.contact,
+        moderation_status: "pending", // Luôn chờ duyệt khi tạo mới
       })
       .select()
       .single();
@@ -65,14 +66,27 @@ export async function createProduct(data: CreateProductData): Promise<{
       return { success: false, error: "Không thể tạo sản phẩm" };
     }
 
-    // Fetch full product with seller info
-    const fullProduct = await getProductById(product.id);
-    if (!fullProduct) {
-      return {
-        success: false,
-        error: "Sản phẩm đã tạo nhưng không thể tải lại",
-      };
-    }
+    // Fetch user profile for seller info
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username, avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    // Construct full product with seller info (since it's just created)
+    const fullProduct: ProductWithStats = {
+      id: product.id,
+      user_id: product.user_id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      category: product.category,
+      image_url: product.image_url,
+      contact: product.contact,
+      created_at: product.created_at,
+      seller_username: profile?.username || "",
+      seller_avatar: profile?.avatar_url || null,
+    };
 
     console.log("✅ [Products] Product created:", product.id);
     return { success: true, product: fullProduct };
@@ -121,11 +135,16 @@ export async function getProducts(params?: {
  * Get single product by ID
  */
 export async function getProductById(
-  productId: string
+  productId: string,
 ): Promise<ProductWithStats | null> {
   try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     const { data, error } = await supabase.rpc("get_product_with_stats", {
       product_uuid: productId,
+      current_user_id: user?.id || null,
     });
 
     if (error || !data || data.length === 0) {
@@ -145,7 +164,7 @@ export async function getProductById(
  */
 export async function updateProduct(
   productId: string,
-  updates: UpdateProductData
+  updates: UpdateProductData,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const {
@@ -167,7 +186,7 @@ export async function updateProduct(
       const { url, error: uploadError } = await uploadImage(
         updates.image,
         "product-images",
-        user.id
+        user.id,
       );
 
       if (uploadError) {

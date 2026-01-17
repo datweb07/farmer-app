@@ -71,9 +71,12 @@ CREATE TABLE IF NOT EXISTS public.admin_actions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     admin_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     action_type TEXT NOT NULL CHECK (action_type IN (
-        'ban_user', 'unban_user', 'delete_post', 'delete_product', 
-        'delete_project', 'approve_project', 'reject_project',
-        'delete_comment', 'change_role', 'resolve_report'
+        'ban_user', 'unban_user', 
+        'delete_post', 'delete_product', 'delete_project', 'delete_comment',
+        'approve_post', 'reject_post',
+        'approve_product', 'reject_product',
+        'approve_project', 'reject_project',
+        'change_role', 'resolve_report'
     )),
     target_type TEXT NOT NULL,
     target_id UUID NOT NULL,
@@ -94,7 +97,7 @@ BEGIN
         WHERE table_name = 'posts' 
         AND column_name = 'moderation_status'
     ) THEN
-        ALTER TABLE posts ADD COLUMN moderation_status TEXT DEFAULT 'approved' 
+        ALTER TABLE posts ADD COLUMN moderation_status TEXT DEFAULT 'pending' 
             CHECK (moderation_status IN ('pending', 'approved', 'rejected'));
         ALTER TABLE posts ADD COLUMN moderation_note TEXT;
         ALTER TABLE posts ADD COLUMN moderated_by UUID REFERENCES profiles(id);
@@ -110,7 +113,7 @@ BEGIN
         WHERE table_name = 'products' 
         AND column_name = 'moderation_status'
     ) THEN
-        ALTER TABLE products ADD COLUMN moderation_status TEXT DEFAULT 'approved' 
+        ALTER TABLE products ADD COLUMN moderation_status TEXT DEFAULT 'pending' 
             CHECK (moderation_status IN ('pending', 'approved', 'rejected'));
         ALTER TABLE products ADD COLUMN moderation_note TEXT;
         ALTER TABLE products ADD COLUMN moderated_by UUID REFERENCES profiles(id);

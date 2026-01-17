@@ -7,10 +7,12 @@ import {
   Menu,
   X,
   User,
+  Shield,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { NotificationDropdown } from "./NotificationDropdown";
+import { isAdmin } from "../../lib/admin/admin.service";
 
 interface NavigationProps {
   currentPage: string;
@@ -20,6 +22,18 @@ interface NavigationProps {
 export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { profile } = useAuth();
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
+  useEffect(() => {
+    checkAdminStatus();
+  }, [profile?.id]);
+
+  const checkAdminStatus = async () => {
+    if (profile?.id) {
+      const adminStatus = await isAdmin();
+      setIsAdminUser(adminStatus);
+    }
+  };
 
   const allNavItems = [
     { id: "dashboard", label: "Trang chủ", icon: Home, roles: ["farmer"] },
@@ -40,9 +54,22 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
     },
   ];
 
+  // Add admin item if user is admin
+  const navItemsWithAdmin = isAdminUser
+    ? [
+        ...allNavItems,
+        {
+          id: "admin",
+          label: "Admin",
+          icon: Shield,
+          roles: ["farmer", "business"],
+        },
+      ]
+    : allNavItems;
+
   // Filter navigation items based on user role
-  const navItems = allNavItems.filter((item) =>
-    item.roles.includes(profile?.role || "farmer")
+  const navItems = navItemsWithAdmin.filter((item) =>
+    item.roles.includes(profile?.role || "farmer"),
   );
 
   return (

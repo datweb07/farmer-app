@@ -1,27 +1,30 @@
-import { useState, useEffect } from 'react';
-import { HelpCircle } from 'lucide-react';
-import { AuthProvider, useAuth } from '../contexts/AuthContext';
-import { PublicRoute } from '../components/auth/PublicRoute';
-import { Navigation } from './components/Navigation';
-import { MobileTopBar } from './components/MobileTopBar';
-import { MobileBottomNav } from './components/MobileBottomNav';
-import { Tutorial } from './components/Tutorial';
-import { DashboardPage } from './pages/DashboardPage';
-import { SalinityPage } from './pages/SalinityPage';
-import { PostsPage } from './pages/PostsPage';
-import { ProductsPage } from './pages/ProductsPage';
-import { InvestPage } from './pages/InvestPage';
-import { CreateProjectPage } from './pages/CreateProjectPage';
-import { EditProjectPage } from './pages/EditProjectPage';
-import { LoginPage } from '../pages/auth/LoginPage';
-import { RegisterPage } from '../pages/auth/RegisterPage';
-import { ProfilePage } from '../pages/auth/ProfilePage';
+import { useState, useEffect } from "react";
+import { HelpCircle } from "lucide-react";
+import { AuthProvider, useAuth } from "../contexts/AuthContext";
+import { PublicRoute } from "../components/auth/PublicRoute";
+import { Navigation } from "./components/Navigation";
+import { MobileTopBar } from "./components/MobileTopBar";
+import { MobileBottomNav } from "./components/MobileBottomNav";
+import { Tutorial } from "./components/Tutorial";
+import { DashboardPage } from "./pages/DashboardPage";
+import { SalinityPage } from "./pages/SalinityPage";
+import { PostsPage } from "./pages/PostsPage";
+import { ProductsPage } from "./pages/ProductsPage";
+import { InvestPage } from "./pages/InvestPage";
+import { CreateProjectPage } from "./pages/CreateProjectPage";
+import { EditProjectPage } from "./pages/EditProjectPage";
+import { AdminPage } from "./pages/AdminPage";
+import { LoginPage } from "../pages/auth/LoginPage";
+import { RegisterPage } from "../pages/auth/RegisterPage";
+import { ProfilePage } from "../pages/auth/ProfilePage";
 
 function AppContent() {
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [currentPage, setCurrentPage] = useState("dashboard");
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    null,
+  );
   const { profile } = useAuth();
 
   // Hiển thị tutorial mỗi khi user login thành công
@@ -38,50 +41,70 @@ function AppContent() {
 
   // Redirect business users to invest page if they try to access restricted pages
   useEffect(() => {
-    if (profile?.role === 'business') {
-      const allowedPages = ['invest', 'profile', 'create-project', 'edit-project'];
+    if (profile?.role === "business") {
+      const allowedPages = [
+        "invest",
+        "profile",
+        "create-project",
+        "edit-project",
+      ];
       if (!allowedPages.includes(currentPage)) {
-        setCurrentPage('invest');
+        setCurrentPage("invest");
       }
     }
   }, [profile, currentPage]);
 
   const handleNavigate = (page: string) => {
     // Prevent business users from accessing farmer-only pages
-    if (profile?.role === 'business') {
-      const allowedPages = ['invest', 'profile', 'create-project', 'edit-project'];
+    if (profile?.role === "business") {
+      const allowedPages = [
+        "invest",
+        "profile",
+        "create-project",
+        "edit-project",
+      ];
       if (!allowedPages.includes(page)) {
         return; // Silently ignore navigation attempts to restricted pages
       }
     }
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleNavigateToProduct = (productId: string) => {
     setSelectedProductId(productId);
-    setCurrentPage('products');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentPage("products");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const renderAuthenticatedPage = () => {
     switch (currentPage) {
-      case 'dashboard':
+      case "dashboard":
         return <DashboardPage onNavigate={handleNavigate} />;
-      case 'salinity':
+      case "salinity":
         return <SalinityPage />;
-      case 'posts':
+      case "posts":
         return <PostsPage onNavigateToProduct={handleNavigateToProduct} />;
-      case 'products':
-        return <ProductsPage selectedProductId={selectedProductId} onProductViewed={() => setSelectedProductId(null)} />;
-      case 'invest':
-        return <InvestPage onNavigate={handleNavigate} onEditProject={(id) => {
-          setEditProjectId(id);
-          setCurrentPage('edit-project');
-        }} />;
-      case 'create-project':
+      case "products":
+        return (
+          <ProductsPage
+            selectedProductId={selectedProductId}
+            onProductViewed={() => setSelectedProductId(null)}
+          />
+        );
+      case "invest":
+        return (
+          <InvestPage
+            onNavigate={handleNavigate}
+            onEditProject={(id) => {
+              setEditProjectId(id);
+              setCurrentPage("edit-project");
+            }}
+          />
+        );
+      case "create-project":
         return <CreateProjectPage onNavigate={handleNavigate} />;
-      case 'edit-project':
+      case "edit-project":
         return editProjectId ? (
           <EditProjectPage
             projectId={editProjectId}
@@ -89,7 +112,9 @@ function AppContent() {
             onSuccess={() => setEditProjectId(null)}
           />
         ) : null;
-      case 'profile':
+      case "admin":
+        return <AdminPage onNavigate={handleNavigate} />;
+      case "profile":
         return <ProfilePage />;
       default:
         return <DashboardPage onNavigate={handleNavigate} />;
@@ -111,7 +136,7 @@ function AppContent() {
           {/* Mobile Top Bar - Only visible on mobile */}
           <MobileTopBar
             profile={profile}
-            onNavigateToProfile={() => handleNavigate('profile')}
+            onNavigateToProfile={() => handleNavigate("profile")}
           />
 
           {/* Main Content - Add padding for mobile top/bottom nav */}
@@ -153,7 +178,7 @@ function AppContent() {
                   <ul className="space-y-2 text-sm text-gray-300">
                     <li>
                       <button
-                        onClick={() => handleNavigate('dashboard')}
+                        onClick={() => handleNavigate("dashboard")}
                         className="hover:text-white transition-colors"
                       >
                         Trang chủ
@@ -161,7 +186,7 @@ function AppContent() {
                     </li>
                     <li>
                       <button
-                        onClick={() => handleNavigate('salinity')}
+                        onClick={() => handleNavigate("salinity")}
                         className="hover:text-white transition-colors"
                       >
                         Dự đoán độ mặn
@@ -169,7 +194,7 @@ function AppContent() {
                     </li>
                     <li>
                       <button
-                        onClick={() => handleNavigate('posts')}
+                        onClick={() => handleNavigate("posts")}
                         className="hover:text-white transition-colors"
                       >
                         Cộng đồng
@@ -177,7 +202,7 @@ function AppContent() {
                     </li>
                     <li>
                       <button
-                        onClick={() => handleNavigate('invest')}
+                        onClick={() => handleNavigate("invest")}
                         className="hover:text-white transition-colors"
                       >
                         Đầu tư & Hợp tác
@@ -196,7 +221,10 @@ function AppContent() {
                 </div>
               </div>
               <div className="border-t border-gray-700 pt-6 text-center text-sm text-gray-400">
-                <p>© 2025 Nền tảng Nông nghiệp ĐBSCL. Phát triển bởi đội ngũ công nghệ vì nông dân.</p>
+                <p>
+                  © 2025 Nền tảng Nông nghiệp ĐBSCL. Phát triển bởi đội ngũ công
+                  nghệ vì nông dân.
+                </p>
                 <p className="mt-2">Cùng nhau xây dựng nông nghiệp bền vững</p>
               </div>
             </div>
@@ -205,10 +233,10 @@ function AppContent() {
       }
     >
       {/* Login/Register pages for non-authenticated users */}
-      {currentPage === 'register' ? (
-        <RegisterPage onNavigateToLogin={() => setCurrentPage('login')} />
+      {currentPage === "register" ? (
+        <RegisterPage onNavigateToLogin={() => setCurrentPage("login")} />
       ) : (
-        <LoginPage onNavigateToRegister={() => setCurrentPage('register')} />
+        <LoginPage onNavigateToRegister={() => setCurrentPage("register")} />
       )}
     </PublicRoute>
   );

@@ -28,7 +28,8 @@ import { UserAvatar } from "./UserAvatar";
 import { UserProfileModal } from "./UserProfileModal";
 import { EditPostModal } from "./EditPostModal";
 import { PostDetailModal } from "./PostDetailModal";
-import { ImageCarousel } from "./ImageGallery";
+import { MediaCarousel } from "./MediaCarousel";
+import type { MediaItem } from "./MediaCarousel";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -54,41 +55,83 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReadMore, setShowReadMore] = useState(false);
-  const [postImages, setPostImages] = useState<string[]>([]);
-  const [loadingImages, setLoadingImages] = useState(true);
+  const [postMedia, setPostMedia] = useState<MediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     trackPostView(post.id);
-    loadPostImages();
+    loadPostMedia();
   }, [post.id]);
 
-  // Fetch post images
-  const loadPostImages = async () => {
+  // Fetch post images and videos
+  const loadPostMedia = async () => {
     try {
-      const { data, error } = await supabase
+      // Load images
+      const { data: imagesData, error: imagesError } = await supabase
         .from("post_images")
-        .select("image_url")
+        .select("image_url, display_order")
         .eq("post_id", post.id)
         .order("display_order");
 
-      if (error) throw error;
+      // Load videos
+      const { data: videosData, error: videosError } = await supabase
+        .from("post_videos")
+        .select("video_url, thumbnail_url")
+        .eq("post_id", post.id);
 
-      if (data && data.length > 0) {
-        setPostImages(data.map((img: any) => img.image_url));
+      if (imagesError) throw imagesError;
+      if (videosError) throw videosError;
+
+      const media: MediaItem[] = [];
+
+      // Add images
+      if (imagesData && imagesData.length > 0) {
+        imagesData.forEach((img: any) => {
+          media.push({
+            type: 'image',
+            url: img.image_url,
+            display_order: img.display_order,
+          });
+        });
       } else if (post.image_url) {
         // Fallback to legacy single image
-        setPostImages([post.image_url]);
+        media.push({
+          type: 'image',
+          url: post.image_url,
+          display_order: 0,
+        });
       }
+
+      // Add videos
+      if (videosData && videosData.length > 0) {
+        videosData.forEach((video: any) => {
+          media.push({
+            type: 'video',
+            url: video.video_url,
+            thumbnail_url: video.thumbnail_url,
+            display_order: 999, // Videos come after images by default
+          });
+        });
+      }
+
+      // Sort by display_order
+      media.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+      setPostMedia(media);
     } catch (error) {
-      console.error("Error loading post images:", error);
+      console.error("Error loading post media:", error);
       // Fallback to legacy single image
       if (post.image_url) {
-        setPostImages([post.image_url]);
+        setPostMedia([{
+          type: 'image',
+          url: post.image_url,
+          display_order: 0,
+        }]);
       }
     } finally {
-      setLoadingImages(false);
+      setLoadingMedia(false);
     }
   };
 
@@ -361,9 +404,8 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
           <div className="relative">
             <div
               ref={contentRef}
-              className={`text-gray-900 text-sm leading-relaxed whitespace-pre-line break-words transition-all duration-300 ${
-                !isExpanded && showReadMore ? "max-h-32 overflow-hidden" : ""
-              }`}
+              className={`text-gray-900 text-sm leading-relaxed whitespace-pre-line break-words transition-all duration-300 ${!isExpanded && showReadMore ? "max-h-32 overflow-hidden" : ""
+                }`}
               style={{
                 maskImage:
                   !isExpanded && showReadMore
@@ -402,13 +444,13 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
           </div>
         </div>
 
-        {/* Multiple Images - Image Carousel */}
-        {!loadingImages && postImages.length > 0 && (
+        {/* Multiple Images/Videos - Media Carousel */}
+        {!loadingMedia && postMedia.length > 0 && (
           <div
             className="border-y border-gray-200 flex-shrink-0 cursor-pointer"
             onClick={() => setShowDetailModal(true)}
           >
-            <ImageCarousel images={postImages} className="h-96" />
+            <MediaCarousel media={postMedia} className="h-96" />
           </div>
         )}
 
@@ -417,37 +459,37 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
           commentsCount > 0 ||
           sharesCount > 0 ||
           post.views_count > 0) && (
-          <div className="px-3 pt-2 pb-1 flex items-center text-sm text-gray-500 border-b border-gray-200 flex-shrink-0">
-            <div className="flex items-center gap-4">
-              {likesCount > 0 && (
-                <span className="flex items-center gap-1">
-                  <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                    <Heart className="w-2.5 h-2.5 text-white fill-current" />
-                  </div>
-                  {likesCount}
+            <div className="px-3 pt-2 pb-1 flex items-center text-sm text-gray-500 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center gap-4">
+                {likesCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                      <Heart className="w-2.5 h-2.5 text-white fill-current" />
+                    </div>
+                    {likesCount}
+                  </span>
+                )}
+
+                {commentsCount > 0 && (
+                  <button
+                    onClick={() => setShowCommentsModal(true)}
+                    className="hover:underline"
+                  >
+                    {commentsCount} bình luận
+                  </button>
+                )}
+
+                {sharesCount > 0 && <span>{sharesCount} lượt chia sẻ</span>}
+              </div>
+
+              {/* Views đẩy sang phải */}
+              {post.views_count > 0 && (
+                <span className="ml-auto text-xs text-gray-600 pr-1">
+                  {post.views_count} lượt xem
                 </span>
               )}
-
-              {commentsCount > 0 && (
-                <button
-                  onClick={() => setShowCommentsModal(true)}
-                  className="hover:underline"
-                >
-                  {commentsCount} bình luận
-                </button>
-              )}
-
-              {sharesCount > 0 && <span>{sharesCount} lượt chia sẻ</span>}
             </div>
-
-            {/* Views đẩy sang phải */}
-            {post.views_count > 0 && (
-              <span className="ml-auto text-xs text-gray-600 pr-1">
-                {post.views_count} lượt xem
-              </span>
-            )}
-          </div>
-        )}
+          )}
 
         {/* Action Buttons - Giống Facebook */}
         <div className="px-3 py-1 border-b border-gray-200 flex-shrink-0">
@@ -455,11 +497,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             <button
               onClick={handleLike}
               disabled={!user || isLiking}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
-                isLiked
-                  ? "text-red-600 font-semibold"
-                  : "text-gray-600 hover:bg-gray-100"
-              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isLiked
+                ? "text-red-600 font-semibold"
+                : "text-gray-600 hover:bg-gray-100"
+                } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
               <span className="text-sm">Thích</span>
@@ -476,11 +517,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             <button
               onClick={handleShare}
               disabled={!user || isSharing}
-              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${
-                isShared
-                  ? "text-blue-600 font-semibold"
-                  : "text-gray-600 hover:bg-gray-100"
-              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isShared
+                ? "text-blue-600 font-semibold"
+                : "text-gray-600 hover:bg-gray-100"
+                } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <Share2 className="w-5 h-5" />
               <span className="text-sm">Chia sẻ</span>

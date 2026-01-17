@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from "react";
-import { X, Image, Loader2, Package } from "lucide-react";
+import { X, Image, Loader2, Package, Video } from "lucide-react";
 import { createProduct } from "../../lib/community/products.service";
 import { validateImageFile } from "../../lib/community/image-upload";
 import { uploadMultipleImages } from "../../lib/media/media-upload.service";
+import { validateVideoFile, uploadVideo, uploadVideoThumbnail, generateVideoThumbnail, getVideoMetadata } from "../../lib/media/video-upload.service";
 import { supabase } from "../../lib/supabase/supabase";
 import type { CreateProductData } from "../../lib/community/types";
 
@@ -26,6 +27,10 @@ export function CreateProductModal({
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [videoThumbnail, setVideoThumbnail] = useState<string | null>(null);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,6 +75,54 @@ export function CreateProductModal({
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate video
+    const validation = validateVideoFile(file);
+    if (!validation.valid) {
+      setError(validation.error);
+      return;
+    }
+
+    setVideoFile(file);
+    setError(null);
+
+    // Generate video preview URL
+    const previewURL = URL.createObjectURL(file);
+    setVideoPreview(previewURL);
+
+    // Get video metadata
+    try {
+      const metadata = await getVideoMetadata(file);
+      setVideoDuration(metadata.duration);
+    } catch (err) {
+      console.warn('Could not get video metadata:', err);
+    }
+
+    // Generate thumbnail
+    try {
+      const thumbnail = await generateVideoThumbnail(file);
+      setVideoThumbnail(thumbnail);
+    } catch (err) {
+      console.warn('Could not generate video thumbnail:', err);
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    if (videoPreview) {
+      URL.revokeObjectURL(videoPreview);
+    }
+    if (videoThumbnail) {
+      URL.revokeObjectURL(videoThumbnail);
+    }
+    setVideoFile(null);
+    setVideoPreview(null);
+    setVideoThumbnail(null);
+    setVideoDuration(null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -158,6 +211,63 @@ export function CreateProductModal({
         }
       }
 
+      // Upload video if any
+      if (videoFile) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          setError("Không tìm thấy thông tin người dùng");
+          return;
+        }
+
+        console.log('📹 [CreateProduct] Uploading video...');
+        const videoResult = await uploadVideo(
+          videoFile,
+          "product-videos",
+          userData.user.id
+        );
+
+        if (videoResult.error) {
+          setError(videoResult.error);
+          return;
+        }
+
+        // Upload thumbnail to storage if available
+        let thumbnailUrl: string | null = null;
+        if (videoThumbnail) {
+          console.log('🖼️ [CreateProduct] Uploading video thumbnail...');
+          const thumbnailResult = await uploadVideoThumbnail(
+            videoThumbnail,
+            "product-videos",
+            userData.user.id
+          );
+
+          if (thumbnailResult.error) {
+            console.warn('⚠️ [CreateProduct] Thumbnail upload failed, continuing without thumbnail:', thumbnailResult.error);
+          } else {
+            thumbnailUrl = thumbnailResult.url;
+          }
+        }
+
+        // Save video to product_videos table
+        const { error: videoDbError } = await supabase
+          .from("product_videos")
+          .insert({
+            product_id: result.product!.id,
+            video_url: videoResult.url,
+            thumbnail_url: thumbnailUrl,
+            duration: videoDuration,
+            file_size: videoResult.fileSize,
+          } as any);
+
+        if (videoDbError) {
+          console.error("Error saving video:", videoDbError);
+          setError("Không thể lưu video");
+          return;
+        }
+
+        console.log('✅ [CreateProduct] Video uploaded and saved');
+      }
+
       // Success
       setFormData({
         name: "",
@@ -168,6 +278,7 @@ export function CreateProductModal({
       });
       setImageFiles([]);
       setImagePreviews([]);
+      handleRemoveVideo();
       onSuccess();
       onClose();
     } catch (err) {
@@ -257,11 +368,10 @@ export function CreateProductModal({
                         onClick={() =>
                           setFormData({ ...formData, category: cat.value })
                         }
-                        className={`p-2 rounded-lg border text-xs transition-colors ${
-                          formData.category === cat.value
-                            ? "border-blue-600 bg-blue-50 text-blue-700"
-                            : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
-                        }`}
+                        className={`p-2 rounded-lg border text-xs transition-colors ${formData.category === cat.value
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-gray-300 bg-white text-gray-600 hover:border-blue-400"
+                          }`}
                         disabled={loading}
                       >
                         {cat.label}
@@ -399,9 +509,8 @@ export function CreateProductModal({
                   {/* Upload Button */}
                   {imagePreviews.length < 5 && (
                     <label
-                      className={`block cursor-pointer ${
-                        loading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                      className={`block cursor-pointer ${loading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                     >
                       <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
                         <div className="flex flex-col items-center justify-center gap-2">
@@ -432,6 +541,69 @@ export function CreateProductModal({
                         onChange={handleImageChange}
                         className="hidden"
                         disabled={loading || imagePreviews.length >= 5}
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* Video Upload */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Video minh họa (tùy chọn, tối đa 50MB)
+                  </label>
+
+                  {/* Video Preview */}
+                  {videoPreview && (
+                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
+                      <video
+                        src={videoPreview}
+                        className="w-full h-full object-cover"
+                        controls
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveVideo}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                        disabled={loading}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      {/* Duration badge */}
+                      {videoDuration && (
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-medium">
+                          {Math.floor(videoDuration / 60)}:{String(videoDuration % 60).padStart(2, '0')}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Upload Button */}
+                  {!videoPreview && (
+                    <label
+                      className={`block cursor-pointer ${loading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                    >
+                      <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
+                            <Video className="w-5 h-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="text-gray-700 text-sm mb-1">
+                              Tải video lên
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              MP4, WebM, MOV (tối đa 50MB)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
+                        onChange={handleVideoChange}
+                        className="hidden"
+                        disabled={loading}
                       />
                     </label>
                   )}

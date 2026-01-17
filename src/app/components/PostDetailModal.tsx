@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import type { PostWithStats } from "../../lib/community/types";
 import { supabase } from "../../lib/supabase/supabase";
-import { ImageGallery } from "./ImageGallery";
+import { MediaCarousel } from "./MediaCarousel";
+import type { MediaItem } from "./MediaCarousel";
 
 interface PostDetailModalProps {
   post: PostWithStats | null;
@@ -34,42 +35,84 @@ export function PostDetailModal({
   onDelete,
   deleting,
 }: PostDetailModalProps) {
-  const [postImages, setPostImages] = useState<string[]>([]);
-  const [loadingImages, setLoadingImages] = useState(true);
+  const [postMedia, setPostMedia] = useState<MediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
 
-  // Fetch post images
+  // Fetch post images and videos
   useEffect(() => {
     if (!post || !isOpen) return;
 
-    const loadPostImages = async () => {
-      setLoadingImages(true);
+    const loadPostMedia = async () => {
+      setLoadingMedia(true);
       try {
-        const { data, error } = await supabase
+        // Load images
+        const { data: imagesData, error: imagesError } = await supabase
           .from("post_images")
-          .select("image_url")
+          .select("image_url, display_order")
           .eq("post_id", post.id)
           .order("display_order");
 
-        if (error) throw error;
+        // Load videos
+        const { data: videosData, error: videosError } = await supabase
+          .from("post_videos")
+          .select("video_url, thumbnail_url")
+          .eq("post_id", post.id);
 
-        if (data && data.length > 0) {
-          setPostImages(data.map((img: any) => img.image_url));
+        if (imagesError) throw imagesError;
+        if (videosError) throw videosError;
+
+        const media: MediaItem[] = [];
+
+        // Add images
+        if (imagesData && imagesData.length > 0) {
+          imagesData.forEach((img: any) => {
+            media.push({
+              type: 'image',
+              url: img.image_url,
+              display_order: img.display_order,
+            });
+          });
         } else if (post.image_url) {
           // Fallback to legacy single image
-          setPostImages([post.image_url]);
+          media.push({
+            type: 'image',
+            url: post.image_url,
+            display_order: 0,
+          });
         }
+
+        // Add videos
+        if (videosData && videosData.length > 0) {
+          videosData.forEach((video: any) => {
+            media.push({
+              type: 'video',
+              url: video.video_url,
+              thumbnail_url: video.thumbnail_url,
+              display_order: 999, // Videos come after images by default
+            });
+          });
+        }
+
+        // Sort by display_order
+        media.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+
+        setPostMedia(media);
       } catch (error) {
-        console.error("Error loading post images:", error);
+        console.error("Error loading post media:", error);
         // Fallback to legacy single image
         if (post.image_url) {
-          setPostImages([post.image_url]);
+          setPostMedia([{
+            type: 'image',
+            url: post.image_url,
+            display_order: 0,
+          }]);
         }
       } finally {
-        setLoadingImages(false);
+        setLoadingMedia(false);
       }
     };
 
-    loadPostImages();
+    loadPostMedia();
   }, [post, isOpen]);
 
   if (!isOpen || !post) return null;
@@ -156,18 +199,18 @@ export function PostDetailModal({
 
             {/* Modal Body */}
             <div className="max-h-[70vh] overflow-y-auto">
-              {/* Post Images - Gallery */}
-              {!loadingImages && postImages.length > 0 && (
+              {/* Post Media - Gallery with Images and Videos */}
+              {!loadingMedia && postMedia.length > 0 && (
                 <div className="w-full bg-gray-900">
-                  <ImageGallery images={postImages} />
+                  <MediaCarousel media={postMedia} className="h-96" objectFit="contain" />
                 </div>
               )}
 
-              {loadingImages && (
+              {loadingMedia && (
                 <div className="w-full h-96 bg-gray-100 flex items-center justify-center">
                   <div className="flex flex-col items-center gap-2">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <p className="text-sm text-gray-500">Đang tải ảnh...</p>
+                    <p className="text-sm text-gray-500">Đang tải media...</p>
                   </div>
                 </div>
               )}
@@ -271,9 +314,8 @@ export function PostDetailModal({
             {/* Modal Footer */}
             <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
               <div
-                className={`grid grid-cols-1 ${
-                  isOwner ? "md:grid-cols-3" : ""
-                } gap-3`}
+                className={`grid grid-cols-1 ${isOwner ? "md:grid-cols-3" : ""
+                  } gap-3`}
               >
                 <button
                   onClick={onClose}

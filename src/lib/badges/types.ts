@@ -28,6 +28,7 @@ export interface BadgeProgress {
     badge_color: string;
     earned: boolean;
     progress: number;
+    rank: number; // User's leaderboard rank
     target: number;
     earned_at: string | null;
 }

@@ -5,7 +5,7 @@
 // User profile management interface with avatar upload
 // ============================================
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   LogOut,
   User,
@@ -49,35 +49,7 @@ export function ProfilePage() {
   // Badge notification state
   const [newBadge, setNewBadge] = useState<BadgeProgress | null>(null);
 
-  useEffect(() => {
-    if (profile?.id) {
-      loadUserActivity();
-
-      // Subscribe to new badge awards
-      const subscription = subscribeToUserBadges(profile.id, async (badge) => {
-        console.log("New badge earned!", badge);
-
-        // Fetch the full badge progress to get all details for notification
-        const { getUserBadgeProgress } = await import('../../lib/badges/badge.service');
-        const badgeProgress = await getUserBadgeProgress(profile.id);
-        const earnedBadge = badgeProgress.find(b => b.badge_id === badge.badge_id);
-
-        if (earnedBadge) {
-          // Show notification
-          setNewBadge(earnedBadge);
-        }
-
-        // Refresh the badge list (triggers re-render of BadgeList)
-        loadUserActivity();
-      });
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
-  }, [profile?.id, activeTab]);
-
-  const loadUserActivity = async () => {
+  const loadUserActivity = useCallback(async () => {
     if (!profile?.id) return;
 
     setLoadingPosts(true);
@@ -93,7 +65,50 @@ export function ProfilePage() {
       }
     }
     setLoadingPosts(false);
-  };
+  }, [profile?.id, activeTab]);
+
+  // Set up badge notification subscription (only depends on profile.id)
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    console.log('🔔 [ProfilePage] Setting up badge subscription for:', profile.id);
+
+    // Subscribe to new badge awards
+    const subscription = subscribeToUserBadges(profile.id, async (badge) => {
+      console.log("🎉 [ProfilePage] New badge earned!", badge);
+
+      // Fetch the full badge progress to get all details for notification
+      const { getUserBadgeProgress } = await import('../../lib/badges/badge.service');
+      const badgeProgress = await getUserBadgeProgress(profile.id);
+      console.log("📊 [ProfilePage] Badge progress data:", badgeProgress);
+
+      const earnedBadge = badgeProgress.find(b => b.badge_id === badge.badge_id);
+      console.log("🔍 [ProfilePage] Found earned badge:", earnedBadge);
+
+      if (earnedBadge) {
+        // Show notification
+        console.log("✅ [ProfilePage] Setting new badge for notification:", earnedBadge);
+        setNewBadge(earnedBadge);
+      } else {
+        console.warn("⚠️ [ProfilePage] Could not find badge in progress data");
+      }
+
+      // Refresh the badge list (triggers re-render of BadgeList)
+      loadUserActivity();
+    });
+
+    return () => {
+      console.log('🔕 [ProfilePage] Unsubscribing from badge notifications');
+      subscription.unsubscribe();
+    };
+  }, [profile?.id, loadUserActivity]); // Add loadUserActivity to dependencies
+
+  // Load user activity when profile or activeTab changes
+  useEffect(() => {
+    if (profile?.id) {
+      loadUserActivity();
+    }
+  }, [profile?.id, activeTab, loadUserActivity]);
 
   const handleSignOut = async () => {
     if (confirm("Bạn có chắc muốn đăng xuất?")) {

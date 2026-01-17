@@ -84,6 +84,8 @@ export function subscribeToUserBadges(
     userId: string,
     onNewBadge: (badge: UserBadge) => void
 ) {
+    console.log('🔔 [Badges] Setting up subscription for user:', userId);
+
     const subscription = supabase
         .channel(`user_badges:${userId}`)
         .on(
@@ -95,11 +97,18 @@ export function subscribeToUserBadges(
                 filter: `user_id=eq.${userId}`,
             },
             (payload) => {
-                console.log('New badge earned!', payload.new);
+                console.log('🎉 [Badges] New badge earned!', payload.new);
                 onNewBadge(payload.new as UserBadge);
             }
         )
-        .subscribe();
+        .subscribe((status) => {
+            console.log('🔔 [Badges] Subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+                console.log('✅ [Badges] Successfully subscribed to badge notifications');
+            } else if (status === 'CHANNEL_ERROR') {
+                console.error('❌ [Badges] Error subscribing to badge notifications');
+            }
+        });
 
     return subscription;
 }

@@ -8,6 +8,7 @@ import {
   X,
   User,
   Shield,
+  BarChart3,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -58,6 +59,12 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const navItemsWithAdmin = isAdminUser
     ? [
         ...allNavItems,
+        {
+          id: "analytics",
+          label: "Thống kê",
+          icon: BarChart3,
+          roles: ["farmer", "business"],
+        },
         {
           id: "admin",
           label: "Admin",

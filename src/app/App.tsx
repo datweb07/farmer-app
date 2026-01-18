@@ -14,6 +14,7 @@ import { InvestPage } from "./pages/InvestPage";
 import { CreateProjectPage } from "./pages/CreateProjectPage";
 import { EditProjectPage } from "./pages/EditProjectPage";
 import { AdminPage } from "./pages/AdminPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { LoginPage } from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
 import { ProfilePage } from "../pages/auth/ProfilePage";
@@ -114,6 +115,8 @@ function AppContent() {
         ) : null;
       case "admin":
         return <AdminPage onNavigate={handleNavigate} />;
+      case "analytics":
+        return <AnalyticsPage />;
       case "profile":
         return <ProfilePage />;
       default:

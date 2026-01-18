@@ -173,7 +173,11 @@ export async function getTopContributors(
       const likeCount =
         likes?.filter((l) => userPostIds.includes(l.post_id)).length || 0;
 
-      const points = postCount * 10 + commentCount * 5 + likeCount * 2;
+      // Correct points calculation matching database function:
+      // - Posts: +10 per post
+      // - Likes: +5 per 10 likes
+      // - Comments: NOT counted for points
+      const points = postCount * 10 + Math.floor(likeCount / 10) * 5;
 
       return {
         user_id: profile.id,

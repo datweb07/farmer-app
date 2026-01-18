@@ -91,10 +91,10 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                 <Droplet className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-xl text-gray-900">
+                <h1 className="font-bold text-xl text-blue-600">
                   Nông nghiệp ĐBSCL
                 </h1>
-                <p className="text-sm text-gray-500">Hỗ trợ nông dân</p>
+                <p className="text-sm text-green-600">Hỗ trợ nông dân</p>
               </div>
             </div>
 

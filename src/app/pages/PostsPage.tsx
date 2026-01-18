@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { PlusCircle, Filter, Award, Loader2 } from "lucide-react";
 import { PostCard } from "../components/PostCard";
 import { CreatePostModal } from "../components/CreatePostModal";
+import { UserProfileModal } from "../components/UserProfileModal";
 import { getPosts } from "../../lib/community/posts.service";
 import { getTopContributors } from "../../lib/community/leaderboard.service";
 import type { PostWithStats, TopContributor } from "../../lib/community/types";
@@ -16,6 +17,8 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedUsername, setSelectedUsername] = useState<string>("");
 
   const categories = [
     { id: "all", label: "Tất cả" },
@@ -84,9 +87,15 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
                       #{contributor.rank}
                     </span>
                     <div>
-                      <p className="font-semibold text-gray-900">
+                      <button
+                        onClick={() => {
+                          setSelectedUsername(contributor.username);
+                          setShowProfileModal(true);
+                        }}
+                        className="font-semibold text-gray-900 hover:text-blue-600 hover:underline transition-colors text-left cursor-pointer"
+                      >
                         {contributor.username}
-                      </p>
+                      </button>
                       <p className="text-sm text-gray-600">
                         {contributor.total_points.toLocaleString()} điểm
                       </p>
@@ -143,18 +152,17 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${selectedCategory === category.id
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                  selectedCategory === category.id
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
               >
                 {category.label}
               </button>
             ))}
           </div>
         </div>
-
-
 
         {/* Posts Grid */}
         {loading ? (
@@ -214,6 +222,13 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={handlePostCreated}
+      />
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        username={selectedUsername}
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
       />
     </div>
   );

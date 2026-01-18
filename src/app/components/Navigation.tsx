@@ -87,9 +87,6 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-green-500 to-blue-500 p-3 rounded-xl">
-                <Droplet className="w-8 h-8 text-white" />
-              </div>
               <div>
                 <h1 className="font-bold text-xl text-blue-600">
                   Nông nghiệp ĐBSCL

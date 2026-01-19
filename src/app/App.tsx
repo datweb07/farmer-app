@@ -83,6 +83,7 @@ function AppContent() {
       case "dashboard":
         return <DashboardPage onNavigate={handleNavigate} />;
       case "salinity":
+      case "prophet":
         return <SalinityPage />;
       case "posts":
         return <PostsPage onNavigateToProduct={handleNavigateToProduct} />;
@@ -195,6 +196,14 @@ function AppContent() {
                         Dự đoán độ mặn
                       </button>
                     </li>
+                    {/* <li>
+                      <button
+                        onClick={() => handleNavigate("prophet")}
+                        className="hover:text-white transition-colors"
+                      >
+                        Độ mặn dự báo
+                      </button>
+                    </li> */}
                     <li>
                       <button
                         onClick={() => handleNavigate("posts")}

@@ -18,6 +18,7 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { LoginPage } from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
 import { ProfilePage } from "../pages/auth/ProfilePage";
+import { SettingsPage } from "../pages/settings/SettingsPage";
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -46,6 +47,7 @@ function AppContent() {
       const allowedPages = [
         "invest",
         "profile",
+        "settings",
         "create-project",
         "edit-project",
       ];
@@ -61,6 +63,7 @@ function AppContent() {
       const allowedPages = [
         "invest",
         "profile",
+        "settings",
         "create-project",
         "edit-project",
       ];
@@ -119,7 +122,9 @@ function AppContent() {
       case "analytics":
         return <AnalyticsPage />;
       case "profile":
-        return <ProfilePage />;
+        return <ProfilePage onNavigate={handleNavigate} />;
+      case "settings":
+        return <SettingsPage />;
       default:
         return <DashboardPage onNavigate={handleNavigate} />;
     }

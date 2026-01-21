@@ -413,6 +413,75 @@ export interface Database {
         };
         Returns: void;
       };
+      get_user_settings: {
+        Args: {
+          user_uuid: string;
+        };
+        Returns: {
+          id: string;
+          user_id: string;
+          language: string;
+          theme: string;
+          email_notifications: boolean;
+          email_new_follower: boolean;
+          email_post_like: boolean;
+          email_post_comment: boolean;
+          email_project_update: boolean;
+          push_notifications: boolean;
+          push_new_follower: boolean;
+          push_post_like: boolean;
+          push_post_comment: boolean;
+          push_project_update: boolean;
+          profile_visibility: string;
+          show_email: boolean;
+          show_phone: boolean;
+          allow_messages: boolean;
+          show_activity: boolean;
+          created_at: string;
+          updated_at: string;
+        }[];
+      };
+      update_user_settings: {
+        Args: {
+          user_uuid: string;
+          settings_data: Json;
+        };
+        Returns: {
+          id: string;
+          user_id: string;
+          language: string;
+          theme: string;
+          email_notifications: boolean;
+          email_new_follower: boolean;
+          email_post_like: boolean;
+          email_post_comment: boolean;
+          email_project_update: boolean;
+          push_notifications: boolean;
+          push_new_follower: boolean;
+          push_post_like: boolean;
+          push_post_comment: boolean;
+          push_project_update: boolean;
+          profile_visibility: string;
+          show_email: boolean;
+          show_phone: boolean;
+          allow_messages: boolean;
+          show_activity: boolean;
+          created_at: string;
+          updated_at: string;
+        }[];
+      };
+      export_user_data: {
+        Args: {
+          user_uuid: string;
+        };
+        Returns: Json;
+      };
+      delete_user_account: {
+        Args: {
+          user_uuid: string;
+        };
+        Returns: void;
+      };
     };
     Enums: {
       [_ in never]: never;

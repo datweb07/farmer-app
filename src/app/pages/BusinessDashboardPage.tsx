@@ -40,6 +40,7 @@ import type {
   PaymentDashboardStats,
 } from "../../lib/payment/types";
 import { CreditLimitManager } from "../components/CreditLimitManager";
+import { CustomerLinksSection } from "../components/CustomerLinksSection";
 
 export function BusinessDashboardPage() {
   const { } = useAuth();
@@ -58,7 +59,7 @@ export function BusinessDashboardPage() {
     null,
   );
   const [deleting, setDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "credit">(
+  const [activeTab, setActiveTab] = useState<"dashboard" | "credit" | "customers">(
     "dashboard",
   );
 
@@ -358,12 +359,26 @@ export function BusinessDashboardPage() {
                 Quản lý hạn mức tín dụng
               </div>
             </button>
+            <button
+              onClick={() => setActiveTab("customers")}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${activeTab === "customers"
+                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Users className="w-5 h-5" />
+                Quản lý khách hàng
+              </div>
+            </button>
           </div>
         </div>
 
         {/* Content based on active tab */}
         {activeTab === "credit" ? (
           <CreditLimitManager />
+        ) : activeTab === "customers" ? (
+          <CustomerLinksSection />
         ) : (
           <>
             {/* Period Filter */}

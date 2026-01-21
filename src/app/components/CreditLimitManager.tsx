@@ -20,6 +20,65 @@ import {
 import type { CreditLimit } from "../../lib/payment/types";
 import { supabase } from "../../lib/supabase/supabase";
 
+// Danh sách ngân hàng với Logo Real (Nguồn: VietQR)
+const BANKS = [
+  {
+    id: "vietcombank",
+    name: "Vietcombank",
+    logo: "https://upload.wikimedia.org/wikipedia/vi/8/85/Vietcombank_Logo.png",
+  },
+  {
+    id: "vietinbank",
+    name: "VietinBank",
+    logo: "https://upload.wikimedia.org/wikipedia/vi/9/9d/Logo_Vietinbank.png",
+  },
+  {
+    id: "bidv",
+    name: "BIDV",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Logo_BIDV.svg",
+  },
+  {
+    id: "agribank",
+    name: "Agribank",
+    logo: "https://upload.wikimedia.org/wikipedia/vi/3/3d/Argibank_logo.svg",
+  },
+  {
+    id: "techcombank",
+    name: "Techcombank",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Techcombank_logo.png",
+  },
+  {
+    id: "mbbank",
+    name: "MB Bank",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/Logo_MB_new.png",
+  },
+  {
+    id: "acb",
+    name: "ACB",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/d/d9/Asia_Commercial_Bank_logo.svg",
+  },
+  {
+    id: "vpbank",
+    name: "VPBank",
+    logo: "https://img.vietqr.io/image/VPB-logo.png",
+  },
+  {
+    id: "sacombank",
+    name: "Sacombank",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Logo-Sacombank-new.png",
+  },
+  {
+    id: "shb",
+    name: "SHB",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Logo_SHB.jpeg",
+  },
+  {
+    id: "mufg",
+    name: "MUFG",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/e/ef/MUFG_logo.svg"
+  }
+];
+
 export function CreditLimitManager() {
   const [creditLimits, setCreditLimits] = useState<CreditLimit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +95,7 @@ export function CreditLimitManager() {
     default_interest_rate: "0",
     default_late_fee_rate: "2",
     risk_level: "medium" as "low" | "medium" | "high",
+    bank: "vietcombank", // Ngân hàng mặc định
     notes: "",
   });
 
@@ -93,6 +153,7 @@ export function CreditLimitManager() {
         default_interest_rate: limit.default_interest_rate?.toString() || "0",
         default_late_fee_rate: limit.default_late_fee_rate?.toString() || "2",
         risk_level: limit.risk_level || "medium",
+        bank: (limit as any).bank || "vietcombank",
         notes: limit.notes || "",
       });
       // Load customer info
@@ -105,6 +166,7 @@ export function CreditLimitManager() {
         default_interest_rate: "0",
         default_late_fee_rate: "2",
         risk_level: "medium",
+        bank: "vietcombank",
         notes: "",
       });
       setSelectedCustomer(null);
@@ -141,14 +203,13 @@ export function CreditLimitManager() {
     }
 
     const payload = {
-      customer_id: editingLimit
-        ? editingLimit.customer_id
-        : selectedCustomer.id,
+      customer_id: editingLimit ? editingLimit.customer_id : selectedCustomer.id,
       credit_limit: parseFloat(formData.credit_limit),
       default_term_days: parseInt(formData.default_term_days),
       default_interest_rate: parseFloat(formData.default_interest_rate),
       default_late_fee_rate: parseFloat(formData.default_late_fee_rate),
       risk_level: formData.risk_level,
+      bank: formData.bank,
       notes: formData.notes,
     };
 
@@ -240,7 +301,7 @@ export function CreditLimitManager() {
               <p className="text-gray-600 text-sm">Tổng hạn mức</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
                 {formatCurrency(
-                  creditLimits.reduce((sum, l) => sum + l.credit_limit, 0),
+                  creditLimits.reduce((sum, l) => sum + l.credit_limit, 0)
                 )}
               </p>
             </div>
@@ -287,6 +348,9 @@ export function CreditLimitManager() {
                   Lãi suất
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ngân hàng
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Trạng thái
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -298,7 +362,7 @@ export function CreditLimitManager() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     Đang tải...
@@ -307,7 +371,7 @@ export function CreditLimitManager() {
               ) : creditLimits.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     Chưa có hạn mức nào
@@ -334,7 +398,7 @@ export function CreditLimitManager() {
                       <div className="text-xs text-gray-500">
                         Còn:{" "}
                         {formatCurrency(
-                          limit.available_credit || limit.credit_limit,
+                          limit.available_credit || limit.credit_limit
                         )}
                       </div>
                     </td>
@@ -343,6 +407,31 @@ export function CreditLimitManager() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {limit.default_interest_rate}% / năm
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        {/* UPDATE: Sử dụng thẻ img thay vì emoji */}
+                        <div className="w-12 h-8 flex items-center justify-center bg-white border border-gray-100 rounded p-1">
+                          <img
+                            src={
+                              BANKS.find((b) => b.id === (limit as any).bank)
+                                ?.logo || ""
+                            }
+                            alt={
+                              BANKS.find((b) => b.id === (limit as any).bank)
+                                ?.name
+                            }
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm text-gray-900">
+                          {BANKS.find((b) => b.id === (limit as any).bank)
+                            ?.name || "Ngân hàng"}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       {limit.is_active ? (
@@ -582,7 +671,10 @@ export function CreditLimitManager() {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        risk_level: e.target.value as "low" | "medium" | "high",
+                        risk_level: e.target.value as
+                          | "low"
+                          | "medium"
+                          | "high",
                       })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -590,6 +682,45 @@ export function CreditLimitManager() {
                     <option value="low">Thấp</option>
                     <option value="medium">Trung bình</option>
                     <option value="high">Cao</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Bank Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ngân hàng <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3">
+                  {/* UPDATE: Hiển thị Logo Preview bên cạnh Select Box */}
+                  <div className="w-12 h-10 flex-shrink-0 bg-white border border-gray-300 rounded-lg flex items-center justify-center p-1">
+                    <img
+                      src={
+                        BANKS.find((b) => b.id === formData.bank)?.logo || ""
+                      }
+                      alt="Bank Logo"
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  </div>
+                  <select
+                    value={formData.bank}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        bank: e.target.value,
+                      })
+                    }
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    {BANKS.map((bank) => (
+                      <option key={bank.id} value={bank.id}>
+                        {bank.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

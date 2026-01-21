@@ -151,22 +151,20 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setFeedView("all")}
-                className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
-                  feedView === "all"
+                className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${feedView === "all"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 <Filter className="w-4 h-4" />
                 Tất cả bài viết
               </button>
               <button
                 onClick={() => setFeedView("following")}
-                className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
-                  feedView === "following"
+                className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${feedView === "following"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 <Users className="w-4 h-4" />
                 Người theo dõi
@@ -187,11 +185,10 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
-                    selectedCategory === category.id
+                  className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${selectedCategory === category.id
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                    }`}
                 >
                   {category.label}
                 </button>

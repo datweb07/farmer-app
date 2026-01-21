@@ -8,6 +8,7 @@ import {
   Package,
   Pencil,
   Trash2,
+  ShoppingCart,
 } from "lucide-react";
 import type { ProductWithStats } from "../../lib/community/types";
 import { formatPrice, getZaloLink } from "../../lib/community/products.service";
@@ -23,6 +24,7 @@ interface ProductDetailModalProps {
   onEdit?: () => void;
   onDelete?: () => void;
   deleting?: boolean;
+  onBuyClick?: () => void; // Callback khi click nút Mua ngay (cho doanh nghiệp)
 }
 
 export function ProductDetailModal({
@@ -33,6 +35,7 @@ export function ProductDetailModal({
   onEdit,
   onDelete,
   deleting,
+  onBuyClick,
 }: ProductDetailModalProps) {
   const [productMedia, setProductMedia] = useState<MediaItem[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(true);
@@ -115,6 +118,9 @@ export function ProductDetailModal({
   }, [product, isOpen]);
 
   if (!isOpen || !product) return null;
+
+  // Kiểm tra seller role để hiển thị nút phù hợp
+  const isBusinessProduct = product.seller_role === "business";
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -299,7 +305,17 @@ export function ProductDetailModal({
                       )}
                     </button>
                   </>
+                ) : isBusinessProduct ? (
+                  // Nút Mua ngay cho sản phẩm doanh nghiệp
+                  <button
+                    onClick={onBuyClick}
+                    className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Mua ngay
+                  </button>
                 ) : (
+                  // Nút Liên hệ Zalo cho sản phẩm nông dân
                   <button
                     onClick={handleZaloContact}
                     className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"

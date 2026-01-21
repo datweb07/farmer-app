@@ -274,11 +274,10 @@ export function ProductsPage({
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
-                  selectedCategory === category.id
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${selectedCategory === category.id
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 {category.label}
               </button>
@@ -367,6 +366,9 @@ export function ProductsPage({
         onEdit={() => setShowEditModal(true)}
         onDelete={handleDeleteProduct}
         deleting={isDeleting}
+        onBuyClick={
+          selectedProduct ? () => handleBuyProduct(selectedProduct) : undefined
+        }
       />
 
       <EditProductModal

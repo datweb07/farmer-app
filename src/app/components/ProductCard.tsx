@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Phone, Award, Tag, Eye } from "lucide-react";
+import { Phone, Award, Tag, Eye, ShoppingCart } from "lucide-react";
 import type { ProductWithStats } from "../../lib/community/types";
 import {
   trackProductView,
@@ -13,11 +13,19 @@ import type { MediaItem } from "./MediaCarousel";
 interface ProductCardProps {
   product: ProductWithStats;
   onViewDetail?: () => void;
+  onBuyClick?: () => void; // Callback khi click nút Mua
 }
 
-export function ProductCard({ product, onViewDetail }: ProductCardProps) {
+export function ProductCard({
+  product,
+  onViewDetail,
+  onBuyClick,
+}: ProductCardProps) {
   const [productMedia, setProductMedia] = useState<MediaItem[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(true);
+
+  // Kiểm tra seller role để hiển thị nút phù hợp
+  const isBusinessProduct = product.seller_role === "business";
 
   useEffect(() => {
     trackProductView(product.id);
@@ -49,7 +57,7 @@ export function ProductCard({ product, onViewDetail }: ProductCardProps) {
       if (imagesData && imagesData.length > 0) {
         imagesData.forEach((img: any) => {
           media.push({
-            type: 'image',
+            type: "image",
             url: img.image_url,
             display_order: img.display_order,
           });
@@ -57,7 +65,7 @@ export function ProductCard({ product, onViewDetail }: ProductCardProps) {
       } else if (product.image_url) {
         // Fallback to legacy single image
         media.push({
-          type: 'image',
+          type: "image",
           url: product.image_url,
           display_order: 0,
         });
@@ -67,7 +75,7 @@ export function ProductCard({ product, onViewDetail }: ProductCardProps) {
       if (videosData && videosData.length > 0) {
         videosData.forEach((video: any) => {
           media.push({
-            type: 'video',
+            type: "video",
             url: video.video_url,
             thumbnail_url: video.thumbnail_url,
             display_order: 999, // Videos come after images by default
@@ -83,11 +91,13 @@ export function ProductCard({ product, onViewDetail }: ProductCardProps) {
       console.error("Error loading product media:", error);
       // Fallback to legacy single image
       if (product.image_url) {
-        setProductMedia([{
-          type: 'image',
-          url: product.image_url,
-          display_order: 0,
-        }]);
+        setProductMedia([
+          {
+            type: "image",
+            url: product.image_url,
+            display_order: 0,
+          },
+        ]);
       }
     } finally {
       setLoadingMedia(false);
@@ -155,16 +165,31 @@ export function ProductCard({ product, onViewDetail }: ProductCardProps) {
         </div>
 
         {/* Contact Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleZaloContact();
-          }}
-          className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
-        >
-          <Phone className="w-4 h-4" />
-          <span className="text-sm">Liên hệ Zalo</span>
-        </button>
+        {isBusinessProduct ? (
+          // Nút Mua cho sản phẩm doanh nghiệp
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onBuyClick?.();
+            }}
+            className="w-full bg-green-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span className="text-sm">Mua ngay</span>
+          </button>
+        ) : (
+          // Nút Liên hệ Zalo cho sản phẩm nông dân
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleZaloContact();
+            }}
+            className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
+          >
+            <Phone className="w-4 h-4" />
+            <span className="text-sm">Liên hệ Zalo</span>
+          </button>
+        )}
       </div>
     </div>
   );

@@ -4,6 +4,9 @@ import { ProductCard } from "../components/ProductCard";
 import { CreateProductModal } from "../components/CreateProductModal";
 import { ProductDetailModal } from "../components/ProductDetailModal";
 import { EditProductModal } from "../components/EditProductModal";
+import { PaymentModal } from "../components/PaymentModal";
+import { BusinessLinkModal } from "../components/BusinessLinkModal";
+import { checkBusinessLink } from "../../lib/business/link.service";
 import {
   deleteProduct,
   getProducts,
@@ -32,6 +35,12 @@ export function ProductsPage({
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [productToBuy, setProductToBuy] = useState<ProductWithStats | null>(
+    null,
+  );
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [pendingPurchase, setPendingPurchase] =
+    useState<ProductWithStats | null>(null);
 
   const categories = [
     { id: "all", label: "Tất cả" },
@@ -126,6 +135,58 @@ export function ProductsPage({
   const handleCloseDetail = () => {
     setShowDetailModal(false);
     setSelectedProduct(null);
+  };
+
+  const handleBuyProduct = async (product: ProductWithStats) => {
+    // Check if user is logged in
+    if (!user) {
+      alert("Vui lòng đăng nhập để mua hàng");
+      return;
+    }
+
+    // Check if user is trying to buy their own product
+    if (user.id === product.user_id) {
+      alert("Bạn không thể mua sản phẩm của chính mình");
+      return;
+    }
+
+    // Check if user is linked with this business
+    const linkResult = await checkBusinessLink(product.user_id);
+
+    if (!linkResult.linked) {
+      // Show link modal first
+      setPendingPurchase(product);
+      setShowLinkModal(true);
+    } else {
+      // Already linked, proceed to payment
+      setProductToBuy(product);
+    }
+  };
+
+  const handleLinked = () => {
+    setShowLinkModal(false);
+    if (pendingPurchase) {
+      setProductToBuy(pendingPurchase);
+      setPendingPurchase(null);
+    }
+  };
+
+  const handleSkipLink = () => {
+    setShowLinkModal(false);
+    if (pendingPurchase) {
+      setProductToBuy(pendingPurchase);
+      setPendingPurchase(null);
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    setProductToBuy(null);
+
+    // Refresh products list
+    await loadProducts();
+
+    // Show success message
+    alert("Thanh toán thành công! Đơn hàng của bạn đã được tạo.");
   };
 
   return (
@@ -237,6 +298,7 @@ export function ProductsPage({
                 key={product.id}
                 product={product}
                 onViewDetail={() => handleViewDetail(product)}
+                onBuyClick={() => handleBuyProduct(product)}
               />
             ))}
           </div>
@@ -313,6 +375,36 @@ export function ProductsPage({
         onClose={() => setShowEditModal(false)}
         onSuccess={handleEditSuccess}
       />
+
+      {/* Business Link Modal */}
+      {showLinkModal && pendingPurchase && (
+        <BusinessLinkModal
+          businessId={pendingPurchase.user_id}
+          businessName={(pendingPurchase as any).username || "Doanh nghiệp"}
+          onClose={() => {
+            setShowLinkModal(false);
+            setPendingPurchase(null);
+          }}
+          onLinked={handleLinked}
+          onSkip={handleSkipLink}
+        />
+      )}
+
+      {/* Payment Modal for Business Products */}
+      {productToBuy && (
+        <PaymentModal
+          product={{
+            id: productToBuy.id,
+            name: productToBuy.name,
+            price: productToBuy.price,
+            user_id: productToBuy.user_id,
+          }}
+          onClose={() => {
+            setProductToBuy(null);
+          }}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 }

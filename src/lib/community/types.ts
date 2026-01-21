@@ -55,6 +55,7 @@ export interface Product {
 export interface ProductWithStats extends Product {
   seller_username: string;
   seller_points: number;
+  seller_role: "farmer" | "business"; // Phân biệt nông dân vs doanh nghiệp
 }
 
 export interface PostComment {

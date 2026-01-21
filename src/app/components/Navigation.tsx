@@ -38,9 +38,20 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
 
   const allNavItems = [
     { id: "dashboard", label: "Trang chủ", icon: Home, roles: ["farmer"] },
+    {
+      id: "business-dashboard",
+      label: "Quản lý bán hàng",
+      icon: BarChart3,
+      roles: ["business"],
+    },
     { id: "salinity", label: "Độ mặn", icon: Droplet, roles: ["farmer"] },
     { id: "posts", label: "Cộng đồng", icon: FileText, roles: ["farmer"] },
-    { id: "products", label: "Sản phẩm", icon: ShoppingBag, roles: ["farmer"] },
+    {
+      id: "products",
+      label: "Sản phẩm",
+      icon: ShoppingBag,
+      roles: ["farmer", "business"],
+    },
     {
       id: "invest",
       label: "Đầu tư",

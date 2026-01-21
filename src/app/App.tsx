@@ -7,6 +7,7 @@ import { MobileTopBar } from "./components/MobileTopBar";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { Tutorial } from "./components/Tutorial";
 import { DashboardPage } from "./pages/DashboardPage";
+import { BusinessDashboardPage } from "./pages/BusinessDashboardPage";
 import { SalinityPage } from "./pages/SalinityPage";
 import { PostsPage } from "./pages/PostsPage";
 import { ProductsPage } from "./pages/ProductsPage";
@@ -50,9 +51,11 @@ function AppContent() {
         "settings",
         "create-project",
         "edit-project",
+        "products", // Business có thể đăng và mua sản phẩm
+        "business-dashboard", // Dashboard quản lý bán hàng
       ];
       if (!allowedPages.includes(currentPage)) {
-        setCurrentPage("invest");
+        setCurrentPage("business-dashboard");
       }
     }
   }, [profile, currentPage]);
@@ -66,6 +69,8 @@ function AppContent() {
         "settings",
         "create-project",
         "edit-project",
+        "products", // Business có thể đăng và mua sản phẩm
+        "business-dashboard", // Dashboard quản lý bán hàng
       ];
       if (!allowedPages.includes(page)) {
         return; // Silently ignore navigation attempts to restricted pages
@@ -85,6 +90,8 @@ function AppContent() {
     switch (currentPage) {
       case "dashboard":
         return <DashboardPage onNavigate={handleNavigate} />;
+      case "business-dashboard":
+        return <BusinessDashboardPage />;
       case "salinity":
       case "prophet":
         return <SalinityPage />;

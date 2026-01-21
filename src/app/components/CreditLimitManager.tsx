@@ -318,10 +318,10 @@ export function CreditLimitManager() {
                   <tr key={limit.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {limit.customer_name || "N/A"}
+                        {limit.customer_username || "N/A"}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {limit.customer_email}
+                        {limit.customer_phone}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">

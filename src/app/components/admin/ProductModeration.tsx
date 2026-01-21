@@ -13,6 +13,7 @@ import {
   deleteContent,
 } from "../../../lib/admin/admin.service";
 import type { ModerationContent } from "../../../lib/admin/types";
+import { sendApprovalNotification } from "../../../lib/notifications/approval-notifications";
 
 export function ProductModeration() {
   const [products, setProducts] = useState<ModerationContent[]>([]);
@@ -38,6 +39,9 @@ export function ProductModeration() {
   };
 
   const handleApprove = async (productId: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
     setActionLoading(productId);
     const result = await moderateContent({
       content_type: "product",
@@ -46,8 +50,16 @@ export function ProductModeration() {
     });
 
     if (result.success) {
+      // Send notification to product seller
+      await sendApprovalNotification({
+        userId: product.user_id,
+        contentType: "product",
+        contentId: productId,
+        contentTitle: product.name || "Sản phẩm",
+      });
+
       await loadProducts();
-      alert("Đã phê duyệt sản phẩm");
+      alert("Đã phê duyệt sản phẩm và gửi thông báo cho người bán");
     } else {
       alert("Lỗi: " + result.error);
     }
@@ -110,11 +122,10 @@ export function ProductModeration() {
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  statusFilter === status
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === status
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 {status === "pending" && "Chờ duyệt"}
                 {status === "approved" && "Đã duyệt"}

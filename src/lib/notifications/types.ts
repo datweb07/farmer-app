@@ -11,7 +11,10 @@ export type NotificationType =
   | "PROJECT_RATING"
   | "PRODUCT_VIEW_MILESTONE"
   | "FOLLOW"
-  | "MENTION";
+  | "MENTION"
+  | "POST_APPROVED"
+  | "PRODUCT_APPROVED"
+  | "PROJECT_APPROVED";
 
 export interface Notification {
   id: string;

@@ -6,6 +6,7 @@ import {
   deleteContent,
 } from "../../../lib/admin/admin.service";
 import type { ModerationContent } from "../../../lib/admin/types";
+import { sendApprovalNotification } from "../../../lib/notifications/approval-notifications";
 
 export function PostModeration() {
   const [posts, setPosts] = useState<ModerationContent[]>([]);
@@ -32,6 +33,9 @@ export function PostModeration() {
   };
 
   const handleApprove = async (postId: string) => {
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return;
+
     setActionLoading(postId);
     const result = await moderateContent({
       content_type: "post",
@@ -40,8 +44,16 @@ export function PostModeration() {
     });
 
     if (result.success) {
+      // Send notification to post author
+      await sendApprovalNotification({
+        userId: post.user_id,
+        contentType: "post",
+        contentId: postId,
+        contentTitle: post.title || "Bài viết",
+      });
+
       await loadPosts();
-      alert("Đã phê duyệt bài viết");
+      alert("Đã phê duyệt bài viết và gửi thông báo cho tác giả");
     } else {
       alert("Lỗi: " + result.error);
     }
@@ -104,11 +116,10 @@ export function PostModeration() {
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  statusFilter === status
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === status
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
               >
                 {status === "pending" && "Chờ duyệt"}
                 {status === "approved" && "Đã duyệt"}
@@ -163,13 +174,12 @@ export function PostModeration() {
                     </span>
                     <span>•</span>
                     <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        post.category === "experience"
-                          ? "bg-blue-100 text-blue-800"
-                          : post.category === "salinity-solution"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-purple-100 text-purple-800"
-                      }`}
+                      className={`px-2 py-1 rounded text-xs font-medium ${post.category === "experience"
+                        ? "bg-blue-100 text-blue-800"
+                        : post.category === "salinity-solution"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-purple-100 text-purple-800"
+                        }`}
                     >
                       {post.category === "experience" && "Kinh nghiệm"}
                       {post.category === "salinity-solution" && "Giải pháp mặn"}

@@ -15,6 +15,7 @@ import {
   deleteContent,
 } from "../../../lib/admin/admin.service";
 import type { ModerationContent } from "../../../lib/admin/types";
+import { sendApprovalNotification } from "../../../lib/notifications/approval-notifications";
 
 export function ProjectModeration() {
   const [projects, setProjects] = useState<ModerationContent[]>([]);
@@ -40,6 +41,9 @@ export function ProjectModeration() {
   };
 
   const handleApprove = async (projectId: string) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
+
     if (
       !confirm(
         "Phê duyệt dự án này? Dự án sẽ được hiển thị công khai và có thể nhận đầu tư.",
@@ -55,8 +59,16 @@ export function ProjectModeration() {
     });
 
     if (result.success) {
+      // Send notification to project creator
+      await sendApprovalNotification({
+        userId: project.user_id,
+        contentType: "project",
+        contentId: projectId,
+        contentTitle: project.title || "Dự án",
+      });
+
       await loadProjects();
-      alert("Đã phê duyệt dự án");
+      alert("Đã phê duyệt dự án và gửi thông báo cho người tạo");
     } else {
       alert("Lỗi: " + result.error);
     }
@@ -128,11 +140,10 @@ export function ProjectModeration() {
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  statusFilter === status
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === status
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 {status === "pending" && "Chờ duyệt"}
                 {status === "approved" && "Đã duyệt"}
@@ -179,13 +190,12 @@ export function ProjectModeration() {
                         {project.title}
                       </h3>
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          statusFilter === "pending"
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${statusFilter === "pending"
                             ? "bg-yellow-100 text-yellow-800"
                             : statusFilter === "approved"
                               ? "bg-green-100 text-green-800"
                               : "bg-red-100 text-red-800"
-                        }`}
+                          }`}
                       >
                         {statusFilter === "pending" && "Chờ duyệt"}
                         {statusFilter === "approved" && "Đã duyệt"}

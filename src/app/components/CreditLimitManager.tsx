@@ -60,7 +60,7 @@ const BANKS = [
   {
     id: "vpbank",
     name: "VPBank",
-    logo: "https://img.vietqr.io/image/VPB-logo.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/4/4e/VPBank_logo.svg",
   },
   {
     id: "sacombank",

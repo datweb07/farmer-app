@@ -194,7 +194,7 @@ export function ProductCard({
                 className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
               >
                 <Phone className="w-4 h-4" />
-                <span className="text-sm">Liên hệ Zalo</span>
+                <span className="text-sm">Liên hệ SĐT</span>
               </button>
             )}
           </>

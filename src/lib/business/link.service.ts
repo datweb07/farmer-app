@@ -14,6 +14,7 @@ export interface BusinessCustomerLink {
   customer_name?: string;
   customer_email?: string;
   customer_phone?: string;
+  customer_avatar_url?: string;
   business_name?: string;
   notes?: string;
   requested_by?: string;
@@ -182,6 +183,26 @@ export async function getBusinessLinks(): Promise<{
     if (error) {
       console.error("Error getting business links:", error);
       return { links: [], error: error.message };
+    }
+
+    // Fetch avatar for each customer
+    if (data && data.length > 0) {
+      const customerIds = data.map((link) => link.customer_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, avatar_url")
+        .in("id", customerIds);
+
+      const avatarMap = new Map(
+        profiles?.map((p) => [p.id, p.avatar_url]) || []
+      );
+
+      const linksWithAvatar = data.map((link) => ({
+        ...link,
+        customer_avatar_url: avatarMap.get(link.customer_id) || null,
+      }));
+
+      return { links: linksWithAvatar };
     }
 
     return { links: data || [] };

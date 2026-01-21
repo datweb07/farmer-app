@@ -24,7 +24,7 @@ export function ProductsPage({
   selectedProductId,
   onProductViewed,
 }: ProductsPageProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [products, setProducts] = useState<ProductWithStats[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,7 +70,11 @@ export function ProductsPage({
       limit: 20,
     });
     if (!result.error) {
-      setProducts(result.products);
+      // Business chỉ thấy sản phẩm của doanh nghiệp
+      const filteredProducts = profile?.role === "business"
+        ? result.products.filter(p => p.seller_role === "business")
+        : result.products;
+      setProducts(filteredProducts);
     }
     setLoading(false);
   };
@@ -83,7 +87,11 @@ export function ProductsPage({
       limit: 20,
     });
     if (!result.error) {
-      setProducts(result.products);
+      // Business chỉ thấy sản phẩm của doanh nghiệp
+      const filteredProducts = profile?.role === "business"
+        ? result.products.filter(p => p.seller_role === "business")
+        : result.products;
+      setProducts(filteredProducts);
     }
     setLoading(false);
   };
@@ -275,8 +283,8 @@ export function ProductsPage({
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${selectedCategory === category.id
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
               >
                 {category.label}
@@ -298,6 +306,7 @@ export function ProductsPage({
                 product={product}
                 onViewDetail={() => handleViewDetail(product)}
                 onBuyClick={() => handleBuyProduct(product)}
+                currentUserRole={profile?.role}
               />
             ))}
           </div>

@@ -51,8 +51,11 @@ function AppContent() {
         "settings",
         "create-project",
         "edit-project",
-        "products", // Business có thể đăng và mua sản phẩm
+        "products", // Business có thể đăng sản phẩm
         "business-dashboard", // Dashboard quản lý bán hàng
+        "salinity", // Độ mặn
+        "prophet", // Độ mặn (alternative route)
+        "posts", // Cộng đồng
       ];
       if (!allowedPages.includes(currentPage)) {
         setCurrentPage("business-dashboard");
@@ -69,8 +72,11 @@ function AppContent() {
         "settings",
         "create-project",
         "edit-project",
-        "products", // Business có thể đăng và mua sản phẩm
+        "products", // Business có thể đăng sản phẩm
         "business-dashboard", // Dashboard quản lý bán hàng
+        "salinity", // Độ mặn
+        "prophet", // Độ mặn (alternative route)
+        "posts", // Cộng đồng
       ];
       if (!allowedPages.includes(page)) {
         return; // Silently ignore navigation attempts to restricted pages

@@ -1,4 +1,5 @@
-import { Home, FileText, ShoppingBag, TrendingUp, Droplet } from 'lucide-react';
+import { Home, FileText, ShoppingBag, TrendingUp, Droplet, BarChart3 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface NavItem {
     icon: typeof Home;
@@ -6,8 +7,17 @@ interface NavItem {
     page: string;
 }
 
-const navItems: NavItem[] = [
+// Navigation items for farmers
+const farmerNavItems: NavItem[] = [
     { icon: Home, label: '', page: 'dashboard' },
+    { icon: FileText, label: '', page: 'posts' },
+    { icon: ShoppingBag, label: '', page: 'products' },
+    { icon: TrendingUp, label: '', page: 'invest' },
+];
+
+// Navigation items for business users
+const businessNavItems: NavItem[] = [
+    { icon: BarChart3, label: '', page: 'business-dashboard' },
     { icon: FileText, label: '', page: 'posts' },
     { icon: ShoppingBag, label: '', page: 'products' },
     { icon: TrendingUp, label: '', page: 'invest' },
@@ -19,7 +29,11 @@ interface MobileBottomNavProps {
 }
 
 export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProps) {
+    const { profile } = useAuth();
     const isActive = (page: string) => currentPage === page;
+
+    // Choose nav items based on user role
+    const navItems = profile?.role === 'business' ? businessNavItems : farmerNavItems;
 
     return (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 pointer-events-none">

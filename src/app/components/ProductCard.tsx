@@ -14,18 +14,23 @@ interface ProductCardProps {
   product: ProductWithStats;
   onViewDetail?: () => void;
   onBuyClick?: () => void; // Callback khi click nút Mua
+  currentUserRole?: "farmer" | "business"; // Role của user hiện tại
 }
 
 export function ProductCard({
   product,
   onViewDetail,
   onBuyClick,
+  currentUserRole,
 }: ProductCardProps) {
   const [productMedia, setProductMedia] = useState<MediaItem[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(true);
 
   // Kiểm tra seller role để hiển thị nút phù hợp
   const isBusinessProduct = product.seller_role === "business";
+
+  // Business users không thể mua sản phẩm (không hiển thị nút)
+  const showBuyButton = !(currentUserRole === "business");
 
   useEffect(() => {
     trackProductView(product.id);
@@ -164,31 +169,35 @@ export function ProductCard({
           </div>
         </div>
 
-        {/* Contact Button */}
-        {isBusinessProduct ? (
-          // Nút Mua cho sản phẩm doanh nghiệp
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onBuyClick?.();
-            }}
-            className="w-full bg-green-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            <span className="text-sm">Mua ngay</span>
-          </button>
-        ) : (
-          // Nút Liên hệ Zalo cho sản phẩm nông dân
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleZaloContact();
-            }}
-            className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
-          >
-            <Phone className="w-4 h-4" />
-            <span className="text-sm">Liên hệ Zalo</span>
-          </button>
+        {/* Contact Button - Only show if not business user */}
+        {showBuyButton && (
+          <>
+            {isBusinessProduct ? (
+              // Nút Mua cho sản phẩm doanh nghiệp
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBuyClick?.();
+                }}
+                className="w-full bg-green-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                <span className="text-sm">Mua ngay</span>
+              </button>
+            ) : (
+              // Nút Liên hệ Zalo cho sản phẩm nông dân
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleZaloContact();
+                }}
+                className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
+              >
+                <Phone className="w-4 h-4" />
+                <span className="text-sm">Liên hệ Zalo</span>
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

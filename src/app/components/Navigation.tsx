@@ -44,8 +44,8 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
       icon: BarChart3,
       roles: ["business"],
     },
-    { id: "salinity", label: "Độ mặn", icon: Droplet, roles: ["farmer"] },
-    { id: "posts", label: "Cộng đồng", icon: FileText, roles: ["farmer"] },
+    { id: "salinity", label: "Độ mặn", icon: Droplet, roles: ["farmer", "business"] },
+    { id: "posts", label: "Cộng đồng", icon: FileText, roles: ["farmer", "business"] },
     {
       id: "products",
       label: "Sản phẩm",
@@ -69,20 +69,20 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   // Add admin item if user is admin
   const navItemsWithAdmin = isAdminUser
     ? [
-        ...allNavItems,
-        {
-          id: "analytics",
-          label: "Thống kê",
-          icon: BarChart3,
-          roles: ["farmer", "business"],
-        },
-        {
-          id: "admin",
-          label: "Admin",
-          icon: Shield,
-          roles: ["farmer", "business"],
-        },
-      ]
+      ...allNavItems,
+      {
+        id: "analytics",
+        label: "Thống kê",
+        icon: BarChart3,
+        roles: ["farmer", "business"],
+      },
+      {
+        id: "admin",
+        label: "Admin",
+        icon: Shield,
+        roles: ["farmer", "business"],
+      },
+    ]
     : allNavItems;
 
   // Filter navigation items based on user role
@@ -115,11 +115,10 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                   <button
                     key={item.id}
                     onClick={() => onNavigate(item.id)}
-                    className={`flex flex-col items-center gap-1 px-6 py-3 rounded-xl transition-all ${
-                      isActive
+                    className={`flex flex-col items-center gap-1 px-6 py-3 rounded-xl transition-all ${isActive
                         ? "bg-blue-500 text-white shadow-lg scale-105"
                         : "text-gray-600 hover:bg-gray-100"
-                    }`}
+                      }`}
                   >
                     <Icon className="w-6 h-6" />
                     <span className="text-sm font-medium">{item.label}</span>
@@ -162,11 +161,10 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                       onNavigate(item.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all ${
-                      isActive
+                    className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all ${isActive
                         ? "bg-blue-500 text-white shadow-lg"
                         : "text-gray-700 hover:bg-gray-100"
-                    }`}
+                      }`}
                   >
                     <Icon className="w-7 h-7" />
                     <span className="text-lg font-medium">{item.label}</span>

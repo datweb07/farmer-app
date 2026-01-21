@@ -380,11 +380,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 <p className="text-xs text-gray-500">Vai trò</p>
                 <div className="mt-1">
                   <span
-                    className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                      profile.role === "farmer"
+                    className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${profile.role === "farmer"
                         ? "bg-blue-100 text-blue-700"
                         : "bg-blue-100 text-blue-700"
-                    }`}
+                      }`}
                   >
                     {profile.role === "farmer" ? "Nông dân" : "Tổ chức"}
                   </span>
@@ -452,8 +451,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           </div>
         )}
 
-        {/* Business Links Section */}
-        <BusinessLinksSection />
+        {/* Business Links Section - Only for farmers */}
+        {profile?.role === "farmer" && <BusinessLinksSection />}
 
         {/* Badge Notification */}
         <BadgeNotification badge={newBadge} onClose={() => setNewBadge(null)} />
@@ -468,22 +467,20 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           <div className="flex gap-2 mb-6 border-b border-gray-200">
             <button
               onClick={() => setActiveTab("posts")}
-              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${
-                activeTab === "posts"
+              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === "posts"
                   ? "text-blue-600 border-b-2 border-blue-600"
                   : "text-gray-600 hover:text-gray-900"
-              }`}
+                }`}
             >
               <FileText className="w-4 h-4" />
               Bài viết của tôi
             </button>
             <button
               onClick={() => setActiveTab("shared")}
-              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${
-                activeTab === "shared"
+              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === "shared"
                   ? "text-blue-600 border-b-2 border-blue-600"
                   : "text-gray-600 hover:text-gray-900"
-              }`}
+                }`}
             >
               <Share2 className="w-4 h-4" />
               Đã chia sẻ

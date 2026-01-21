@@ -16,6 +16,8 @@ import {
   Trash2,
   FileText,
   Share2,
+  Users as UsersIcon,
+  UserCheck,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { uploadAvatar, deleteAvatar } from "../../lib/auth/auth.service";
@@ -31,6 +33,9 @@ import BadgeList from "../../app/components/BadgeList";
 import BadgeNotification from "../../app/components/BadgeNotification";
 import { subscribeToUserBadges } from "../../lib/badges/badge.service";
 import type { BadgeProgress } from "../../lib/badges/types";
+import { getUserFollowStats } from "../../lib/follow/follow.service";
+import type { FollowStats } from "../../lib/follow/types";
+import { FollowersList } from "../../app/components/FollowersList";
 
 export function ProfilePage() {
   const { profile, signOut, refreshProfile } = useAuth();
@@ -48,6 +53,13 @@ export function ProfilePage() {
 
   // Badge notification state
   const [newBadge, setNewBadge] = useState<BadgeProgress | null>(null);
+
+  // Follow stats state
+  const [followStats, setFollowStats] = useState<FollowStats | null>(null);
+  const [showFollowersList, setShowFollowersList] = useState(false);
+  const [followersListTab, setFollowersListTab] = useState<
+    "followers" | "following"
+  >("followers");
 
   const loadUserActivity = useCallback(async () => {
     if (!profile?.id) return;
@@ -71,23 +83,32 @@ export function ProfilePage() {
   useEffect(() => {
     if (!profile?.id) return;
 
-    console.log('🔔 [ProfilePage] Setting up badge subscription for:', profile.id);
+    console.log(
+      "🔔 [ProfilePage] Setting up badge subscription for:",
+      profile.id,
+    );
 
     // Subscribe to new badge awards
     const subscription = subscribeToUserBadges(profile.id, async (badge) => {
       console.log("🎉 [ProfilePage] New badge earned!", badge);
 
       // Fetch the full badge progress to get all details for notification
-      const { getUserBadgeProgress } = await import('../../lib/badges/badge.service');
+      const { getUserBadgeProgress } =
+        await import("../../lib/badges/badge.service");
       const badgeProgress = await getUserBadgeProgress(profile.id);
       console.log("📊 [ProfilePage] Badge progress data:", badgeProgress);
 
-      const earnedBadge = badgeProgress.find(b => b.badge_id === badge.badge_id);
+      const earnedBadge = badgeProgress.find(
+        (b) => b.badge_id === badge.badge_id,
+      );
       console.log("🔍 [ProfilePage] Found earned badge:", earnedBadge);
 
       if (earnedBadge) {
         // Show notification
-        console.log("✅ [ProfilePage] Setting new badge for notification:", earnedBadge);
+        console.log(
+          "✅ [ProfilePage] Setting new badge for notification:",
+          earnedBadge,
+        );
         setNewBadge(earnedBadge);
       } else {
         console.warn("⚠️ [ProfilePage] Could not find badge in progress data");
@@ -98,7 +119,7 @@ export function ProfilePage() {
     });
 
     return () => {
-      console.log('🔕 [ProfilePage] Unsubscribing from badge notifications');
+      console.log("🔕 [ProfilePage] Unsubscribing from badge notifications");
       subscription.unsubscribe();
     };
   }, [profile?.id, loadUserActivity]); // Add loadUserActivity to dependencies
@@ -109,6 +130,21 @@ export function ProfilePage() {
       loadUserActivity();
     }
   }, [profile?.id, activeTab, loadUserActivity]);
+
+  // Load follow stats
+  useEffect(() => {
+    if (profile?.id) {
+      loadFollowStats();
+    }
+  }, [profile?.id]);
+
+  const loadFollowStats = async () => {
+    if (!profile?.id) return;
+    const stats = await getUserFollowStats(profile.id);
+    if (stats) {
+      setFollowStats(stats);
+    }
+  };
 
   const handleSignOut = async () => {
     if (confirm("Bạn có chắc muốn đăng xuất?")) {
@@ -264,6 +300,43 @@ export function ProfilePage() {
             </div>
           </div>
 
+          {/* Follow Stats */}
+          <div className="mb-6 pb-6 border-b border-gray-200">
+            <div className="flex items-center justify-center gap-6">
+              <button
+                onClick={() => {
+                  setFollowersListTab("followers");
+                  setShowFollowersList(true);
+                }}
+                className="flex flex-col items-center hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <UsersIcon className="w-5 h-5 text-blue-600" />
+                  <span className="text-2xl font-bold text-gray-900">
+                    {followStats?.followers_count || 0}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-600">Người theo dõi</span>
+              </button>
+              <div className="w-px h-12 bg-gray-300" />
+              <button
+                onClick={() => {
+                  setFollowersListTab("following");
+                  setShowFollowersList(true);
+                }}
+                className="flex flex-col items-center hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <UserCheck className="w-5 h-5 text-blue-600" />
+                  <span className="text-2xl font-bold text-gray-900">
+                    {followStats?.following_count || 0}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-600">Đang theo dõi</span>
+              </button>
+            </div>
+          </div>
+
           {/* Profile Info */}
           <div className="space-y-4">
             {/* Username */}
@@ -301,10 +374,11 @@ export function ProfilePage() {
                 <p className="text-xs text-gray-500">Vai trò</p>
                 <div className="mt-1">
                   <span
-                    className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${profile.role === "farmer"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-blue-100 text-blue-700"
-                      }`}
+                    className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
+                      profile.role === "farmer"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-blue-100 text-blue-700"
+                    }`}
                   >
                     {profile.role === "farmer" ? "Nông dân" : "Tổ chức"}
                   </span>
@@ -366,10 +440,7 @@ export function ProfilePage() {
         )}
 
         {/* Badge Notification */}
-        <BadgeNotification
-          badge={newBadge}
-          onClose={() => setNewBadge(null)}
-        />
+        <BadgeNotification badge={newBadge} onClose={() => setNewBadge(null)} />
 
         {/* Activity Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -381,20 +452,22 @@ export function ProfilePage() {
           <div className="flex gap-2 mb-6 border-b border-gray-200">
             <button
               onClick={() => setActiveTab("posts")}
-              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === "posts"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-600 hover:text-gray-900"
-                }`}
+              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${
+                activeTab === "posts"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
             >
               <FileText className="w-4 h-4" />
               Bài viết của tôi
             </button>
             <button
               onClick={() => setActiveTab("shared")}
-              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === "shared"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-600 hover:text-gray-900"
-                }`}
+              className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${
+                activeTab === "shared"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
             >
               <Share2 className="w-4 h-4" />
               Đã chia sẻ
@@ -440,6 +513,22 @@ export function ProfilePage() {
           </p>
         </div>
       </div>
+
+      {/* Badge Notification */}
+      {newBadge && (
+        <BadgeNotification badge={newBadge} onClose={() => setNewBadge(null)} />
+      )}
+
+      {/* Followers List Modal */}
+      {profile && (
+        <FollowersList
+          userId={profile.id}
+          username={profile.username}
+          initialTab={followersListTab}
+          isOpen={showFollowersList}
+          onClose={() => setShowFollowersList(false)}
+        />
+      )}
     </div>
   );
 }

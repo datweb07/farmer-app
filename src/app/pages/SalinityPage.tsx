@@ -141,11 +141,13 @@ export function SalinityPage() {
         {/* Header */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
-            Độ Mặn Dự Báo (Prophet Model)
+            Độ Mặn Dự Báo (Dựa trên mô hình Prophet)
           </h1>
           <p className="text-gray-600">
-            Dự báo độ mặn nước mặt dựa trên mô hình Prophet - Phục vụ nghiên cứu
-            khoa học và quản lý tài nguyên nước
+            Lưu ý: Mọi kết quả từ việc chạy mô hình và dự báo chỉ mang tính tham
+            khảo. Đội ngũ phát triển không chịu trách nhiệm về bất kỳ thiệt hại
+            nào phát sinh từ việc sử dụng dữ liệu này cho các quyết định pháp lý
+            hay kỹ thuật quan trọng.
           </p>
         </div>
 

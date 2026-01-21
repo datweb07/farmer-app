@@ -1,20 +1,24 @@
 import { useState, useEffect } from "react";
-import { PlusCircle, Filter, Award, Loader2 } from "lucide-react";
+import { PlusCircle, Filter, Award, Loader2, Users } from "lucide-react";
 import { PostCard } from "../components/PostCard";
 import { CreatePostModal } from "../components/CreatePostModal";
 import { UserProfileModal } from "../components/UserProfileModal";
+import { FollowingFeed } from "../components/FollowingFeed";
 import { getPosts } from "../../lib/community/posts.service";
 import { getTopContributors } from "../../lib/community/leaderboard.service";
 import type { PostWithStats, TopContributor } from "../../lib/community/types";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface PostsPageProps {
   onNavigateToProduct: (productId: string) => void;
 }
 
 export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [topContributors, setTopContributors] = useState<TopContributor[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [feedView, setFeedView] = useState<"all" | "following">("all");
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -141,31 +145,65 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
           Đăng bài mới
         </button>
 
-        {/* Category Filter */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Filter className="w-5 h-5 text-gray-700" />
-            <h3 className="font-semibold text-gray-900">Lọc theo chủ đề</h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
+        {/* Feed View Toggle */}
+        {user && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2">
               <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
-                  selectedCategory === category.id
+                onClick={() => setFeedView("all")}
+                className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
+                  feedView === "all"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                {category.label}
+                <Filter className="w-4 h-4" />
+                Tất cả bài viết
               </button>
-            ))}
+              <button
+                onClick={() => setFeedView("following")}
+                className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${
+                  feedView === "following"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                Người theo dõi
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Posts Grid */}
-        {loading ? (
+        {/* Category Filter - Only show for "all" view */}
+        {feedView === "all" && (
+          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <Filter className="w-5 h-5 text-gray-700" />
+              <h3 className="font-semibold text-gray-900">Lọc theo chủ đề</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                    selectedCategory === category.id
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {category.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Feed Content */}
+        {feedView === "following" ? (
+          <FollowingFeed onNavigateToProduct={onNavigateToProduct} />
+        ) : loading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
@@ -182,7 +220,7 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
           </div>
         )}
 
-        {!loading && posts.length === 0 && (
+        {!loading && feedView === "all" && posts.length === 0 && (
           <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
             <p className="text-lg text-gray-600 font-semibold mb-2">
               Chưa có bài viết nào

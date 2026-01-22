@@ -166,14 +166,15 @@ export function NotificationDropdown() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Bell Button */}
+      {/* Bell Button - Updated styles to match image */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+        className="relative p-2 text-white hover:bg-white/10 rounded-full transition-colors"
       >
-        <Bell className="w-6 h-6" />
+        {/* Fill currentColor makes the bell solid white like in the image if SVG supports it, otherwise stroke is white */}
+        <Bell className="w-10 h-10" fill="currentColor" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+          <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 border-2 border-[#004e45]">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -181,7 +182,7 @@ export function NotificationDropdown() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="fixed md:absolute right-2 md:right-0 left-2 md:left-auto mt-2 md:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[600px] flex flex-col">
+        <div className="fixed md:absolute right-2 md:right-0 left-2 md:left-auto mt-2 md:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[600px] flex flex-col text-gray-900">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h3 className="font-semibold text-gray-900">Thông báo</h3>
@@ -230,15 +231,14 @@ export function NotificationDropdown() {
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer group relative ${
-                      !notification.is_read ? "bg-blue-50/50" : ""
-                    }`}
+                    className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer group relative ${!notification.is_read ? "bg-blue-50/50" : ""
+                      }`}
                   >
                     <div className="flex gap-3">
                       {/* Avatar or Icon */}
                       <div className="flex-shrink-0">
                         {notification.actor_avatar ||
-                        notification.actor_username ? (
+                          notification.actor_username ? (
                           <UserAvatar
                             username={notification.actor_username || "U"}
                             avatarUrl={notification.actor_avatar}

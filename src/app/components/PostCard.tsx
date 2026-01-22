@@ -293,7 +293,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             {/* THÊM onClick VÀO UserAvatar */}
             <div
               className="cursor-pointer"
-              onClick={() => setShowUserProfileModal(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowUserProfileModal(true);
+              }}
             >
               <UserAvatar
                 avatarUrl={post.author_avatar}
@@ -305,7 +308,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
               <div className="flex items-center gap-2">
                 <h4
                   className="font-semibold text-gray-900 text-sm hover:underline cursor-pointer"
-                  onClick={() => setShowUserProfileModal(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowUserProfileModal(true);
+                  }}
                 >
                   {post.author_username}
                 </h4>
@@ -329,7 +335,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
           </div>
           <div className="relative" ref={menuRef}>
             <button
-              onClick={() => setShowMenu(!showMenu)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMenu(!showMenu);
+              }}
               className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
             >
               <MoreHorizontal className="w-5 h-5 text-gray-500" />
@@ -342,7 +351,8 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                   {isOwner ? (
                     <>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setShowMenu(false);
                           setShowEditModal(true);
                         }}
@@ -352,7 +362,8 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                         Chỉnh sửa bài viết
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setShowMenu(false);
                           setShowDeleteConfirm(true);
                         }}
@@ -366,7 +377,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                   ) : (
                     <>
                       <button
-                        onClick={handleReport}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleReport();
+                        }}
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors"
                       >
                         <Flag className="w-4 h-4" />
@@ -376,7 +390,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                     </>
                   )}
                   <button
-                    onClick={handleCopyLink}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopyLink();
+                    }}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors"
                   >
                     <LinkIcon className="w-4 h-4" />
@@ -424,7 +441,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             {showReadMore && (
               <div className="mt-2 flex justify-end">
                 <button
-                  onClick={toggleContent}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleContent();
+                  }}
                   className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 transition-colors"
                 >
                   {isExpanded ? (
@@ -472,7 +492,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
 
                 {commentsCount > 0 && (
                   <button
-                    onClick={() => setShowCommentsModal(true)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowCommentsModal(true);
+                    }}
                     className="hover:underline"
                   >
                     {commentsCount} bình luận
@@ -495,7 +518,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         <div className="px-3 py-1 border-b border-gray-200 flex-shrink-0">
           <div className="grid grid-cols-3">
             <button
-              onClick={handleLike}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLike();
+              }}
               disabled={!user || isLiking}
               className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isLiked
                 ? "text-red-600 font-semibold"
@@ -507,7 +533,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             </button>
 
             <button
-              onClick={() => setShowCommentsModal(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCommentsModal(true);
+              }}
               className="flex items-center justify-center gap-2 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
             >
               <MessageCircle className="w-5 h-5" />
@@ -515,7 +544,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
             </button>
 
             <button
-              onClick={handleShare}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShare();
+              }}
               disabled={!user || isSharing}
               className={`flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${isShared
                 ? "text-blue-600 font-semibold"
@@ -532,7 +564,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         {post.product_link && (
           <div className="px-3 py-2 flex-shrink-0">
             <button
-              onClick={() => onProductClick?.(post.product_link!)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onProductClick?.(post.product_link!);
+              }}
               className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-3 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm"
             >
               <ExternalLink className="w-4 h-4" />

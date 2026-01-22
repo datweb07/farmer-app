@@ -2,18 +2,25 @@ import { useState, useEffect } from "react";
 import { PlusCircle, Filter, Award, Loader2, Users } from "lucide-react";
 import { PostCard } from "../components/PostCard";
 import { CreatePostModal } from "../components/CreatePostModal";
+import { PostDetailModal } from "../components/PostDetailModal";
 import { UserProfileModal } from "../components/UserProfileModal";
 import { FollowingFeed } from "../components/FollowingFeed";
-import { getPosts } from "../../lib/community/posts.service";
+import { getPosts, getPostById, deletePost } from "../../lib/community/posts.service";
 import { getTopContributors } from "../../lib/community/leaderboard.service";
 import type { PostWithStats, TopContributor } from "../../lib/community/types";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface PostsPageProps {
   onNavigateToProduct: (productId: string) => void;
+  selectedPostId?: string | null;
+  onPostViewed?: () => void;
 }
 
-export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
+export function PostsPage({
+  onNavigateToProduct,
+  selectedPostId,
+  onPostViewed,
+}: PostsPageProps) {
   const { user } = useAuth();
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [topContributors, setTopContributors] = useState<TopContributor[]>([]);
@@ -23,6 +30,11 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedUsername, setSelectedUsername] = useState<string>("");
+
+  // Detail Modal States
+  const [selectedPost, setSelectedPost] = useState<PostWithStats | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const categories = [
     { id: "all", label: "Tất cả" },
@@ -35,6 +47,22 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
     loadPosts();
     loadLeaderboard();
   }, [selectedCategory]);
+
+  // Handle navigation from dashboard with post ID
+  useEffect(() => {
+    if (selectedPostId) {
+      loadAndShowPost(selectedPostId);
+    }
+  }, [selectedPostId]);
+
+  const loadAndShowPost = async (postId: string) => {
+    const post = await getPostById(postId);
+    if (post) {
+      setSelectedPost(post);
+      setShowDetailModal(true);
+      onPostViewed?.(); // Clear the selectedPostId in parent
+    }
+  };
 
   const loadPosts = async () => {
     setLoading(true);
@@ -58,6 +86,33 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
   const handlePostCreated = () => {
     loadPosts();
     loadLeaderboard();
+  };
+
+  const handlePostClick = (post: PostWithStats) => {
+    setSelectedPost(post);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetail = () => {
+    setShowDetailModal(false);
+    setSelectedPost(null);
+  };
+
+  const handleDeletePost = async () => {
+    if (!selectedPost) return;
+    const confirmed = window.confirm("Bạn có chắc chắn muốn xóa bài viết này?");
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    const result = await deletePost(selectedPost.id);
+    if (result.success) {
+      setShowDetailModal(false);
+      setSelectedPost(null);
+      await loadPosts(); // Refresh list
+    } else {
+      alert(result.error || "Không thể xóa bài viết");
+    }
+    setIsDeleting(false);
   };
 
   return (
@@ -152,8 +207,8 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
               <button
                 onClick={() => setFeedView("all")}
                 className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${feedView === "all"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
               >
                 <Filter className="w-4 h-4" />
@@ -162,8 +217,8 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
               <button
                 onClick={() => setFeedView("following")}
                 className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${feedView === "following"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
               >
                 <Users className="w-4 h-4" />
@@ -186,8 +241,8 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
                   className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${selectedCategory === category.id
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                 >
                   {category.label}
@@ -207,12 +262,13 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onProductClick={onNavigateToProduct}
-                onUpdate={handlePostCreated}
-              />
+              <div key={post.id} onClick={() => handlePostClick(post)} className="cursor-pointer">
+                <PostCard
+                  post={post}
+                  onProductClick={onNavigateToProduct}
+                  onUpdate={handlePostCreated}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -257,6 +313,16 @@ export function PostsPage({ onNavigateToProduct }: PostsPageProps) {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={handlePostCreated}
+      />
+
+      {/* Post Detail Modal */}
+      <PostDetailModal
+        post={selectedPost}
+        isOpen={showDetailModal}
+        onClose={handleCloseDetail}
+        isOwner={!!user && selectedPost?.user_id === user.id}
+        onDelete={handleDeletePost}
+        deleting={isDeleting}
       />
 
       {/* User Profile Modal */}

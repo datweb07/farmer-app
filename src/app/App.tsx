@@ -3,7 +3,7 @@ import { HelpCircle } from "lucide-react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { PublicRoute } from "../components/auth/PublicRoute";
 import { Navigation } from "./components/Navigation";
-import { MobileTopBar } from "./components/MobileTopBar";
+// import { MobileTopBar } from "./components/MobileTopBar"; // Removed - using header in pages
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { Tutorial } from "./components/Tutorial";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -28,6 +28,7 @@ function AppContent() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null,
   );
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const { profile } = useAuth();
 
   // Hiển thị tutorial mỗi khi user login thành công
@@ -63,7 +64,7 @@ function AppContent() {
     }
   }, [profile, currentPage]);
 
-  const handleNavigate = (page: string) => {
+  const handleNavigate = (page: string, id?: string) => {
     // Prevent business users from accessing farmer-only pages
     if (profile?.role === "business") {
       const allowedPages = [
@@ -82,6 +83,13 @@ function AppContent() {
         return; // Silently ignore navigation attempts to restricted pages
       }
     }
+
+    if (page === "products" && id) {
+      setSelectedProductId(id);
+    } else if (page === "posts" && id) {
+      setSelectedPostId(id);
+    }
+
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -102,7 +110,13 @@ function AppContent() {
       case "prophet":
         return <SalinityPage />;
       case "posts":
-        return <PostsPage onNavigateToProduct={handleNavigateToProduct} />;
+        return (
+          <PostsPage
+            onNavigateToProduct={handleNavigateToProduct}
+            selectedPostId={selectedPostId}
+            onPostViewed={() => setSelectedPostId(null)}
+          />
+        );
       case "products":
         return (
           <ProductsPage
@@ -155,14 +169,8 @@ function AppContent() {
             <Navigation currentPage={currentPage} onNavigate={handleNavigate} />
           </div>
 
-          {/* Mobile Top Bar - Only visible on mobile */}
-          <MobileTopBar
-            profile={profile}
-            onNavigateToProfile={() => handleNavigate("profile")}
-          />
-
-          {/* Main Content - Add padding for mobile top/bottom nav */}
-          <main className="md:pt-0 pt-14 pb-24 md:pb-0">
+          {/* Main Content */}
+          <main className="md:pt-0 pb-24 md:pb-0">
             {renderAuthenticatedPage()}
           </main>
 
@@ -182,8 +190,8 @@ function AppContent() {
             <span className="font-bold">Trợ giúp</span>
           </button>
 
-          {/* Footer */}
-          <footer className="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-8 mt-12">
+          {/* Footer - QUAN TRỌNG: Thêm 'hidden md:block' để ẩn footer ở mobile */}
+          <footer className="hidden md:block bg-gradient-to-r from-gray-800 to-gray-900 text-white py-8 mt-12">
             <div className="max-w-7xl mx-auto px-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
                 <div>
@@ -214,14 +222,6 @@ function AppContent() {
                         Dự đoán độ mặn
                       </button>
                     </li>
-                    {/* <li>
-                      <button
-                        onClick={() => handleNavigate("prophet")}
-                        className="hover:text-white transition-colors"
-                      >
-                        Độ mặn dự báo
-                      </button>
-                    </li> */}
                     <li>
                       <button
                         onClick={() => handleNavigate("posts")}

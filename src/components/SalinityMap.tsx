@@ -16,6 +16,57 @@ import {
 import { Card } from "@/components/ui/card";
 import MapLibreGL from "maplibre-gl";
 import type { ProphetPredict } from "@/types/prophet";
+import {
+  Sprout,
+  Wheat,
+  Fish,
+  TreeDeciduous
+} from "lucide-react";
+
+// --- LOGIC GỢI Ý CÂY TRỒNG ---
+const getCropRecommendations = (salinity: number) => {
+  if (salinity <= 1) {
+    return {
+      label: "Vùng Ngọt Hóa",
+      crops: ["🌾", "Sầu riêng", "🥭", "🍊", "🥬"],
+      desc: "Nguồn nước an toàn, thích hợp đa canh.",
+      color: "text-emerald-700",
+      bgColor: "bg-emerald-50",
+      borderColor: "border-emerald-200",
+      icon: <Sprout className="w-4 h-4 text-emerald-600" />
+    };
+  } else if (salinity <= 2.5) {
+    return {
+      label: "Chịu Mặn Nhẹ",
+      crops: ["🌾 (ST24, ST25)", "🥥", "🎋", "🍍", "🍈"],
+      desc: "Cần theo dõi độ mặn triều cường.",
+      color: "text-yellow-700",
+      bgColor: "bg-yellow-50",
+      borderColor: "border-yellow-200",
+      icon: <Wheat className="w-4 h-4 text-yellow-600" />
+    };
+  } else if (salinity <= 4) {
+    return {
+      label: "Chịu Mặn Trung Bình",
+      crops: ["Dừa xiêm", "Cói / Lác", "Mô hình Tôm - Lúa", "Thanh long"],
+      desc: "Hạn chế cây ăn trái mẫn cảm.",
+      color: "text-orange-700",
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-200",
+      icon: <TreeDeciduous className="w-4 h-4 text-orange-600" />
+    };
+  } else {
+    return {
+      label: "Vùng Mặn Cao",
+      crops: ["🦐", "🦀", "🌴", "🚫🌾"],
+      desc: "Chuyển đổi sang nuôi trồng thủy sản.",
+      color: "text-blue-700",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+      icon: <Fish className="w-4 h-4 text-blue-600" />
+    };
+  }
+};
 
 interface SalinityMapProps {
   data: ProphetPredict[];
@@ -178,61 +229,87 @@ export const SalinityMap: React.FC<SalinityMapProps> = ({ data }) => {
                 >
                   <MarkerContent>
                     <div
-                      className={`relative rounded-full p-2 shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform ${
-                        station.du_bao_man < 1
-                          ? "bg-green-500"
-                          : station.du_bao_man < 4
-                            ? "bg-yellow-500"
-                            : "bg-red-500"
-                      }`}
+                      className={`relative rounded-full p-2 shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform ${station.du_bao_man < 1
+                        ? "bg-green-500"
+                        : station.du_bao_man < 4
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
+                        }`}
                     >
                       <div className="w-2 h-2 bg-white rounded-full"></div>
                     </div>
                   </MarkerContent>
-                  {selectedStation === key && (
-                    <MarkerPopup closeButton>
-                      <div className="min-w-50">
-                        <h4 className="font-semibold text-gray-900 mb-2">
-                          {station.ten_tram}
-                        </h4>
-                        <div className="space-y-1 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Tỉnh:</span>
-                            <span className="font-medium">{station.tinh}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Năm:</span>
-                            <span className="font-medium">{station.nam}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Độ mặn:</span>
-                            <span className="font-semibold text-blue-600">
-                              {station.du_bao_man.toFixed(2)} g/l
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Mức độ:</span>
-                            <span className="font-medium">
-                              {getSalinityCategory(station.du_bao_man)}
-                            </span>
-                          </div>
-                          <div className="pt-2 border-t border-gray-200 mt-2">
-                            <div className="text-xs text-gray-500">
-                              Khoảng tin cậy 95%:
+                  {selectedStation === key && (() => {
+                    const recommendation = getCropRecommendations(station.du_bao_man);
+                    return (
+                      <MarkerPopup closeButton anchor="bottom" offset={12}>
+                        <div className="min-w-[280px] max-w-[320px] max-h-[350px] overflow-y-auto">
+                          <h4 className="font-semibold text-gray-900 mb-2">
+                            {station.ten_tram}
+                          </h4>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Tỉnh:</span>
+                              <span className="font-medium">{station.tinh}</span>
                             </div>
-                            <div className="text-xs">
-                              [{station.lower_ci.toFixed(2)} -{" "}
-                              {station.upper_ci.toFixed(2)}] g/l
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Năm:</span>
+                              <span className="font-medium">{station.nam}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Độ mặn:</span>
+                              <span className="font-semibold text-blue-600">
+                                {station.du_bao_man.toFixed(2)} g/l
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Mức độ:</span>
+                              <span className="font-medium">
+                                {getSalinityCategory(station.du_bao_man)}
+                              </span>
+                            </div>
+                            <div className="pt-2 border-t border-gray-200 mt-2">
+                              <div className="text-xs text-gray-500">
+                                Khoảng tin cậy 95%:
+                              </div>
+                              <div className="text-xs">
+                                [{station.lower_ci.toFixed(2)} -{" "}
+                                {station.upper_ci.toFixed(2)}] g/l
+                              </div>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-600">Hệ số vị trí:</span>
+                              <span>{station.he_so_vi_tri.toFixed(2)}</span>
                             </div>
                           </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-600">Hệ số vị trí:</span>
-                            <span>{station.he_so_vi_tri.toFixed(2)}</span>
+
+                          {/* --- PHẦN GỢI Ý CÂY TRỒNG --- */}
+                          <div className={`mt-3 rounded-lg p-3 border ${recommendation.bgColor} ${recommendation.borderColor}`}>
+                            <div className="flex items-center gap-2 mb-2">
+                              {recommendation.icon}
+                              <span className={`text-sm font-bold ${recommendation.color}`}>
+                                {recommendation.label}
+                              </span>
+                            </div>
+                            {/* <p className="text-xs text-gray-600 italic mb-2">
+                              {recommendation.desc}
+                            </p> */}
+                            <div className="flex flex-wrap gap-1.5">
+                              {recommendation.crops.map((crop, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-block bg-white border border-gray-200 shadow-sm text-gray-700 text-[11px] px-2 py-1 rounded-md"
+                                >
+                                  {crop}
+                                </span>
+                              ))}
+                            </div>
                           </div>
+                          {/* ---------------------------------- */}
                         </div>
-                      </div>
-                    </MarkerPopup>
-                  )}
+                      </MarkerPopup>
+                    );
+                  })()}
                 </MapMarker>
               );
             })}
@@ -298,25 +375,23 @@ export const SalinityMap: React.FC<SalinityMapProps> = ({ data }) => {
               return (
                 <div
                   key={province.tinh}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md ${
-                    salinityLevel === "danger"
-                      ? "bg-linear-to-r from-red-50 to-red-100 border-red-300"
-                      : salinityLevel === "warning"
-                        ? "bg-linear-to-r from-yellow-50 to-yellow-100 border-yellow-300"
-                        : "bg-linear-to-r from-green-50 to-green-100 border-green-300"
-                  } ${selectedProvince === province.tinh ? "ring-2 ring-blue-500 scale-[1.02]" : ""}`}
+                  className={`p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md ${salinityLevel === "danger"
+                    ? "bg-linear-to-r from-red-50 to-red-100 border-red-300"
+                    : salinityLevel === "warning"
+                      ? "bg-linear-to-r from-yellow-50 to-yellow-100 border-yellow-300"
+                      : "bg-linear-to-r from-green-50 to-green-100 border-green-300"
+                    } ${selectedProvince === province.tinh ? "ring-2 ring-blue-500 scale-[1.02]" : ""}`}
                   onClick={() => handleProvinceClick(province.tinh)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`p-2 rounded-full ${
-                          salinityLevel === "danger"
-                            ? "bg-red-500"
-                            : salinityLevel === "warning"
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
-                        }`}
+                        className={`p-2 rounded-full ${salinityLevel === "danger"
+                          ? "bg-red-500"
+                          : salinityLevel === "warning"
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
+                          }`}
                       >
                         <div className="w-3 h-3 bg-white rounded-full"></div>
                       </div>

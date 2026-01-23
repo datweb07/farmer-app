@@ -6,6 +6,7 @@ import { ProductDetailModal } from "../components/ProductDetailModal";
 import { EditProductModal } from "../components/EditProductModal";
 import { PaymentModal } from "../components/PaymentModal";
 import { BusinessLinkModal } from "../components/BusinessLinkModal";
+import { MobileProductsView } from "../components/MobileProductsView";
 import { checkBusinessLink } from "../../lib/business/link.service";
 import {
   deleteProduct,
@@ -18,13 +19,36 @@ import { useAuth } from "../../contexts/AuthContext";
 interface ProductsPageProps {
   selectedProductId?: string | null;
   onProductViewed?: () => void;
+  onNavigate?: (page: string) => void;
+}
+
+// Custom hook to detect mobile screen
+function useIsMobile(breakpoint: number = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < breakpoint);
+    };
+
+    // Check on mount
+    checkMobile();
+
+    // Add resize listener
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [breakpoint]);
+
+  return isMobile;
 }
 
 export function ProductsPage({
   selectedProductId,
   onProductViewed,
+  onNavigate,
 }: ProductsPageProps) {
   const { user, profile } = useAuth();
+  const isMobile = useIsMobile();
   const [products, setProducts] = useState<ProductWithStats[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -197,6 +221,18 @@ export function ProductsPage({
     alert("Thanh toán thành công! Đơn hàng của bạn đã được tạo.");
   };
 
+  // ==================== MOBILE LAYOUT ====================
+  if (isMobile) {
+    return (
+      <MobileProductsView
+        selectedProductId={selectedProductId}
+        onProductViewed={onProductViewed}
+        onNavigate={onNavigate}
+      />
+    );
+  }
+
+  // ==================== DESKTOP LAYOUT ====================
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-8">

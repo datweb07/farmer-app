@@ -8,7 +8,6 @@ import {
   Phone,
   MapPin,
   Plus,
-
   Loader2,
 } from "lucide-react";
 import { InvestmentProjectCard } from "../components/InvestmentProjectCard";
@@ -19,14 +18,36 @@ import { getProjects, getOverallStats, type OverallStats } from "../../lib/inves
 import type { InvestmentProjectWithStats } from "../../lib/investments/types";
 import { useAuth } from "../../contexts/AuthContext";
 import SponsorsSlider from '../components/SponsorsSlider';
+import { MobileInvestView } from '../components/MobileInvestsView';
 
 interface InvestPageProps {
   onNavigate?: (page: string) => void;
   onEditProject?: (projectId: string) => void;
 }
 
+// Custom hook to detect mobile screen (Giống ProductsPage)
+function useIsMobile(breakpoint: number = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < breakpoint);
+    };
+
+    // Check on mount
+    checkMobile();
+
+    // Add resize listener
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
 export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
   const { user } = useAuth();
+  const isMobile = useIsMobile(); // Sử dụng hook
   const [projects, setProjects] = useState<InvestmentProjectWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [partnerModalType, setPartnerModalType] = useState<'investor' | 'business' | 'research' | null>(null);
@@ -59,8 +80,17 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
     }
   };
 
+  // ==================== MOBILE LAYOUT ====================
+  if (isMobile) {
+    return (
+      <MobileInvestView
+        onNavigate={onNavigate}
+        onEditProject={onEditProject}
+      />
+    );
+  }
 
-
+  // ==================== DESKTOP LAYOUT ====================
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -198,8 +228,6 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
           )}
         </div>
 
-
-
         {/* Partner Types */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* For Investors */}
@@ -299,116 +327,6 @@ export function InvestPage({ onNavigate, onEditProject }: InvestPageProps) {
             </button>
           </div>
         </div>
-
-        {/* Contact Form
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-          <h2 className="font-semibold text-xl text-gray-900 mb-6">
-            Liên hệ với chúng tôi
-          </h2>
-
-          {contactSuccess && (
-            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-blue-600" />
-              <p className="text-blue-700">
-                Đã gửi yêu cầu thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.
-              </p>
-            </div>
-          )}
-
-          <form onSubmit={handleContactSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Họ và tên *
-                </label>
-                <input
-                  type="text"
-                  value={contactForm.fullName}
-                  onChange={(e) => setContactForm({ ...contactForm, fullName: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
-                  placeholder="Nguyễn Văn A"
-                  disabled={submittingContact}
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Số điện thoại *
-                </label>
-                <input
-                  type="tel"
-                  value={contactForm.phone}
-                  onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
-                  placeholder="0912345678"
-                  disabled={submittingContact}
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  value={contactForm.email}
-                  onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
-                  placeholder="email@example.com"
-                  disabled={submittingContact}
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Loại hình hợp tác *
-                </label>
-                <select
-                  value={contactForm.partnershipType}
-                  onChange={(e) => setContactForm({ ...contactForm, partnershipType: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
-                  disabled={submittingContact}
-                >
-                  <option value="investor">Nhà đầu tư</option>
-                  <option value="business">Doanh nghiệp</option>
-                  <option value="research">Tổ chức Khoa học - Kỹ thuật</option>
-                  <option value="other">Khác</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-gray-700 font-medium mb-1">
-                  Nội dung *
-                </label>
-                <textarea
-                  rows={4}
-                  value={contactForm.message}
-                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none resize-none"
-                  placeholder="Vui lòng mô tả ý tưởng hợp tác của bạn..."
-                  disabled={submittingContact}
-                />
-              </div>
-            </div>
-
-            {contactError && (
-              <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-700">{contactError}</p>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submittingContact}
-              className="mt-6 w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {submittingContact ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Đang gửi...
-                </>
-              ) : (
-                'Gửi yêu cầu hợp tác'
-              )}
-            </button>
-          </form>
-        </div> */}
 
         <SponsorsSlider />
 

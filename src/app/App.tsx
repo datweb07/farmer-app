@@ -123,6 +123,7 @@ function AppContent() {
           <ProductsPage
             selectedProductId={selectedProductId}
             onProductViewed={() => setSelectedProductId(null)}
+            onNavigate={handleNavigate} // <--- ĐÃ THÊM: Truyền prop onNavigate vào đây
           />
         );
       case "invest":

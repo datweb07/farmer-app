@@ -85,6 +85,7 @@ export interface PostLike {
 export interface TopContributor {
   user_id: string;
   username: string;
+  avatar_url?: string | null; // Author avatar URL
   total_points: number;
   posts_count: number;
   likes_received: number;

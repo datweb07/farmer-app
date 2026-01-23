@@ -5,23 +5,26 @@ import { CreatePostModal } from "../components/CreatePostModal";
 import { PostDetailModal } from "../components/PostDetailModal";
 import { UserProfileModal } from "../components/UserProfileModal";
 import { FollowingFeed } from "../components/FollowingFeed";
+import { MobilePostsView } from "../components/MobilePostsView";
 import { getPosts, getPostById, deletePost } from "../../lib/community/posts.service";
 import { getTopContributors } from "../../lib/community/leaderboard.service";
 import type { PostWithStats, TopContributor } from "../../lib/community/types";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface PostsPageProps {
+  onNavigate?: (page: string) => void;
   onNavigateToProduct: (productId: string) => void;
   selectedPostId?: string | null;
   onPostViewed?: () => void;
 }
 
 export function PostsPage({
+  onNavigate,
   onNavigateToProduct,
   selectedPostId,
   onPostViewed,
 }: PostsPageProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [topContributors, setTopContributors] = useState<TopContributor[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -36,6 +39,9 @@ export function PostsPage({
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Responsive state
+  const [isMobile, setIsMobile] = useState(false);
+
   const categories = [
     { id: "all", label: "Tất cả" },
     { id: "experience", label: "Kinh nghiệm" },
@@ -47,6 +53,18 @@ export function PostsPage({
     loadPosts();
     loadLeaderboard();
   }, [selectedCategory]);
+
+  // Detect screen size for responsive UI
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Handle navigation from dashboard with post ID
   useEffect(() => {
@@ -115,6 +133,48 @@ export function PostsPage({
     setIsDeleting(false);
   };
 
+  // Render mobile view for small screens
+  if (isMobile) {
+    return (
+      <>
+        <MobilePostsView
+          profile={profile}
+          posts={posts}
+          topContributors={topContributors}
+          loading={loading}
+          onNavigate={onNavigate}
+          onCreatePost={() => setShowCreateModal(true)}
+          onPostClick={handlePostClick}
+          onNavigateToProduct={onNavigateToProduct}
+          onPostUpdate={handlePostCreated}
+        />
+
+        {/* Modals */}
+        <CreatePostModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={handlePostCreated}
+        />
+
+        <PostDetailModal
+          post={selectedPost}
+          isOpen={showDetailModal}
+          onClose={handleCloseDetail}
+          isOwner={!!user && selectedPost?.user_id === user.id}
+          onDelete={handleDeletePost}
+          deleting={isDeleting}
+        />
+
+        <UserProfileModal
+          username={selectedUsername}
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+        />
+      </>
+    );
+  }
+
+  // Render desktop view for large screens
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-8">

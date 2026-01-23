@@ -112,6 +112,7 @@ function AppContent() {
       case "posts":
         return (
           <PostsPage
+            onNavigate={handleNavigate}
             onNavigateToProduct={handleNavigateToProduct}
             selectedPostId={selectedPostId}
             onPostViewed={() => setSelectedPostId(null)}

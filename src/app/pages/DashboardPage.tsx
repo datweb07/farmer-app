@@ -381,9 +381,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                           className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500"
                         />
                       </div>
-                      <button className="absolute top-2 right-2 p-1.5 bg-white/80 rounded-full hover:bg-red-50 hover:text-red-500 transition shadow-sm z-10">
-                        <Heart className="w-3.5 h-3.5" />
-                      </button>
                     </div>
                     <div className="p-3">
                       <h3 className="font-bold text-xs line-clamp-2 min-h-[2.5em] mb-1">

@@ -48,8 +48,8 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
                         aria-label="Kiểm tra độ mặn"
                     >
                         {/* FAB Button */}
-                        <div className="w-16 h-16 translate-y-2 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-full shadow-2xl hover:shadow-blue-500/40 active:scale-95 transition-all duration-200 flex items-center justify-center ring-4 ring-white">
-                            <Droplet className="w-7 h-7 text-white drop-shadow-md group-active:rotate-12 transition-transform" />
+                        <div className="w-16 h-16 translate-y-2 bg-[#84cc16] rounded-full shadow-2xl hover:shadow-lime-500/40 active:scale-95 transition-all duration-200 flex items-center justify-center ring-4 ring-white">
+                            <Droplet className="w-8 h-8 text-white drop-shadow-md group-active:rotate-12 transition-transform fill-white" />
                         </div>
 
                         {/* Permanent Label (Primary Action should be clear) */}
@@ -59,7 +59,7 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
                         </div>
 
                         {/* Glow halo */}
-                        <div className="absolute -inset-4 rounded-full bg-blue-300 opacity-0 group-hover:opacity-20 blur-2xl transition-opacity -z-10" />
+
                     </button>
                 </div>
 
@@ -165,7 +165,7 @@ function NavItemButton({ item, active, onNavigate }: NavItemButtonProps) {
             {/* Icon Container */}
             <div className={`p-1.5 rounded-lg transition-all ${active ? 'bg-blue-50' : ''}`}>
                 <Icon
-                    className={`w-7 h-7 transition-colors ${active ? 'text-blue-600' : 'text-gray-500'
+                    className={`w-7 h-7 transition-colors ${active ? 'text-green-500' : 'text-gray-500'
                         }`}
                 />
             </div>

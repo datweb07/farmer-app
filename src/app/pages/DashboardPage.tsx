@@ -31,6 +31,7 @@ import { ActiveProjects } from "../components/ActiveProjects";
 import { UserAvatar } from "../components/UserAvatar";
 import { NotificationDropdown } from "../components/NotificationDropdown";
 import { supabase } from "../../lib/supabase/supabase";
+import { getSalinityAverage, getUserProvince } from "../../lib/salinity/salinity.service";
 
 // Helper to format currency
 const formatCurrency = (amount: number) => {
@@ -93,6 +94,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [greeting, setGreeting] = useState(getGreeting());
+  const [currentSalinity, setCurrentSalinity] = useState<number | null>(null);
+  const [province, setProvince] = useState<string>("An Giang");
+  const [salinityLoading, setSalinityLoading] = useState(true);
 
   // Update clock every minute (for mobile layout)
   useEffect(() => {
@@ -112,7 +116,38 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   useEffect(() => {
     loadDashboardData();
+    loadSalinityData();
   }, []);
+
+  // Load salinity data for current year and province
+  const loadSalinityData = async () => {
+    setSalinityLoading(true);
+    try {
+      // For now, use An Giang as default province
+      // TODO: Add province field to user profile if needed
+      const userProvince = getUserProvince();
+      setProvince(userProvince);
+
+      // Get current year
+      const currentYear = new Date().getFullYear();
+
+      // Fetch average salinity
+      const result = await getSalinityAverage(userProvince, currentYear);
+
+      if (result.averageSalinity !== null) {
+        setCurrentSalinity(result.averageSalinity);
+      } else {
+        // If no data for current year, try to fetch any available data for the province
+        console.warn(`No salinity data found for ${userProvince} in ${currentYear}`);
+        setCurrentSalinity(null);
+      }
+    } catch (error) {
+      console.error("Error loading salinity data:", error);
+      setCurrentSalinity(null);
+    } finally {
+      setSalinityLoading(false);
+    }
+  };
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -174,10 +209,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     setLoading(false);
   };
 
-  // Mock Salinity Data (In a real app, fetch this from a service)
-  const currentSalinity = 7.05;
-  const province = "AN GIANG"; // TODO: Get from user profile or location service
-
   // ==================== MOBILE LAYOUT ====================
   if (isMobile) {
     return (
@@ -235,7 +266,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="mb-8">
             <div className="flex justify-between items-end mb-2 text-sm font-medium">
               <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" /> Tỉnh <span className="font-bold">{province}</span>
+                <MapPin className="w-4 h-4" /> Tỉnh <span className="font-bold">{province.toUpperCase()}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
@@ -255,11 +286,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-5xl font-bold font-mono tracking-tighter">
-                  {currentSalinity} <span className="text-2xl">g/l</span>
-                </div>
+                {salinityLoading ? (
+                  <div className="text-5xl font-bold font-mono tracking-tighter">
+                    <div className="inline-block animate-pulse">--.-</div> <span className="text-2xl">g/l</span>
+                  </div>
+                ) : currentSalinity !== null ? (
+                  <div className="text-5xl font-bold font-mono tracking-tighter">
+                    {currentSalinity} <span className="text-2xl">g/l</span>
+                  </div>
+                ) : (
+                  <div className="text-5xl font-bold font-mono tracking-tighter text-gray-400">
+                    N/A <span className="text-2xl">g/l</span>
+                  </div>
+                )}
                 <div className="text-sm font-medium opacity-90 mt-1">
-                  Độ mặn TB (Tham khảo)
+                  Độ mặn TB Khô {new Date().getFullYear()} (Tham khảo)
                 </div>
               </div>
               <div className="text-right">

@@ -1,20 +1,19 @@
 import { MapPin, Clock, PlusCircle } from "lucide-react";
+import { useState, useEffect } from "react"; // Thêm useEffect
 import { PostCard } from "./PostCard";
 import { UserAvatar } from "./UserAvatar";
 import { NotificationDropdown } from "./NotificationDropdown";
 import type { PostWithStats, TopContributor } from "../../lib/community/types";
 
 // Function to get greeting based on time of day
-const getGreeting = () => {
-    const hour = new Date().getHours();
-
-    if (hour >= 5 && hour < 10) {
+const getGreeting = (currentHour: number) => {
+    if (currentHour >= 5 && currentHour < 10) {
         return { greeting: "Chào buổi sáng", message: "Một ngày mới bội thu nhé!" };
-    } else if (hour >= 10 && hour < 13) {
+    } else if (currentHour >= 10 && currentHour < 13) {
         return { greeting: "Chào buổi trưa", message: "Giờ nghỉ trưa vui vẻ!" };
-    } else if (hour >= 13 && hour < 17) {
+    } else if (currentHour >= 13 && currentHour < 17) {
         return { greeting: "Chào buổi chiều", message: "Buổi chiều làm việc hiệu quả!" };
-    } else if (hour >= 17 && hour < 21) {
+    } else if (currentHour >= 17 && currentHour < 21) {
         return { greeting: "Chào buổi tối", message: "Buổi tối an lành bên gia đình!" };
     } else {
         return { greeting: "Chào buổi đêm", message: "Đêm khuya nhớ nghỉ ngơi sớm!" };
@@ -44,16 +43,31 @@ export function MobilePostsView({
     onNavigateToProduct,
     onPostUpdate,
 }: MobilePostsViewProps) {
-    const currentDate = new Date();
-    const greeting = getGreeting();
-    const formattedTime = currentDate.toLocaleTimeString('en-US', {
+    // State để lưu thời gian hiện tại
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    // Cập nhật thời gian mỗi giây
+    useEffect(() => {
+        const timerId = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000); // Cập nhật mỗi giây
+
+        // Dọn dẹp interval khi component unmount
+        return () => clearInterval(timerId);
+    }, []);
+
+    // Sử dụng currentTime để tính toán
+    const greeting = getGreeting(currentTime.getHours());
+
+    const formattedTime = currentTime.toLocaleTimeString('vi-VN', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
     });
-    const formattedDate = currentDate.toLocaleDateString('vi-VN', {
-        month: 'short',
+
+    const formattedDate = currentTime.toLocaleDateString('vi-VN', {
         day: 'numeric',
+        month: 'short',
         year: 'numeric'
     });
 
@@ -196,7 +210,7 @@ export function MobilePostsView({
                                             </div>
 
                                             {/* Tên User */}
-                                            <div className="text-[11px] text-white font-bold mb-1 truncate w-full text-center px-1 drop-shadow-sm">
+                                            <div className="text-[13px] text-white font-medium mb-1 truncate w-full text-center px-1 drop-shadow-sm">
                                                 {contributor.username}
                                             </div>
 
@@ -225,7 +239,6 @@ export function MobilePostsView({
                 </button>
 
                 {/* Point System */}
-
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                     Cách tích điểm
                 </h3>

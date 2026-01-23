@@ -70,12 +70,14 @@ export function ProjectLeaderboard({ limit = 10, onProjectClick }: ProjectLeader
             {/* Header */}
             <div className="p-4 border-b border-gray-200">
                 <div className="flex items-center gap-2 text-gray-900">
-                    <Trophy className="w-5 h-5 text-blue-600" />
-                    <h2 className="text-lg font-semibold">Bảng Xếp Hạng Dự Án</h2>
+                    {/* <Trophy className="w-5 h-5 text-blue-600" />
+                    <h2 className="text-lg font-semibold">Bảng Xếp Hạng Dự Án</h2> */}
                 </div>
-                <p className="text-gray-600 text-sm mt-1">
-                    Top {projects.length} dự án được đánh giá cao nhất
+                <p className="text-gray-600 text-sm mt-1 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-blue-600" />
+                    <span>Top {projects.length} dự án được đánh giá cao nhất</span>
                 </p>
+
             </div>
 
             {/* Leaderboard List */}

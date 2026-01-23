@@ -86,7 +86,7 @@ export function MobilePostsView({
                         </button>
                         <div>
                             <h1 className="text-xl font-bold tracking-wide">
-                                {greeting.greeting}, Anh {profile?.username || "Nông dân"}!
+                                {greeting.greeting}, Anh/Chị {profile?.username || "Nông dân"}!
                             </h1>
                             <p className="text-xs text-gray-200">
                                 {greeting.message}

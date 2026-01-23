@@ -218,7 +218,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               </button>
               <div>
                 <h1 className="text-xl font-bold tracking-wide">
-                  {greeting.greeting}, Anh {profile?.username || "Nông dân"}!
+                  {greeting.greeting}, Anh/Chị {profile?.username || "Nông dân"}!
                 </h1>
                 <p className="text-xs text-gray-200">
                   {greeting.message}
@@ -409,33 +409,40 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               Bài viết thịnh hành
             </h2>
 
-            <div className="space-y-10"> {/* Tăng khoảng cách giữa các bài để số không bị chồng chéo */}
+            <div className="space-y-10">
               {trendingPosts.slice(0, 3).map((post, index) => {
                 // Xác định màu sắc cho số thứ hạng
-                let rankColor = "text-[#d4e157]"; // #1 - Xanh vàng
-                if (index === 1) rankColor = "text-[#9ccc65]"; // #2 - Xanh lá nhạt
-                if (index === 2) rankColor = "text-[#66bb6a]"; // #3 - Xanh đậm hơn
+                let rankColor = "text-[#d4e157]";
+                if (index === 1) rankColor = "text-[#9ccc65]";
+                if (index === 2) rankColor = "text-[#66bb6a]";
 
                 return (
                   <div
                     key={post.id}
-                    className="relative w-full cursor-pointer group" // Giảm pl-10 xuống pl-8 cho cân đối
+                    className="relative w-full cursor-pointer group"
                     onClick={() => onNavigate?.("posts", post.id)}
                   >
-                    {/* Số thứ hạng - Đã sửa z-index lên z-20 để nổi lên trên */}
+                    {/* Số thứ hạng - Đã chỉnh sửa kích thước và vị trí */}
                     <span
-                      className={`absolute left-2 -top-8 text-[85px] font-black italic ${rankColor} leading-none z-20 pointer-events-none drop-shadow-md`}
+                      className={`absolute left-0 -top-6 text-[70px] font-black italic ${rankColor} leading-none z-20 pointer-events-none drop-shadow-md`}
+                      /* THAY ĐỔI: 
+                         1. left-2 -> left-0 (Sát lề trái hơn)
+                         2. -top-8 -> -top-6 (Cân đối lại chiều dọc do giảm size chữ)
+                         3. text-[85px] -> text-[70px] (Giảm kích thước để không bị lấn chiếm quá nhiều)
+                      */
                       style={{
                         fontFamily: 'sans-serif',
-                        textShadow: '2px 2px 0px rgba(0,0,0,0.2)' // Thêm bóng nhẹ cho số dễ nhìn hơn
+                        textShadow: '2px 2px 0px rgba(0,0,0,0.2)'
                       }}
                     >
                       #{index + 1}
                     </span>
 
-                    {/* Card nội dung */}
-                    <div className="w-full relative z-10 bg-[#2e5d32] bg-opacity-95 backdrop-blur-sm rounded-xl p-4 pl-24 shadow-lg border border-white/10 min-h-[100px] flex flex-col justify-center">
-                      {/* Đã thêm pl-24 và bỏ ml-4 ở dòng trên để card dài ra bao trùm số */}
+                    {/* Card nội dung - Đã tăng padding-left */}
+                    <div className="w-full relative z-10 bg-[#2e5d32] bg-opacity-95 backdrop-blur-sm rounded-xl p-4 pl-28 shadow-lg border border-white/10 min-h-[100px] flex flex-col justify-center">
+                      {/* THAY ĐỔI: 
+               pl-24 -> pl-28 (Tăng khoảng cách đệm trái từ 96px lên 112px để chữ không đè lên số)
+            */}
 
                       <h3 className="text-white font-medium text-sm mb-3 line-clamp-2 leading-tight">
                         {post.title}
@@ -464,7 +471,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               {loading && trendingPosts.length === 0 && (
                 [1, 2, 3].map((i) => (
                   <div key={i} className="relative pl-8 h-24 mt-6">
-                    <div className="absolute -left-1 -top-5 text-[80px] font-black italic text-gray-600 opacity-50 z-20">
+                    <div className="absolute -left-1 -top-5 text-[70px] font-black italic text-gray-600 opacity-50 z-20">
                       #{i}
                     </div>
                     <div className="relative z-10 h-full bg-white/10 rounded-xl animate-pulse ml-4"></div>

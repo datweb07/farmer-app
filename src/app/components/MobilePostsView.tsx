@@ -27,7 +27,7 @@ interface MobilePostsViewProps {
     topContributors: TopContributor[];
     loading: boolean;
     onCreatePost: () => void;
-    onNavigate?: (page: string) => void; // Added for avatar click
+    onNavigate?: (page: string) => void;
     onPostClick: (post: PostWithStats) => void;
     onNavigateToProduct: (productId: string) => void;
     onPostUpdate: () => void;
@@ -70,7 +70,7 @@ export function MobilePostsView({
             >
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        {/* Profile Avatar with border and online status - matching Dashboard */}
+                        {/* Profile Avatar */}
                         <button
                             onClick={() => onNavigate?.("profile")}
                             className="group relative rounded-full p-0.5 border-2 border-white/50 hover:border-white transition-all active:scale-95"
@@ -110,88 +110,108 @@ export function MobilePostsView({
 
             {/* Main Content */}
             <div className="px-4 py-4 space-y-4">
-                {/* Community Card */}
+                {/* Community Banner */}
                 <div
                     className="relative bg-cover bg-center rounded-2xl overflow-hidden shadow-md"
                     style={{
                         backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url("https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&q=80")',
-                        minHeight: '120px'
+                        minHeight: '100px'
                     }}
                 >
                     <div className="p-5 flex flex-col justify-center h-full">
-                        <h2 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">
-                            CỘNG ĐỒNG NÔNG DÂN
+                        <h2 className="text-xl font-bold text-white mb-1 drop-shadow-lg uppercase">
+                            Cộng đồng nông dân
                         </h2>
-                        <p className="text-sm text-white/90 drop-shadow">
-                            Chia sẻ kinh nghiệm - Học hỏi lẫn nhau - Cùng phát triển
+                        <p className="text-xs text-white/90 drop-shadow">
+                            Chia sẻ kinh nghiệm - Học tập lẫn nhau - Cùng phát triển
                         </p>
                     </div>
                 </div>
 
-                {/* Top Contributors - Thành tích xuất sắc tháng */}
-                <div
-                    className="bg-gradient-to-br from-green-700 to-green-900 rounded-2xl p-5 shadow-md"
-                    style={{
-                        backgroundImage: 'linear-gradient(rgba(34, 139, 34, 0.85), rgba(0, 100, 0, 0.85)), url("https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80")',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                    }}
-                >
-                    <h3 className="text-xl font-bold text-white mb-4">
-                        Thành tích xuất sắc tháng
-                    </h3>
+                {/* === TOP CONTRIBUTORS - PODIUM STYLE (BỤC VINH QUANG) === */}
+                <div className="relative rounded-2xl overflow-hidden shadow-md">
+                    {/* Background Image & Overlay */}
+                    <div
+                        className="absolute inset-0 bg-cover bg-center z-0"
+                        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80")' }}
+                    ></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-green-900/60 to-green-900/90 z-0"></div>
 
-                    <div className="grid grid-cols-3 gap-3">
-                        {topContributors.slice(0, 3).map((contributor, index) => (
-                            <div
-                                key={contributor.user_id}
-                                className="relative"
-                            >
-                                {/* Rank Badge */}
-                                <div className="absolute -top-1 -left-1 z-10 bg-yellow-400 text-green-900 font-bold text-lg w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
-                                    #{index + 1}
-                                </div>
+                    <div className="relative z-10 p-4">
+                        <h3 className="text-lg font-bold text-white text-center mb-6 uppercase tracking-tight drop-shadow-md font-sans">
+                            Thành tích xuất sắc tháng
+                        </h3>
 
-                                {/* Avatar */}
-                                <div className="bg-white/95 backdrop-blur rounded-xl p-3 text-center shadow-lg">
-                                    {contributor.avatar_url ? (
-                                        <img
-                                            src={contributor.avatar_url}
-                                            alt={contributor.username}
-                                            className="w-16 h-16 rounded-full mx-auto mb-2 object-cover border-2 border-green-600"
-                                        />
-                                    ) : (
-                                        <div className="w-16 h-16 rounded-full mx-auto mb-2 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-2xl border-2 border-green-600">
-                                            {contributor.username.charAt(0).toUpperCase()}
+                        {/* Podium Container: Flexbox align bottom */}
+                        <div className="flex items-end justify-center gap-3 h-48 pb-2 px-2">
+                            {(() => {
+                                // 1. Chuẩn bị dữ liệu: Đảm bảo luôn có 3 phần tử để hiển thị bục
+                                const safeContributors = [...topContributors];
+                                while (safeContributors.length < 3) {
+                                    // ĐÃ SỬA: Thêm đầy đủ các trường bắt buộc để thỏa mãn TypeScript
+                                    safeContributors.push({
+                                        user_id: `temp-${Math.random()}`,
+                                        username: '---',
+                                        total_points: 0,
+                                        avatar_url: null,
+                                        posts_count: 0,
+                                        likes_received: 0,
+                                        rank: 0
+                                    });
+                                }
+
+                                // 2. Thứ tự hiển thị: Hạng 3 (Trái) -> Hạng 1 (Giữa) -> Hạng 2 (Phải)
+                                // Index trong mảng safeContributors: 0 là Hạng 1, 1 là Hạng 2, 2 là Hạng 3
+                                const podiumOrder = [2, 0, 1];
+
+                                return podiumOrder.map((originalIndex) => {
+                                    const contributor = safeContributors[originalIndex];
+                                    const rank = originalIndex + 1; // Hạng thực tế (1, 2, 3)
+
+                                    // 3. Style riêng cho từng bục
+                                    let heightClass = "h-20"; // Mặc định hạng 3
+                                    let bgColor = "bg-[#33691e]"; // Xanh đậm nhất
+                                    let rankColor = "text-white/80";
+                                    let zIndex = "z-10";
+
+                                    if (rank === 1) {
+                                        heightClass = "h-36"; // Cao nhất
+                                        bgColor = "bg-[#8bc34a]"; // Xanh lá mạ sáng (Light Green)
+                                        rankColor = "text-[#d4e157]"; // Màu vàng chanh
+                                        zIndex = "z-20";
+                                    } else if (rank === 2) {
+                                        heightClass = "h-28"; // Cao nhì
+                                        bgColor = "bg-[#558b2f]"; // Xanh lá trung bình
+                                        rankColor = "text-white/90";
+                                    }
+
+                                    return (
+                                        <div key={originalIndex} className={`flex flex-col items-center flex-1 ${zIndex}`}>
+                                            {/* Số thứ hạng (#1, #2, #3) */}
+                                            <div
+                                                className={`text-3xl font-black italic ${rankColor} mb-1 leading-none drop-shadow-md`}
+                                                style={{ fontFamily: 'sans-serif', textShadow: '2px 2px 0px rgba(0,0,0,0.3)' }}
+                                            >
+                                                #{rank}
+                                            </div>
+
+                                            {/* Tên User */}
+                                            <div className="text-[11px] text-white font-bold mb-1 truncate w-full text-center px-1 drop-shadow-sm">
+                                                {contributor.username}
+                                            </div>
+
+                                            {/* Bục (Bar) hiển thị điểm */}
+                                            <div className={`${bgColor} w-full ${heightClass} rounded-t-md flex flex-col items-center justify-center text-white shadow-lg border-t border-white/20 transition-all hover:brightness-110`}>
+                                                <span className="text-3xl font-bold leading-none font-sans tracking-tighter">
+                                                    {contributor.total_points}
+                                                </span>
+                                                <span className="text-[10px] uppercase font-medium opacity-80">điểm</span>
+                                            </div>
                                         </div>
-                                    )}
-                                    <p className="text-xs font-semibold text-gray-800 truncate mb-1">
-                                        {contributor.username}
-                                    </p>
-                                    <div className="text-2xl font-bold text-green-700">
-                                        {contributor.total_points}
-                                    </div>
-                                    <p className="text-xs text-gray-600">điểm</p>
-                                </div>
-                            </div>
-                        ))}
-
-                        {/* Fill empty slots if less than 3 */}
-                        {topContributors.length < 3 && [...Array(3 - topContributors.length)].map((_, i) => (
-                            <div key={`empty-${i}`} className="relative">
-                                <div className="absolute -top-1 -left-1 z-10 bg-gray-400 text-white font-bold text-lg w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
-                                    #{topContributors.length + i + 1}
-                                </div>
-                                <div className="bg-white/50 backdrop-blur rounded-xl p-3 text-center shadow-lg">
-                                    <div className="w-16 h-16 rounded-full mx-auto mb-2 bg-gray-300 flex items-center justify-center">
-                                        <span className="text-3xl text-gray-400">?</span>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mb-1">Chưa có</p>
-                                    <div className="text-2xl font-bold text-gray-400">0</div>
-                                    <p className="text-xs text-gray-500">điểm</p>
-                                </div>
-                            </div>
-                        ))}
+                                    );
+                                });
+                            })()}
+                        </div>
                     </div>
                 </div>
 
@@ -204,25 +224,24 @@ export function MobilePostsView({
                     Đăng bài mới
                 </button>
 
-                {/* Point System - Cách tích điểm */}
-                <div className="bg-white rounded-2xl p-5 shadow-md">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">
-                        Cách tích điểm
-                    </h3>
+                {/* Point System */}
 
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="text-center">
-                            <div className="text-3xl font-bold text-green-600 mb-1">+10</div>
-                            <p className="text-xs text-gray-700 leading-tight">Đăng bài mới</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-3xl font-bold text-green-600 mb-1">+5</div>
-                            <p className="text-xs text-gray-700 leading-tight">Mỗi 10 like</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-3xl font-bold text-green-600 mb-1">+2</div>
-                            <p className="text-xs text-gray-700 leading-tight">Mỗi 100 lượt xem</p>
-                        </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    Cách tích điểm
+                </h3>
+
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center p-2 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-black text-green-600 mb-1">+10</div>
+                        <p className="text-xs text-gray-700 leading-tight font-medium">Đăng bài mới</p>
+                    </div>
+                    <div className="text-center p-2 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-black text-green-600 mb-1">+5</div>
+                        <p className="text-xs text-gray-700 leading-tight font-medium">Mỗi 10 like</p>
+                    </div>
+                    <div className="text-center p-2 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-black text-green-600 mb-1">+2</div>
+                        <p className="text-xs text-gray-700 leading-tight font-medium">Mỗi 100 xem</p>
                     </div>
                 </div>
 
@@ -232,7 +251,7 @@ export function MobilePostsView({
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600"></div>
                     </div>
                 ) : posts.length > 0 ? (
-                    <div className="space-y-4 pb-20">
+                    <div className="space-y-4 pb-24">
                         {posts.map((post) => (
                             <div key={post.id} onClick={() => onPostClick(post)} className="cursor-pointer">
                                 <PostCard

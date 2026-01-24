@@ -257,7 +257,7 @@ export const SalinityMap: React.FC<SalinityMapProps> = ({ data }) => {
           </h3>
           <p className="text-gray-600 text-sm">
             Dữ liệu cập nhật từ mô hình Prophet •{" "}
-            {new Date().toLocaleDateString("vi-VN")}
+            {`${new Date().getMonth() + 1}/${new Date().getFullYear()}`}
           </p>
         </div>
 

@@ -117,8 +117,8 @@ interface MobileSalinityViewProps {
     setFilters: (filters: FilterState) => void;
 }
 
-function MobileSalinityView({ data, loading, error, onNavigate, filters, setFilters }: MobileSalinityViewProps) {
-    const { user, profile } = useAuth();
+function MobileSalinityView({ data, loading, onNavigate, filters, setFilters }: MobileSalinityViewProps) {
+    const { profile } = useAuth();
     const [currentTime, setCurrentTime] = useState(new Date());
     const [selectedCrop, setSelectedCrop] = useState("lua");
 

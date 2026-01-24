@@ -30,6 +30,7 @@ export function SalinityPage() {
 
   const [filters, setFilters] = useState<FilterState>({
     nam: null,
+    thang: null,
     tinh: null,
     ten_tram: null,
   });
@@ -38,8 +39,10 @@ export function SalinityPage() {
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       if (filters.nam && item.nam !== filters.nam) return false;
+      if (filters.thang && item.thang !== filters.thang) return false;
       if (filters.tinh && item.tinh !== filters.tinh) return false;
       if (filters.ten_tram && item.ten_tram !== filters.ten_tram) return false;
+
       return true;
     });
   }, [data, filters]);
@@ -63,14 +66,29 @@ export function SalinityPage() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-lg w-full">
           <div className="flex items-start">
             <div className="shrink-0 text-red-600">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
             <div className="ml-3 flex-1">
-              <h3 className="text-lg font-medium text-red-800">Lỗi tải dữ liệu</h3>
+              <h3 className="text-lg font-medium text-red-800">
+                Lỗi tải dữ liệu
+              </h3>
               <p className="mt-2 text-sm text-red-700">{error}</p>
-              <button onClick={refetch} className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+              <button
+                onClick={refetch}
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
                 Thử lại
               </button>
             </div>
@@ -111,31 +129,41 @@ export function SalinityPage() {
 
         {/* Filter Bar */}
         <div className="mb-8">
-          <FilterBar data={data} filters={filters} onFilterChange={setFilters} />
+          <FilterBar
+            data={data}
+            filters={filters}
+            onFilterChange={setFilters}
+          />
         </div>
 
         {/* Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <p className="text-sm text-gray-600 mb-1">Tổng bản ghi</p>
-            <p className="text-2xl font-bold text-blue-600">{filteredData.length}</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {filteredData.length}
+            </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <p className="text-sm text-gray-600 mb-1">Năm dự báo</p>
             <p className="text-2xl font-bold text-green-600">
-              {new Set(filteredData.map(d => d.nam)).size}
+              {new Set(filteredData.map((d) => d.nam)).size}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <p className="text-sm text-gray-600 mb-1">Tỉnh/Thành phố</p>
             <p className="text-2xl font-bold text-purple-600">
-              {new Set(filteredData.map(d => d.tinh)).size}
+              {new Set(filteredData.map((d) => d.tinh)).size}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <p className="text-sm text-gray-600 mb-1">Độ mặn TB</p>
             <p className="text-2xl font-bold text-orange-600">
-              {(filteredData.reduce((sum, d) => sum + d.du_bao_man, 0) / (filteredData.length || 1)).toFixed(2)} g/l
+              {(
+                filteredData.reduce((sum, d) => sum + d.du_bao_man, 0) /
+                (filteredData.length || 1)
+              ).toFixed(2)}{" "}
+              g/l
             </p>
           </div>
         </div>
@@ -170,7 +198,10 @@ export function SalinityPage() {
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
           <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
             <h3 className="font-bold text-blue-800 mb-2">Hỗ trợ kỹ thuật</h3>
-            <p>Mọi thắc mắc về dữ liệu dự báo, vui lòng liên hệ hotline: 1800-1234</p>
+            <p>
+              Mọi thắc mắc về dữ liệu dự báo, vui lòng liên hệ hotline:
+              1800-1234
+            </p>
           </div>
           <div className="bg-green-50 p-6 rounded-lg border border-green-100">
             <h3 className="font-bold text-green-800 mb-2">Mô hình Prophet</h3>

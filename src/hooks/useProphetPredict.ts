@@ -28,7 +28,8 @@ export function useProphetPredict(): UseProphetPredictResult {
       const { data: predictions, error: fetchError } = await supabase
         .from("prophet_predict")
         .select("*")
-        .order("nam", { ascending: true });
+        .order("nam", { ascending: false })
+        .order("thang", { ascending: false });
 
       if (fetchError) {
         throw fetchError;

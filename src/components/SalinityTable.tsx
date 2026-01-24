@@ -11,12 +11,18 @@ interface SalinityTableProps {
   data: ProphetPredict[];
 }
 
-type SortField = "nam" | "tinh" | "ten_tram" | "du_bao_man" | "he_so_vi_tri";
+type SortField =
+  | "nam"
+  | "thang"
+  | "tinh"
+  | "ten_tram"
+  | "du_bao_man"
+  | "he_so_vi_tri";
 type SortOrder = "asc" | "desc";
 
 export const SalinityTable: React.FC<SalinityTableProps> = ({ data }) => {
   const [sortField, setSortField] = useState<SortField>("nam");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc"); // Mặc định sắp xếp năm mới nhất
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -25,6 +31,12 @@ export const SalinityTable: React.FC<SalinityTableProps> = ({ data }) => {
     const sorted = [...data].sort((a, b) => {
       let aValue = a[sortField];
       let bValue = b[sortField];
+
+      // Handle null values for he_so_vi_tri
+      if (sortField === "he_so_vi_tri") {
+        if (aValue === null) return 1;
+        if (bValue === null) return -1;
+      }
 
       // Handle string comparison
       if (typeof aValue === "string" && typeof bValue === "string") {
@@ -35,9 +47,9 @@ export const SalinityTable: React.FC<SalinityTableProps> = ({ data }) => {
 
       // Handle number comparison
       if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1;
+        return (aValue || 0) > (bValue || 0) ? 1 : -1;
       } else {
-        return aValue < bValue ? 1 : -1;
+        return (aValue || 0) < (bValue || 0) ? 1 : -1;
       }
     });
 
@@ -106,6 +118,14 @@ export const SalinityTable: React.FC<SalinityTableProps> = ({ data }) => {
                 </div>
               </th>
               <th
+                onClick={() => handleSort("thang")}
+                className="px-2 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+              >
+                <div className="flex items-center gap-1">
+                  Tháng {getSortIcon("thang")}
+                </div>
+              </th>
+              <th
                 onClick={() => handleSort("tinh")}
                 className="px-2 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
               >
@@ -126,7 +146,7 @@ export const SalinityTable: React.FC<SalinityTableProps> = ({ data }) => {
                 className="px-2 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
               >
                 <div className="flex items-center gap-1">
-                  Độ mặn (g/l) {getSortIcon("du_bao_man")}
+                  Độ mặn TB (g/l) {getSortIcon("du_bao_man")}
                 </div>
               </th>
               <th className="px-2 md:px-4 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -154,6 +174,9 @@ export const SalinityTable: React.FC<SalinityTableProps> = ({ data }) => {
                   {row.nam}
                 </td>
                 <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-700">
+                  Tháng {row.thang}
+                </td>
+                <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-700">
                   {row.tinh}
                 </td>
                 <td className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm text-gray-700">
@@ -179,7 +202,9 @@ export const SalinityTable: React.FC<SalinityTableProps> = ({ data }) => {
                   {row.upper_ci.toFixed(2)}
                 </td>
                 <td className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-700">
-                  {row.he_so_vi_tri.toFixed(2)}
+                  {row.he_so_vi_tri !== null
+                    ? row.he_so_vi_tri.toFixed(2)
+                    : "N/A"}
                 </td>
               </tr>
             ))}

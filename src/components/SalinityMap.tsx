@@ -187,8 +187,77 @@ export const SalinityMap: React.FC<SalinityMapProps> = ({ data }) => {
 
   return (
     <div className="space-y-6">
+      {/* Province List with Animation */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h4 className="text-lg font-semibold text-gray-800 mb-4">
+          Danh sách tỉnh/thành phố ({provinceData.length})
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto p-2">
+          {provinceData.map(
+            (province: {
+              tinh: string;
+              stations: ProphetPredict[];
+              avgSalinity: number;
+              stationCount: number;
+            }) => {
+              const salinityLevel =
+                province.avgSalinity < 1
+                  ? "safe"
+                  : province.avgSalinity < 4
+                    ? "warning"
+                    : "danger";
+
+              return (
+                <div
+                  key={province.tinh}
+                  className={`p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md ${salinityLevel === "danger"
+                    ? "bg-linear-to-r from-red-50 to-red-100 border-red-300"
+                    : salinityLevel === "warning"
+                      ? "bg-linear-to-r from-yellow-50 to-yellow-100 border-yellow-300"
+                      : "bg-linear-to-r from-green-50 to-green-100 border-green-300"
+                    } ${selectedProvince === province.tinh ? "ring-2 ring-blue-500 scale-[1.02]" : ""}`}
+                  onClick={() => handleProvinceClick(province.tinh)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`p-2 rounded-full ${salinityLevel === "danger"
+                          ? "bg-red-500"
+                          : salinityLevel === "warning"
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
+                          }`}
+                      >
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                      </div>
+                      <div>
+                        <h5 className="font-bold text-gray-900">
+                          {province.tinh}
+                        </h5>
+                        <p className="text-sm text-gray-600">
+                          {province.stationCount} trạm đo
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-gray-900">
+                        {province.avgSalinity.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500">g/l TB</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            },
+          )}
+        </div>
+      </div>
       {/* Map Container */}
       <div className="bg-white rounded-lg shadow-md p-6">
+
+
+
+
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">
             Bản đồ trạm đo - Độ mặn dự báo
@@ -352,71 +421,7 @@ export const SalinityMap: React.FC<SalinityMapProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Province List with Animation */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h4 className="text-lg font-semibold text-gray-800 mb-4">
-          Danh sách tỉnh/thành phố ({provinceData.length})
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto p-2">
-          {provinceData.map(
-            (province: {
-              tinh: string;
-              stations: ProphetPredict[];
-              avgSalinity: number;
-              stationCount: number;
-            }) => {
-              const salinityLevel =
-                province.avgSalinity < 1
-                  ? "safe"
-                  : province.avgSalinity < 4
-                    ? "warning"
-                    : "danger";
 
-              return (
-                <div
-                  key={province.tinh}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md ${salinityLevel === "danger"
-                    ? "bg-linear-to-r from-red-50 to-red-100 border-red-300"
-                    : salinityLevel === "warning"
-                      ? "bg-linear-to-r from-yellow-50 to-yellow-100 border-yellow-300"
-                      : "bg-linear-to-r from-green-50 to-green-100 border-green-300"
-                    } ${selectedProvince === province.tinh ? "ring-2 ring-blue-500 scale-[1.02]" : ""}`}
-                  onClick={() => handleProvinceClick(province.tinh)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`p-2 rounded-full ${salinityLevel === "danger"
-                          ? "bg-red-500"
-                          : salinityLevel === "warning"
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
-                          }`}
-                      >
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                      </div>
-                      <div>
-                        <h5 className="font-bold text-gray-900">
-                          {province.tinh}
-                        </h5>
-                        <p className="text-sm text-gray-600">
-                          {province.stationCount} trạm đo
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">
-                        {province.avgSalinity.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-500">g/l TB</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            },
-          )}
-        </div>
-      </div>
     </div>
   );
 };

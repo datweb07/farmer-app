@@ -16,6 +16,7 @@ import {
   Filter,
   Trash2,
   Check,
+  FileText,
 } from "lucide-react";
 import {
   LineChart,
@@ -43,7 +44,7 @@ import { CreditLimitManager } from "../components/CreditLimitManager";
 import { CustomerLinksSection } from "../components/CustomerLinksSection";
 
 export function BusinessDashboardPage() {
-  const { } = useAuth();
+  const {} = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<PaymentDashboardStats | null>(null);
   const [transactions, setTransactions] = useState<
@@ -59,9 +60,13 @@ export function BusinessDashboardPage() {
     null,
   );
   const [deleting, setDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "credit" | "customers">(
-    "dashboard",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "dashboard" | "credit" | "customers"
+  >("dashboard");
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+  const [selectedVerificationDoc, setSelectedVerificationDoc] =
+    useState<any>(null);
+  const [loadingVerification, setLoadingVerification] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -232,11 +237,99 @@ export function BusinessDashboardPage() {
     }
   };
 
+  // Load verification document for transaction
+  const handleViewVerification = async (transactionId: string) => {
+    setLoadingVerification(true);
+    setVerificationModalOpen(true);
+
+    try {
+      const { data, error } = await supabase
+        .from("verification_documents")
+        .select(
+          `
+          *,
+          user_profile:profiles!user_id(username, avatar_url)
+        `,
+        )
+        .eq("transaction_id", transactionId)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error loading verification:", error);
+        setSelectedVerificationDoc(null);
+      } else {
+        setSelectedVerificationDoc(data);
+      }
+    } catch (error) {
+      console.error("Exception loading verification:", error);
+      setSelectedVerificationDoc(null);
+    } finally {
+      setLoadingVerification(false);
+    }
+  };
+
+  // Approve verification
+  const handleApproveVerification = async () => {
+    if (!selectedVerificationDoc) return;
+
+    try {
+      const { error } = await (supabase as any)
+        .from("verification_documents")
+        .update({
+          status: "approved",
+          verified_at: new Date().toISOString(),
+        })
+        .eq("id", selectedVerificationDoc.id);
+
+      if (error) {
+        alert("Lỗi: " + error.message);
+      } else {
+        alert("Đã duyệt giấy tờ thành công!");
+        setVerificationModalOpen(false);
+        setSelectedVerificationDoc(null);
+        await loadDashboardData();
+      }
+    } catch (error) {
+      console.error("Error approving verification:", error);
+      alert("Không thể duyệt giấy tờ");
+    }
+  };
+
+  // Reject verification
+  const handleRejectVerification = async (reason: string) => {
+    if (!selectedVerificationDoc || !reason.trim()) {
+      alert("Vui lòng nhập lý do từ chối");
+      return;
+    }
+
+    try {
+      const { error } = await (supabase as any)
+        .from("verification_documents")
+        .update({
+          status: "rejected",
+          rejection_reason: reason,
+          verified_at: new Date().toISOString(),
+        })
+        .eq("id", selectedVerificationDoc.id);
+
+      if (error) {
+        alert("Lỗi: " + error.message);
+      } else {
+        alert("Đã từ chối giấy tờ");
+        setVerificationModalOpen(false);
+        setSelectedVerificationDoc(null);
+        await loadDashboardData();
+      }
+    } catch (error) {
+      console.error("Error rejecting verification:", error);
+      alert("Không thể từ chối giấy tờ");
+    }
+  };
+
   // Confirm transaction (change status to completed)
   const handleConfirmTransaction = async (transactionId: string) => {
     try {
-      const { error } = await (supabase
-        .from("payment_transactions") as any)
+      const { error } = await (supabase.from("payment_transactions") as any)
         .update({ status: "completed" })
         .eq("id", transactionId)
         .select();
@@ -337,10 +430,11 @@ export function BusinessDashboardPage() {
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab("dashboard")}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${activeTab === "dashboard"
-                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                }`}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
+                activeTab === "dashboard"
+                  ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              }`}
             >
               <div className="flex items-center justify-center gap-2">
                 <ShoppingCart className="w-5 h-5" />
@@ -349,10 +443,11 @@ export function BusinessDashboardPage() {
             </button>
             <button
               onClick={() => setActiveTab("credit")}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${activeTab === "credit"
-                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                }`}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
+                activeTab === "credit"
+                  ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              }`}
             >
               <div className="flex items-center justify-center gap-2">
                 <CreditCard className="w-5 h-5" />
@@ -361,10 +456,11 @@ export function BusinessDashboardPage() {
             </button>
             <button
               onClick={() => setActiveTab("customers")}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${activeTab === "customers"
-                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                }`}
+              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
+                activeTab === "customers"
+                  ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              }`}
             >
               <div className="flex items-center justify-center gap-2">
                 <Users className="w-5 h-5" />
@@ -403,10 +499,11 @@ export function BusinessDashboardPage() {
                             period.value as "today" | "week" | "month" | "year",
                           )
                         }
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedPeriod === period.value
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          selectedPeriod === period.value
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
                       >
                         {period.label}
                       </button>
@@ -498,19 +595,21 @@ export function BusinessDashboardPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setChartType("revenue")}
-                    className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${chartType === "revenue"
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100"
-                      }`}
+                    className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
+                      chartType === "revenue"
+                        ? "bg-blue-100 text-blue-700"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
                   >
                     Doanh thu
                   </button>
                   <button
                     onClick={() => setChartType("orders")}
-                    className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${chartType === "orders"
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100"
-                      }`}
+                    className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
+                      chartType === "orders"
+                        ? "bg-blue-100 text-blue-700"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
                   >
                     Đơn hàng
                   </button>
@@ -724,6 +823,19 @@ export function BusinessDashboardPage() {
                           </td>
                           <td className="py-4 px-4 text-center">
                             <div className="flex items-center justify-center gap-2">
+                              {txn.type === "credit" &&
+                                txn.payment_method === "credit" && (
+                                  <button
+                                    onClick={() =>
+                                      handleViewVerification(txn.id)
+                                    }
+                                    className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium"
+                                    title="Xem giấy xác nhận"
+                                  >
+                                    <FileText className="w-4 h-4" />
+                                    Xem giấy tờ
+                                  </button>
+                                )}
                               {txn.status === "pending" && (
                                 <button
                                   onClick={() =>
@@ -839,6 +951,157 @@ export function BusinessDashboardPage() {
                       {deleting ? "Đang xóa..." : "Xóa đơn hàng"}
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Verification Document Modal */}
+            {verificationModalOpen && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75"
+                onClick={() => {
+                  setVerificationModalOpen(false);
+                  setSelectedVerificationDoc(null);
+                }}
+              >
+                <div
+                  className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {loadingVerification ? (
+                    <div className="p-12 text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600">Đang tải giấy tờ...</p>
+                    </div>
+                  ) : !selectedVerificationDoc ? (
+                    <div className="p-12 text-center">
+                      <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        Không tìm thấy giấy tờ
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Đơn hàng này chưa có giấy xác nhận được upload.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setVerificationModalOpen(false);
+                          setSelectedVerificationDoc(null);
+                        }}
+                        className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                      >
+                        Đóng
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-6">
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <h3 className="text-2xl font-bold text-gray-900">
+                            Giấy xác nhận sản xuất nông nghiệp
+                          </h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Nông dân:{" "}
+                            {selectedVerificationDoc.user_profile?.username}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setVerificationModalOpen(false);
+                            setSelectedVerificationDoc(null);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-lg"
+                        >
+                          <XCircle className="w-6 h-6 text-gray-600" />
+                        </button>
+                      </div>
+
+                      {/* Status Badge */}
+                      <div className="mb-4">
+                        {selectedVerificationDoc.status === "pending" && (
+                          <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 border border-yellow-300 rounded-full text-sm font-semibold">
+                            Chờ duyệt
+                          </span>
+                        )}
+                        {selectedVerificationDoc.status === "approved" && (
+                          <span className="inline-block px-3 py-1 bg-green-100 text-green-800 border border-green-300 rounded-full text-sm font-semibold">
+                            Đã duyệt
+                          </span>
+                        )}
+                        {selectedVerificationDoc.status === "rejected" && (
+                          <span className="inline-block px-3 py-1 bg-red-100 text-red-800 border border-red-300 rounded-full text-sm font-semibold">
+                            Đã từ chối
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Document Image */}
+                      <div className="mb-6">
+                        <img
+                          src={selectedVerificationDoc.document_url}
+                          alt="Verification Document"
+                          className="w-full rounded-lg border border-gray-300 shadow-sm"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23f3f4f6' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif'%3EKhông tải được ảnh%3C/text%3E%3C/svg%3E";
+                          }}
+                        />
+                      </div>
+
+                      {/* Rejection Reason (if rejected) */}
+                      {selectedVerificationDoc.status === "rejected" &&
+                        selectedVerificationDoc.rejection_reason && (
+                          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm font-semibold text-red-800 mb-1">
+                              Lý do từ chối:
+                            </p>
+                            <p className="text-sm text-red-700">
+                              {selectedVerificationDoc.rejection_reason}
+                            </p>
+                          </div>
+                        )}
+
+                      {/* Actions (only for pending status) */}
+                      {selectedVerificationDoc.status === "pending" && (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Lý do từ chối (nếu từ chối)
+                            </label>
+                            <textarea
+                              id="rejection-reason"
+                              placeholder="Nhập lý do từ chối..."
+                              rows={3}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div className="flex gap-3">
+                            <button
+                              onClick={handleApproveVerification}
+                              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                            >
+                              <CheckCircle className="w-5 h-5" />
+                              Duyệt giấy tờ
+                            </button>
+                            <button
+                              onClick={() => {
+                                const textarea = document.getElementById(
+                                  "rejection-reason",
+                                ) as HTMLTextAreaElement;
+                                const reason = textarea?.value || "";
+                                handleRejectVerification(reason);
+                              }}
+                              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+                            >
+                              <XCircle className="w-5 h-5" />
+                              Từ chối
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

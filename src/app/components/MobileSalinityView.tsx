@@ -160,25 +160,25 @@ export function MobileSalinityView({
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-white rounded-lg p-3 shadow-sm">
             <p className="text-xs text-gray-600 mb-1">Tổng bản ghi</p>
-            <p className="text-xl font-bold text-blue-600">
+            <p className="text-xl font-bold text-gray-600">
               {filteredData.length}
             </p>
           </div>
           <div className="bg-white rounded-lg p-3 shadow-sm">
             <p className="text-xs text-gray-600 mb-1">Năm dự báo</p>
-            <p className="text-xl font-bold text-green-600">
+            <p className="text-xl font-bold text-gray-600">
               {new Set(filteredData.map((d) => d.nam)).size}
             </p>
           </div>
           <div className="bg-white rounded-lg p-3 shadow-sm">
             <p className="text-xs text-gray-600 mb-1">Tỉnh/Thành phố</p>
-            <p className="text-xl font-bold text-purple-600">
+            <p className="text-xl font-bold text-gray-600">
               {new Set(filteredData.map((d) => d.tinh)).size}
             </p>
           </div>
           <div className="bg-white rounded-lg p-3 shadow-sm">
             <p className="text-xs text-gray-600 mb-1">Độ mặn TB</p>
-            <p className="text-xl font-bold text-orange-600">
+            <p className="text-xl font-bold text-gray-600">
               {(
                 filteredData.reduce((sum, d) => sum + d.du_bao_man, 0) /
                 (filteredData.length || 1)

@@ -10,9 +10,13 @@ import {
   X,
   QrCode,
   Loader2,
+  Upload,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { QRCode } from "react-qr-code";
 import { useAuth } from "../../contexts/AuthContext";
+import { VerificationUpload } from "./VerificationUpload";
 import {
   createTransaction,
   processPayment,
@@ -83,6 +87,13 @@ export function PaymentModal({
   const [cardName, setCardName] = useState("");
   const [cardErrors, setCardErrors] = useState<Record<string, string>>({});
 
+  // Verification document (for credit payment)
+  const [verificationFile, setVerificationFile] = useState<File | null>(null);
+  const [verificationPreview, setVerificationPreview] = useState<string | null>(
+    null,
+  );
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+
   useEffect(() => {
     loadPricingAndCredit();
   }, [product.id, quantity]);
@@ -149,9 +160,31 @@ export function PaymentModal({
     }
   };
 
+  // Handle verification file selection
+  const handleVerificationFileSelect = (file: File | null) => {
+    setVerificationFile(file);
+    if (file) {
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVerificationPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setVerificationPreview(null);
+    }
+  };
+
   const handlePayment = async () => {
     setLoading(true);
     setError(null);
+
+    // For credit payment, require verification document
+    if (paymentType === "credit" && !verificationFile) {
+      setError("Vui lòng tải lên giấy xác nhận sản xuất nông nghiệp");
+      setLoading(false);
+      return;
+    }
 
     // Kiểm tra nếu là ví điện tử thì hiển thị thông báo "Đang phát triển"
     if (paymentType === "immediate" && paymentMethod === "e_wallet") {
@@ -190,7 +223,39 @@ export function PaymentModal({
         throw new Error(txnResult.error || "Không thể tạo giao dịch");
       }
 
-      setTransactionId(txnResult.transaction.id);
+      const transactionId = txnResult.transaction.id;
+      setTransactionId(transactionId);
+
+      // For credit payment, upload verification document
+      if (paymentType === "credit" && verificationFile && profile?.id) {
+        setUploadingDocument(true);
+
+        const { uploadDocumentImage, uploadVerificationDocument } =
+          await import("../../lib/verification/verification.service");
+
+        // Upload image file
+        const uploadResult = await uploadDocumentImage(
+          verificationFile,
+          profile.id,
+        );
+        setUploadingDocument(false);
+
+        if (uploadResult.error || !uploadResult.url) {
+          throw new Error(
+            uploadResult.error || "Không thể tải lên giấy xác nhận",
+          );
+        }
+
+        // Save verification document record
+        await uploadVerificationDocument({
+          user_id: profile.id,
+          transaction_id: transactionId,
+          document_type: "farming_certificate",
+          document_url: uploadResult.url,
+          reference_link:
+            "https://luatvietnam.vn/bieu-mau/mau-giay-xac-nhan-truc-tiep-san-xuat-nong-nghiep-571-91809-article.html",
+        });
+      }
 
       // Process immediate payment
       if (paymentType === "immediate") {
@@ -1130,6 +1195,22 @@ export function PaymentModal({
                   </>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Verification Document Upload (for credit payment) */}
+          {paymentType === "credit" && creditAvailable && (
+            <div className="mb-6">
+              <VerificationUpload
+                onFileSelect={handleVerificationFileSelect}
+                selectedFile={verificationFile}
+                preview={verificationPreview}
+                error={
+                  error?.includes("giấy xác nhận")
+                    ? "Vui lòng tải lên giấy xác nhận"
+                    : undefined
+                }
+              />
             </div>
           )}
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  MapPin,
   Clock,
   ChevronRight,
   Heart,
@@ -30,8 +29,9 @@ import { RecentProducts } from "../components/RecentProducts";
 import { ActiveProjects } from "../components/ActiveProjects";
 import { UserAvatar } from "../components/UserAvatar";
 import { NotificationDropdown } from "../components/NotificationDropdown";
+import { ProvinceSelector } from "../components/ProvinceSelector";
 import { supabase } from "../../lib/supabase/supabase";
-import { getSalinityAverage, getUserProvince } from "../../lib/salinity/salinity.service";
+import { getSalinityAverage } from "../../lib/salinity/salinity.service";
 
 // Helper to format currency
 const formatCurrency = (amount: number) => {
@@ -116,29 +116,24 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   useEffect(() => {
     loadDashboardData();
-    loadSalinityData();
+    loadSalinityData(province);
   }, []);
 
   // Load salinity data for current year and province
-  const loadSalinityData = async () => {
+  const loadSalinityData = async (selectedProvince: string) => {
     setSalinityLoading(true);
     try {
-      // For now, use An Giang as default province
-      // TODO: Add province field to user profile if needed
-      const userProvince = getUserProvince();
-      setProvince(userProvince);
-
       // Get current year
       const currentYear = new Date().getFullYear();
 
       // Fetch average salinity
-      const result = await getSalinityAverage(userProvince, currentYear);
+      const result = await getSalinityAverage(selectedProvince, currentYear);
 
       if (result.averageSalinity !== null) {
         setCurrentSalinity(result.averageSalinity);
       } else {
         // If no data for current year, try to fetch any available data for the province
-        console.warn(`No salinity data found for ${userProvince} in ${currentYear}`);
+        console.warn(`No salinity data found for ${selectedProvince} in ${currentYear}`);
         setCurrentSalinity(null);
       }
     } catch (error) {
@@ -147,6 +142,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     } finally {
       setSalinityLoading(false);
     }
+  };
+
+  // Handle province change
+  const handleProvinceChange = (newProvince: string) => {
+    setProvince(newProvince);
+    loadSalinityData(newProvince);
   };
 
   const loadDashboardData = async () => {
@@ -265,9 +266,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           {/* Main Stats Board */}
           <div className="mb-8">
             <div className="flex justify-between items-end mb-2 text-sm font-medium">
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" /> Tỉnh <span className="font-bold">{province.toUpperCase()}</span>
-              </div>
+              <ProvinceSelector
+                selectedProvince={province}
+                onProvinceChange={handleProvinceChange}
+              />
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
                 {currentTime.toLocaleTimeString("en-US", {

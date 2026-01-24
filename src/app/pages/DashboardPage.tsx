@@ -30,8 +30,9 @@ import { ActiveProjects } from "../components/ActiveProjects";
 import { UserAvatar } from "../components/UserAvatar";
 import { NotificationDropdown } from "../components/NotificationDropdown";
 import { ProvinceSelector } from "../components/ProvinceSelector";
+import { VoiceButton } from "../components/VoiceButton";
 import { supabase } from "../../lib/supabase/supabase";
-import { getSalinityAverage } from "../../lib/salinity/salinity.service";
+import { getCurrentMonthSalinity } from "../../lib/salinity/salinity.service";
 
 // Helper to format currency
 const formatCurrency = (amount: number) => {
@@ -70,11 +71,20 @@ const getGreeting = () => {
   } else if (hour >= 10 && hour < 13) {
     return { greeting: "Chào buổi trưa", message: "Giờ nghỉ trưa vui vẻ!" };
   } else if (hour >= 13 && hour < 17) {
-    return { greeting: "Chào buổi chiều", message: "Buổi chiều làm việc hiệu quả!" };
+    return {
+      greeting: "Chào buổi chiều",
+      message: "Buổi chiều làm việc hiệu quả!",
+    };
   } else if (hour >= 17 && hour < 21) {
-    return { greeting: "Chào buổi tối", message: "Buổi tối an lành bên gia đình!" };
+    return {
+      greeting: "Chào buổi tối",
+      message: "Buổi tối an lành bên gia đình!",
+    };
   } else {
-    return { greeting: "Chào buổi đêm", message: "Đêm khuya nhớ nghỉ ngơi sớm!" };
+    return {
+      greeting: "Chào buổi đêm",
+      message: "Đêm khuya nhớ nghỉ ngơi sớm!",
+    };
   }
 };
 
@@ -90,11 +100,15 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [trendingPosts, setTrendingPosts] = useState<PostWithStats[]>([]);
   const [recentProducts, setRecentProducts] = useState<ProductWithStats[]>([]);
-  const [activeProjects, setActiveProjects] = useState<InvestmentProjectWithStats[]>([]);
+  const [activeProjects, setActiveProjects] = useState<
+    InvestmentProjectWithStats[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [greeting, setGreeting] = useState(getGreeting());
   const [currentSalinity, setCurrentSalinity] = useState<number | null>(null);
+  const [latestDate, setLatestDate] = useState<string | null>(null);
+  const [latestStation, setLatestStation] = useState<string | null>(null);
   const [province, setProvince] = useState<string>("An Giang");
   const [salinityLoading, setSalinityLoading] = useState(true);
 
@@ -119,26 +133,31 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     loadSalinityData(province);
   }, []);
 
-  // Load salinity data for current year and province
+  // Load salinity data for current month and province
   const loadSalinityData = async (selectedProvince: string) => {
     setSalinityLoading(true);
     try {
-      // Get current year
-      const currentYear = new Date().getFullYear();
-
-      // Fetch average salinity
-      const result = await getSalinityAverage(selectedProvince, currentYear);
+      // Fetch current month salinity data
+      const result = await getCurrentMonthSalinity(selectedProvince);
 
       if (result.averageSalinity !== null) {
         setCurrentSalinity(result.averageSalinity);
+        setLatestDate(result.latestDate || null);
+        setLatestStation(result.latestStation || null);
       } else {
-        // If no data for current year, try to fetch any available data for the province
-        console.warn(`No salinity data found for ${selectedProvince} in ${currentYear}`);
+        // If no data for current month, clear the values
+        console.warn(
+          `No salinity data found for ${selectedProvince} in current month`,
+        );
         setCurrentSalinity(null);
+        setLatestDate(null);
+        setLatestStation(null);
       }
     } catch (error) {
       console.error("Error loading salinity data:", error);
       setCurrentSalinity(null);
+      setLatestDate(null);
+      setLatestStation(null);
     } finally {
       setSalinityLoading(false);
     }
@@ -169,8 +188,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       ]);
 
       if (statsResult.stats) setStats(statsResult.stats);
-      if (activitiesResult && !activitiesResult.error) setActivities(activitiesResult.activities || []);
-      if (postsResult && !postsResult.error) setTrendingPosts(postsResult.posts || []);
+      if (activitiesResult && !activitiesResult.error)
+        setActivities(activitiesResult.activities || []);
+      if (postsResult && !postsResult.error)
+        setTrendingPosts(postsResult.posts || []);
       if (productsResult && !productsResult.error) {
         console.log("📦 [Dashboard] Products data:", productsResult.products);
 
@@ -188,7 +209,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
               if (imagesData && imagesData.length > 0) {
                 // Use first image from product_images
-                return { ...product, image_url: (imagesData as any[])[0].image_url };
+                return {
+                  ...product,
+                  image_url: (imagesData as any[])[0].image_url,
+                };
               }
 
               // Keep existing image_url if no images in product_images table
@@ -197,12 +221,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               console.error("Error loading product media:", error);
               return product; // Return original product on error
             }
-          })
+          }),
         );
 
         setRecentProducts(productsWithMedia);
       }
-      if (projectsResult && !projectsResult.error) setActiveProjects(projectsResult.projects || []);
+      if (projectsResult && !projectsResult.error)
+        setActiveProjects(projectsResult.projects || []);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
     }
@@ -218,8 +243,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         <div
           className="fixed inset-0 z-0 opacity-60"
           style={{
-            backgroundImage:
-              "url('/assets/images/background-mobile.jpg')",
+            backgroundImage: "url('/assets/images/background-mobile.jpg')",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
@@ -250,17 +274,15 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               </button>
               <div>
                 <h1 className="text-xl font-bold tracking-wide">
-                  {greeting.greeting}, Anh/Chị {profile?.username || "Nông dân"}!
+                  {greeting.greeting}, Anh/Chị {profile?.username || "Nông dân"}
+                  !
                 </h1>
-                <p className="text-xs text-gray-200">
-                  {greeting.message}
-                </p>
+                <p className="text-xs text-gray-200">{greeting.message}</p>
               </div>
             </div>
 
             {/* Notification Dropdown */}
             <NotificationDropdown />
-
           </header>
 
           {/* Main Stats Board */}
@@ -290,19 +312,41 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               <div>
                 {salinityLoading ? (
                   <div className="text-5xl font-bold font-mono tracking-tighter">
-                    <div className="inline-block animate-pulse">--.-</div> <span className="text-2xl">g/l</span>
+                    <div className="inline-block animate-pulse">--.-</div>{" "}
+                    <span className="text-2xl">g/l</span>
                   </div>
                 ) : currentSalinity !== null ? (
-                  <div className="text-5xl font-bold font-mono tracking-tighter">
-                    {currentSalinity} <span className="text-2xl">g/l</span>
-                  </div>
+                  <>
+                    <div className="flex items-baseline gap-6">
+                      <div className="text-5xl font-bold font-mono tracking-tighter">
+                        {currentSalinity} <span className="text-2xl">g/l</span>
+                      </div>
+                      <VoiceButton
+                        salinity={currentSalinity}
+                        month={new Date().getMonth() + 1}
+                        province={province}
+                        size="sm"
+                        variant="ghost"
+                      />
+                    </div>
+                    {latestDate && (
+                      <div className="text-xs text-gray-300 mt-0.5">
+                        Cập nhật:{" "}
+                        {new Date(latestDate).toLocaleDateString("vi-VN", {
+                          day: "2-digit",
+                          month: "2-digit",
+                        })}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-5xl font-bold font-mono tracking-tighter text-gray-400">
                     N/A <span className="text-2xl">g/l</span>
                   </div>
                 )}
                 <div className="text-sm font-medium opacity-90 mt-1">
-                  Độ mặn TB Khô {new Date().getFullYear()} (Tham khảo)
+                  Độ mặn TB tháng {new Date().getMonth() + 1}/
+                  {new Date().getFullYear()}
                 </div>
               </div>
               <div className="text-right">
@@ -344,7 +388,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                         {Math.round(
                           (activeProjects[0].current_funding /
                             activeProjects[0].funding_goal) *
-                          100
+                            100,
                         )}
                         %
                       </span>
@@ -358,8 +402,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                           width: `${Math.min(
                             (activeProjects[0].current_funding /
                               activeProjects[0].funding_goal) *
+                              100,
                             100,
-                            100
                           )}%`,
                         }}
                       />
@@ -449,7 +493,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               Bài viết thịnh hành
             </h2>
 
-            <div className="space-y-10"> {/* Tăng khoảng cách giữa các bài để số không bị chồng chéo */}
+            <div className="space-y-10">
+              {" "}
+              {/* Tăng khoảng cách giữa các bài để số không bị chồng chéo */}
               {trendingPosts.slice(0, 3).map((post, index) => {
                 // Xác định màu sắc cho số thứ hạng
                 let rankColor = "text-[#d4e157]"; // #1 - Xanh vàng
@@ -466,8 +512,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <span
                       className={`absolute left-0 -top-8 text-[85px] font-black italic ${rankColor} leading-none z-20 pointer-events-none drop-shadow-md`}
                       style={{
-                        fontFamily: 'sans-serif',
-                        textShadow: '2px 2px 0px rgba(0,0,0,0.2)' // Thêm bóng nhẹ cho số dễ nhìn hơn
+                        fontFamily: "sans-serif",
+                        textShadow: "2px 2px 0px rgba(0,0,0,0.2)", // Thêm bóng nhẹ cho số dễ nhìn hơn
                       }}
                     >
                       #{index + 1}
@@ -499,9 +545,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   </div>
                 );
               })}
-
               {/* Fallback Skeleton */}
-              {loading && trendingPosts.length === 0 && (
+              {loading &&
+                trendingPosts.length === 0 &&
                 [1, 2, 3].map((i) => (
                   <div key={i} className="relative pl-8 h-24 mt-6">
                     <div className="absolute -left-1 -top-5 text-[80px] font-black italic text-gray-600 opacity-50 z-20">
@@ -509,11 +555,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     </div>
                     <div className="relative z-10 h-full bg-white/10 rounded-xl animate-pulse ml-4"></div>
                   </div>
-                ))
-              )}
+                ))}
             </div>
           </div>
-
         </div>
       </div>
     );
@@ -528,9 +572,102 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <h1 className="text-2xl md:text-3xl font-bold mb-2">
             {greeting.greeting}, {profile?.username || "Nông dân"}! 👋
           </h1>
-          <p className="text-blue-100">
-            {greeting.message}
-          </p>
+          <p className="text-blue-100">{greeting.message}</p>
+        </div>
+
+        {/* Salinity Card - Desktop */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+              Độ mặn hiện tại
+            </h3>
+            <ProvinceSelector
+              selectedProvince={province}
+              onProvinceChange={handleProvinceChange}
+              className="text-gray-700"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-6">
+            <div className="col-span-2">
+              {salinityLoading ? (
+                <div className="flex items-baseline gap-2">
+                  <div className="text-5xl font-bold font-mono animate-pulse text-gray-400">
+                    --.-
+                  </div>
+                  <span className="text-2xl font-medium text-gray-600">
+                    g/l
+                  </span>
+                </div>
+              ) : currentSalinity !== null ? (
+                <div>
+                  <div className="flex items-baseline gap-3 mb-2">
+                    <div
+                      className={`text-5xl font-bold font-mono ${
+                        currentSalinity < 1
+                          ? "text-green-600"
+                          : currentSalinity < 4
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                      }`}
+                    >
+                      {currentSalinity}
+                    </div>
+                    <span className="text-2xl font-medium text-gray-600">
+                      g/l
+                    </span>
+                    <VoiceButton
+                      salinity={currentSalinity}
+                      month={new Date().getMonth() + 1}
+                      province={province}
+                      size="md"
+                      variant="outline"
+                    />
+                  </div>
+                  {latestDate && (
+                    <p className="text-sm text-gray-600">
+                      Cập nhật:{" "}
+                      {new Date(latestDate).toLocaleDateString("vi-VN", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                      {latestStation && (
+                        <span className="ml-2">• Trạm: {latestStation}</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-2">
+                  <div className="text-5xl font-bold font-mono text-gray-400">
+                    N/A
+                  </div>
+                  <span className="text-2xl font-medium text-gray-600">
+                    g/l
+                  </span>
+                </div>
+              )}
+              <p className="text-sm text-gray-500 mt-3">
+                Độ mặn trung bình tháng {new Date().getMonth() + 1}/
+                {new Date().getFullYear()} tại {province}
+              </p>
+            </div>
+
+            <div className="flex flex-col justify-center">
+              <button
+                onClick={() => onNavigate?.("salinity")}
+                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center flex items-center justify-center gap-2"
+              >
+                <ChevronRight className="w-5 h-5" />
+                Xem chi tiết
+              </button>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                Dữ liệu dự báo theo mô hình Prophet
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* User Stats Grid */}

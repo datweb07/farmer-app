@@ -20,6 +20,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   // Extract unique values for dropdowns
   const uniqueYears = Array.from(new Set(data.map((d) => d.nam))).sort();
+  const uniqueMonths = Array.from(new Set(data.map((d) => d.thang))).sort();
   const uniqueProvinces = Array.from(new Set(data.map((d) => d.tinh))).sort();
 
   // Get stations based on selected province
@@ -35,6 +36,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     onFilterChange({
       ...filters,
       nam: e.target.value ? Number(e.target.value) : null,
+    });
+  };
+
+  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onFilterChange({
+      ...filters,
+      thang: e.target.value ? Number(e.target.value) : null,
     });
   };
 
@@ -54,12 +62,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   };
 
   const handleReset = () => {
-    onFilterChange({ nam: null, tinh: null, ten_tram: null });
+    onFilterChange({
+      nam: null,
+      thang: null,
+      tinh: null,
+      ten_tram: null,
+    });
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Year Filter */}
         <div>
           <label
@@ -78,6 +91,29 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             {uniqueYears.map((year) => (
               <option key={year} value={year}>
                 {year}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Month Filter */}
+        <div>
+          <label
+            htmlFor="month-filter"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Tháng
+          </label>
+          <select
+            id="month-filter"
+            value={filters.thang || ""}
+            onChange={handleMonthChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Tất cả tháng</option>
+            {uniqueMonths.map((month) => (
+              <option key={month} value={month}>
+                Tháng {month}
               </option>
             ))}
           </select>
@@ -129,24 +165,29 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             ))}
           </select>
         </div>
+      </div>
 
-        {/* Reset Button */}
-        <div className="flex items-end">
-          <button
-            onClick={handleReset}
-            className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-medium"
-          >
-            Đặt lại bộ lọc
-          </button>
-        </div>
+      {/* Reset Button */}
+      <div className="mt-4">
+        <button
+          onClick={handleReset}
+          className="px-6 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-medium"
+        >
+          Đặt lại bộ lọc
+        </button>
       </div>
 
       {/* Active Filters Display */}
-      {(filters.nam || filters.tinh || filters.ten_tram) && (
+      {(filters.nam || filters.thang || filters.tinh || filters.ten_tram) && (
         <div className="mt-4 flex flex-wrap gap-2">
           {filters.nam && (
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
               Năm: {filters.nam}
+            </span>
+          )}
+          {filters.thang && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+              Tháng: {filters.thang}
             </span>
           )}
           {filters.tinh && (

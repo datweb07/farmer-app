@@ -58,7 +58,7 @@ export function ComparisonCharts({ data }: ComparisonChartsProps) {
       data.length /
       2;
     const avgLocationCoeff =
-      data.reduce((sum, d) => sum + d.he_so_vi_tri, 0) / data.length;
+      data.reduce((sum, d) => sum + (d.he_so_vi_tri || 0), 0) / data.length;
 
     return [
       {

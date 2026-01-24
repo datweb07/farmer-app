@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"; // Thêm useEffect
 import { PostCard } from "./PostCard";
 import { UserAvatar } from "./UserAvatar";
 import { NotificationDropdown } from "./NotificationDropdown";
+import { UserProfileModal } from "./UserProfileModal";
 import type { PostWithStats, TopContributor } from "../../lib/community/types";
 
 // Function to get greeting based on time of day
@@ -45,6 +46,7 @@ export function MobilePostsView({
 }: MobilePostsViewProps) {
     // State để lưu thời gian hiện tại
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
 
     // Cập nhật thời gian mỗi giây
     useEffect(() => {
@@ -209,8 +211,16 @@ export function MobilePostsView({
                                                 #{rank}
                                             </div>
 
-                                            {/* Tên User */}
-                                            <div className="text-[13px] text-white font-medium mb-1 truncate w-full text-center px-1 drop-shadow-sm">
+                                            {/* Tên User - Clickable */}
+                                            <div
+                                                className="text-[13px] text-white font-medium mb-1 truncate w-full text-center px-1 drop-shadow-sm cursor-pointer hover:underline hover:brightness-125 transition-all"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (contributor.username !== '---') {
+                                                        setSelectedUsername(contributor.username);
+                                                    }
+                                                }}
+                                            >
                                                 {contributor.username}
                                             </div>
 
@@ -284,6 +294,13 @@ export function MobilePostsView({
                     </div>
                 )}
             </div>
+
+            {/* User Profile Modal */}
+            <UserProfileModal
+                username={selectedUsername || ""}
+                isOpen={!!selectedUsername}
+                onClose={() => setSelectedUsername(null)}
+            />
         </div>
     );
 }

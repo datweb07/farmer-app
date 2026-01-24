@@ -110,7 +110,7 @@ export function MobileSalinityView({
                         </button>
                         <div>
                             <h1 className="text-xl font-bold tracking-wide">
-                                {greeting.greeting}, {profile?.username || "Bà con"}!
+                                {greeting.greeting} Anh/Chị, {profile?.username || "Bà con"}!
                             </h1>
                             <p className="text-xs text-gray-200">{greeting.message}</p>
                         </div>

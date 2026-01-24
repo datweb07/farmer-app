@@ -15,7 +15,7 @@ import {
   Wheat,
   Fish,
   Droplets,
-  TreeDeciduous
+  TreeDeciduous,
 } from "lucide-react";
 import MapLibreGL from "maplibre-gl";
 
@@ -58,22 +58,28 @@ const getCropRecommendations = (salinity: number) => {
   if (salinity <= 1) {
     return {
       label: "Vùng Ngọt Hóa",
-      crops: ["🌾", "Sầu riêng", "Xoài", "Bưởi", "Rau màu"],
+      crops: ["Lúa", "Sầu riêng", "Xoài", "Bưởi", "Rau màu"],
       desc: "Nguồn nước an toàn, thích hợp đa canh.",
       color: "text-emerald-700",
       bgColor: "bg-emerald-50",
       borderColor: "border-emerald-200",
-      icon: <Sprout className="w-4 h-4 text-emerald-600" />
+      icon: <Sprout className="w-4 h-4 text-emerald-600" />,
     };
   } else if (salinity <= 2.5) {
     return {
       label: "Chịu Mặn Nhẹ",
-      crops: ["Lúa chịu mặn (ST24, ST25)", "Dừa", "Mía", "Khóm (Dứa)", "Mít Thái"],
+      crops: [
+        "Lúa chịu mặn (ST24, ST25)",
+        "Dừa",
+        "Mía",
+        "Khóm (Dứa)",
+        "Mít Thái",
+      ],
       desc: "Cần theo dõi độ mặn triều cường.",
       color: "text-yellow-700",
       bgColor: "bg-yellow-50",
       borderColor: "border-yellow-200",
-      icon: <Wheat className="w-4 h-4 text-yellow-600" />
+      icon: <Wheat className="w-4 h-4 text-yellow-600" />,
     };
   } else if (salinity <= 4) {
     return {
@@ -83,17 +89,21 @@ const getCropRecommendations = (salinity: number) => {
       color: "text-orange-700",
       bgColor: "bg-orange-50",
       borderColor: "border-orange-200",
-      icon: <TreeDeciduous className="w-4 h-4 text-orange-600" />
+      icon: <TreeDeciduous className="w-4 h-4 text-orange-600" />,
     };
   } else {
     return {
       label: "Vùng Mặn Cao",
-      crops: ["Nuôi tôm/cua nước lợ", "Rừng ngập mặn (Đước, Tràm)", "Không trồng lúa"],
+      crops: [
+        "Nuôi tôm/cua nước lợ",
+        "Rừng ngập mặn (Đước, Tràm)",
+        "Không trồng lúa",
+      ],
       desc: "Chuyển đổi sang nuôi trồng thủy sản.",
       color: "text-blue-700",
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
-      icon: <Fish className="w-4 h-4 text-blue-600" />
+      icon: <Fish className="w-4 h-4 text-blue-600" />,
     };
   }
 };
@@ -101,28 +111,40 @@ const getCropRecommendations = (salinity: number) => {
 // --- HELPER FUNCTIONS CŨ ---
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case "danger": return <Skull className="w-4 h-4 text-white" />;
-    case "warning": return <AlertTriangle className="w-4 h-4 text-white" />;
-    case "safe": return <ThumbsUp className="w-4 h-4 text-white" />;
-    default: return <ThumbsUp className="w-4 h-4 text-white" />;
+    case "danger":
+      return <Skull className="w-4 h-4 text-white" />;
+    case "warning":
+      return <AlertTriangle className="w-4 h-4 text-white" />;
+    case "safe":
+      return <ThumbsUp className="w-4 h-4 text-white" />;
+    default:
+      return <ThumbsUp className="w-4 h-4 text-white" />;
   }
 };
 
 const getStatusText = (status: string) => {
   switch (status) {
-    case "danger": return "Nguy hiểm";
-    case "warning": return "Cảnh báo";
-    case "safe": return "An toàn";
-    default: return "An toàn";
+    case "danger":
+      return "Nguy hiểm";
+    case "warning":
+      return "Cảnh báo";
+    case "safe":
+      return "An toàn";
+    default:
+      return "An toàn";
   }
 };
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "danger": return "bg-red-500";
-    case "warning": return "bg-yellow-500";
-    case "safe": return "bg-green-500";
-    default: return "bg-green-500";
+    case "danger":
+      return "bg-red-500";
+    case "warning":
+      return "bg-yellow-500";
+    case "safe":
+      return "bg-green-500";
+    default:
+      return "bg-green-500";
   }
 };
 
@@ -160,7 +182,8 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
             Bản đồ & Khuyến nghị Canh tác ĐBSCL
           </h3>
           <p className="text-gray-600 text-sm mt-1">
-            Dữ liệu cập nhật theo thời gian thực • {new Date().toLocaleDateString("vi-VN")}
+            Dữ liệu cập nhật theo thời gian thực •{" "}
+            {new Date().toLocaleDateString("vi-VN")}
           </p>
         </div>
 
@@ -183,7 +206,7 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
                   <MarkerContent>
                     <div
                       className={`relative rounded-full p-2 ${getStatusColor(
-                        area.status
+                        area.status,
                       )} shadow-lg border-2 border-white cursor-pointer hover:scale-110 transition-transform group`}
                     >
                       {getStatusIcon(area.status)}
@@ -203,29 +226,47 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
                             <h4 className="font-bold text-lg text-gray-900">
                               {area.province}
                             </h4>
-                            <p className="text-xs text-gray-500">{provinceCoords[area.province]?.region}</p>
+                            <p className="text-xs text-gray-500">
+                              {provinceCoords[area.province]?.region}
+                            </p>
                           </div>
-                          <div className={`px-2 py-1 rounded text-xs font-bold ${area.status === "danger" ? "bg-red-100 text-red-700" :
-                            area.status === "warning" ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700"
-                            }`}>
+                          <div
+                            className={`px-2 py-1 rounded text-xs font-bold ${
+                              area.status === "danger"
+                                ? "bg-red-100 text-red-700"
+                                : area.status === "warning"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-green-100 text-green-700"
+                            }`}
+                          >
                             {area.salinity}‰
                           </div>
                         </div>
 
                         {/* Status Info */}
                         <div className="flex items-center gap-2 mb-3">
-                          <span className={`text-sm font-semibold ${area.status === "danger" ? "text-red-600" :
-                            area.status === "warning" ? "text-yellow-600" : "text-green-600"
-                            }`}>
+                          <span
+                            className={`text-sm font-semibold ${
+                              area.status === "danger"
+                                ? "text-red-600"
+                                : area.status === "warning"
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
+                            }`}
+                          >
                             Trạng thái: {getStatusText(area.status)}
                           </span>
                         </div>
 
                         {/* --- PHẦN MỚI: GỢI Ý CÂY TRỒNG --- */}
-                        <div className={`mt-3 rounded-lg p-3 border ${recommendation.bgColor} ${recommendation.borderColor}`}>
+                        <div
+                          className={`mt-3 rounded-lg p-3 border ${recommendation.bgColor} ${recommendation.borderColor}`}
+                        >
                           <div className="flex items-center gap-2 mb-2">
                             {recommendation.icon}
-                            <span className={`text-sm font-bold ${recommendation.color}`}>
+                            <span
+                              className={`text-sm font-bold ${recommendation.color}`}
+                            >
                               {recommendation.label}
                             </span>
                           </div>
@@ -248,7 +289,9 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
                         {/* Footer Info */}
                         <div className="mt-3 flex justify-between items-end text-xs text-gray-400">
                           {area.population && (
-                            <span>Dân số: {(area.population / 1000).toFixed(1)}k</span>
+                            <span>
+                              Dân số: {(area.population / 1000).toFixed(1)}k
+                            </span>
                           )}
                           <span>{area.lastUpdate || "Vừa cập nhật"}</span>
                         </div>
@@ -299,47 +342,68 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
             return (
               <div
                 key={area.province}
-                className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 ${isSelected
-                  ? "ring-2 ring-blue-500 shadow-md scale-[1.02]"
-                  : "hover:shadow-md hover:border-blue-300"
-                  } ${area.status === "danger"
+                className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 ${
+                  isSelected
+                    ? "ring-2 ring-blue-500 shadow-md scale-[1.02]"
+                    : "hover:shadow-md hover:border-blue-300"
+                } ${
+                  area.status === "danger"
                     ? "bg-white border-red-100"
                     : area.status === "warning"
                       ? "bg-white border-yellow-100"
                       : "bg-white border-green-100"
-                  }`}
+                }`}
                 onClick={() => handleProvinceClick(area.province)}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-full ${getStatusColor(area.status)} text-white shadow-sm`}>
+                    <div
+                      className={`p-2 rounded-full ${getStatusColor(area.status)} text-white shadow-sm`}
+                    >
                       {getStatusIcon(area.status)}
                     </div>
                     <div>
-                      <h5 className="font-bold text-gray-900 text-lg leading-tight">{area.province}</h5>
+                      <h5 className="font-bold text-gray-900 text-lg leading-tight">
+                        {area.province}
+                      </h5>
                       <p className="text-xs text-gray-500 font-medium">
-                        Độ mặn: <span className="text-gray-900">{area.salinity}‰</span>
+                        Độ mặn:{" "}
+                        <span className="text-gray-900">{area.salinity}‰</span>
                       </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Crop Recommendation in List */}
-                <div className={`rounded-md p-2.5 ${rec.bgColor} border ${rec.borderColor}`}>
+                <div
+                  className={`rounded-md p-2.5 ${rec.bgColor} border ${rec.borderColor}`}
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`text-xs font-bold uppercase ${rec.color}`}>
+                    <span
+                      className={`text-xs font-bold uppercase ${rec.color}`}
+                    >
                       {rec.label}
                     </span>
                     {rec.icon}
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {rec.crops.slice(0, 3).map((c, i) => ( // Show top 3 crops only
-                      <span key={i} className="text-[10px] bg-white/60 px-1.5 py-0.5 rounded border border-black/5 text-gray-700">
-                        {c}
-                      </span>
-                    ))}
+                    {rec.crops.slice(0, 3).map(
+                      (
+                        c,
+                        i, // Show top 3 crops only
+                      ) => (
+                        <span
+                          key={i}
+                          className="text-[10px] bg-white/60 px-1.5 py-0.5 rounded border border-black/5 text-gray-700"
+                        >
+                          {c}
+                        </span>
+                      ),
+                    )}
                     {rec.crops.length > 3 && (
-                      <span className="text-[10px] text-gray-500 px-1 py-0.5">+ {rec.crops.length - 3}</span>
+                      <span className="text-[10px] text-gray-500 px-1 py-0.5">
+                        + {rec.crops.length - 3}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -354,8 +418,13 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
         <div className="md:col-span-2 bg-gradient-to-br from-red-50 to-white border border-red-100 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm font-semibold text-red-700 mb-1 uppercase tracking-wide">Tổng quan rủi ro</p>
-              <p className="text-4xl font-black text-gray-900">{areas.length} <span className="text-lg font-normal text-gray-500">tỉnh</span></p>
+              <p className="text-sm font-semibold text-red-700 mb-1 uppercase tracking-wide">
+                Tổng quan rủi ro
+              </p>
+              <p className="text-4xl font-black text-gray-900">
+                {areas.length}{" "}
+                <span className="text-lg font-normal text-gray-500">tỉnh</span>
+              </p>
             </div>
             <div className="p-3 bg-red-100 rounded-full">
               <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -364,15 +433,21 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
 
           <div className="mt-6 flex gap-2">
             <div className="flex-1 bg-white p-3 rounded-lg border border-red-100 text-center">
-              <p className="text-2xl font-bold text-red-600">{dangerAreas.length}</p>
+              <p className="text-2xl font-bold text-red-600">
+                {dangerAreas.length}
+              </p>
               <p className="text-xs text-gray-500 font-medium">Nguy hiểm</p>
             </div>
             <div className="flex-1 bg-white p-3 rounded-lg border border-yellow-100 text-center">
-              <p className="text-2xl font-bold text-yellow-600">{warningAreas.length}</p>
+              <p className="text-2xl font-bold text-yellow-600">
+                {warningAreas.length}
+              </p>
               <p className="text-xs text-gray-500 font-medium">Cảnh báo</p>
             </div>
             <div className="flex-1 bg-white p-3 rounded-lg border border-green-100 text-center">
-              <p className="text-2xl font-bold text-green-600">{safeAreas.length}</p>
+              <p className="text-2xl font-bold text-green-600">
+                {safeAreas.length}
+              </p>
               <p className="text-xs text-gray-500 font-medium">An toàn</p>
             </div>
           </div>
@@ -380,32 +455,53 @@ export function SalinityMapcn({ areas }: SalinityMapcnProps) {
 
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div>
-            <p className="text-sm font-semibold text-blue-700 mb-1 uppercase tracking-wide">Diện tích</p>
+            <p className="text-sm font-semibold text-blue-700 mb-1 uppercase tracking-wide">
+              Diện tích
+            </p>
             <p className="text-3xl font-bold text-gray-900">
-              {areas.reduce((sum, area) => sum + (area.affectedAreaKm || 0), 0).toLocaleString()}
-              <span className="text-sm font-normal text-gray-500 ml-1">km²</span>
+              {areas
+                .reduce((sum, area) => sum + (area.affectedAreaKm || 0), 0)
+                .toLocaleString()}
+              <span className="text-sm font-normal text-gray-500 ml-1">
+                km²
+              </span>
             </p>
           </div>
           <div className="w-full h-2 bg-blue-100 rounded-full mt-4 overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full" style={{ width: '65%' }}></div>
+            <div
+              className="h-full bg-blue-500 rounded-full"
+              style={{ width: "65%" }}
+            ></div>
           </div>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
           <div>
-            <p className="text-sm font-semibold text-purple-700 mb-1 uppercase tracking-wide">Dân số bị ảnh hưởng</p>
+            <p className="text-sm font-semibold text-purple-700 mb-1 uppercase tracking-wide">
+              Dân số bị ảnh hưởng
+            </p>
             <p className="text-3xl font-bold text-gray-900">
-              {(areas.reduce((sum, area) => sum + (area.population || 0), 0) / 1000000).toFixed(2)}
-              <span className="text-sm font-normal text-gray-500 ml-1">triệu</span>
+              {(
+                areas.reduce((sum, area) => sum + (area.population || 0), 0) /
+                1000000
+              ).toFixed(2)}
+              <span className="text-sm font-normal text-gray-500 ml-1">
+                triệu
+              </span>
             </p>
           </div>
           <div className="flex -space-x-2 overflow-hidden mt-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500"
+              >
                 {String.fromCharCode(64 + i)}
               </div>
             ))}
-            <div className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">+</div>
+            <div className="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
+              +
+            </div>
           </div>
         </div>
       </div>

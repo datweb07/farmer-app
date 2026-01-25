@@ -748,6 +748,9 @@ export function BusinessDashboardPage() {
                         <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
                           Phương thức
                         </th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                          Kỳ hạn
+                        </th>
                         <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
                           Số tiền
                         </th>
@@ -806,6 +809,13 @@ export function BusinessDashboardPage() {
                           <td className="py-4 px-4">
                             <span className="text-sm text-gray-700">
                               {getPaymentMethodLabel(txn.payment_method || "")}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-sm text-gray-700">
+                              {txn.type === "credit" && txn.credit_term_days
+                                ? `${txn.credit_term_days} ngày`
+                                : "-"}
                             </span>
                           </td>
                           <td className="py-4 px-4 text-right">

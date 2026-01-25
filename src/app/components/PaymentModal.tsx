@@ -73,6 +73,7 @@ export function PaymentModal({
   const [creditAvailable, setCreditAvailable] = useState(true); // Default to true, allow all users to use credit
   const [creditLimit, setCreditLimit] = useState<any>(null);
   const [creditTermDays, setCreditTermDays] = useState(30);
+  const [customTermDays, setCustomTermDays] = useState("");
   const [interestRate, setInterestRate] = useState(0);
 
   // Status
@@ -186,6 +187,21 @@ export function PaymentModal({
       return;
     }
 
+    // Validate custom term days if selected
+    if (paymentType === "credit" && creditTermDays === 0) {
+      const customDays = Number(customTermDays);
+      if (
+        !customTermDays ||
+        isNaN(customDays) ||
+        customDays < 1 ||
+        customDays > 3650
+      ) {
+        setError("Vui lòng nhập số ngày hợp lệ (1-3650 ngày)");
+        setLoading(false);
+        return;
+      }
+    }
+
     // Kiểm tra nếu là ví điện tử thì hiển thị thông báo "Đang phát triển"
     if (paymentType === "immediate" && paymentMethod === "e_wallet") {
       setLoading(false);
@@ -207,6 +223,14 @@ export function PaymentModal({
     setStep("processing");
 
     try {
+      // Determine final credit term days (use custom if selected)
+      const finalCreditTermDays =
+        paymentType === "credit"
+          ? creditTermDays === 0
+            ? Number(customTermDays) || 30
+            : creditTermDays
+          : undefined;
+
       // Create transaction
       const txnResult = await createTransaction({
         seller_id: product.user_id,
@@ -216,7 +240,7 @@ export function PaymentModal({
         final_amount: finalPrice,
         type: paymentType,
         payment_method: paymentType === "immediate" ? paymentMethod : "credit",
-        credit_term_days: paymentType === "credit" ? creditTermDays : undefined,
+        credit_term_days: finalCreditTermDays,
       });
 
       if (txnResult.error || !txnResult.transaction) {
@@ -1161,14 +1185,38 @@ export function PaymentModal({
                     Chọn kỳ hạn thanh toán:
                   </label>
                   <select
-                    value={creditTermDays}
-                    onChange={(e) => setCreditTermDays(Number(e.target.value))}
+                    value={creditTermDays === 0 ? "custom" : creditTermDays}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "custom") {
+                        setCreditTermDays(0);
+                      } else {
+                        setCreditTermDays(Number(val));
+                        setCustomTermDays("");
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white text-blue-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value={30}>30 ngày</option>
-                    <option value={60}>60 ngày</option>
-                    <option value={90}>90 ngày</option>
+                    <option value={30}>1 tháng (30 ngày)</option>
+                    <option value={90}>3 tháng (90 ngày)</option>
+                    <option value={180}>6 tháng (180 ngày)</option>
+                    <option value={365}>1 năm (365 ngày)</option>
+                    <option value={1095}>3 năm (1095 ngày)</option>
+                    <option value="custom">Tùy chọn khác</option>
                   </select>
+                  {creditTermDays === 0 && (
+                    <div className="mt-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="3650"
+                        placeholder="Nhập số ngày (tối đa 3650 ngày)"
+                        value={customTermDays}
+                        onChange={(e) => setCustomTermDays(e.target.value)}
+                        className="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white text-blue-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  )}
                 </div>
                 {interestRate > 0 && (
                   <>

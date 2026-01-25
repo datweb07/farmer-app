@@ -75,8 +75,8 @@ const BANKS = [
   {
     id: "mufg",
     name: "MUFG",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/e/ef/MUFG_logo.svg"
-  }
+    logo: "https://upload.wikimedia.org/wikipedia/commons/e/ef/MUFG_logo.svg",
+  },
 ];
 
 export function CreditLimitManager() {
@@ -92,6 +92,7 @@ export function CreditLimitManager() {
   const [formData, setFormData] = useState({
     credit_limit: "",
     default_term_days: "30",
+    custom_term_days: "",
     default_interest_rate: "0",
     default_late_fee_rate: "2",
     risk_level: "medium" as "low" | "medium" | "high",
@@ -150,6 +151,7 @@ export function CreditLimitManager() {
       setFormData({
         credit_limit: limit.credit_limit.toString(),
         default_term_days: limit.default_term_days?.toString() || "30",
+        custom_term_days: "",
         default_interest_rate: limit.default_interest_rate?.toString() || "0",
         default_late_fee_rate: limit.default_late_fee_rate?.toString() || "2",
         risk_level: limit.risk_level || "medium",
@@ -163,6 +165,7 @@ export function CreditLimitManager() {
       setFormData({
         credit_limit: "",
         default_term_days: "30",
+        custom_term_days: "",
         default_interest_rate: "0",
         default_late_fee_rate: "2",
         risk_level: "medium",
@@ -202,10 +205,33 @@ export function CreditLimitManager() {
       return;
     }
 
+    // Determine final term days (use custom if selected)
+    const finalTermDays =
+      formData.default_term_days === "0"
+        ? parseInt(formData.custom_term_days) || 30
+        : parseInt(formData.default_term_days);
+
+    // Validate custom term days
+    if (formData.default_term_days === "0") {
+      const customDays = parseInt(formData.custom_term_days);
+      if (
+        !formData.custom_term_days ||
+        isNaN(customDays) ||
+        customDays < 1 ||
+        customDays > 3650
+      ) {
+        setError("Vui lòng nhập số ngày hợp lệ (1-3650 ngày)");
+        setSubmitting(false);
+        return;
+      }
+    }
+
     const payload = {
-      customer_id: editingLimit ? editingLimit.customer_id : selectedCustomer.id,
+      customer_id: editingLimit
+        ? editingLimit.customer_id
+        : selectedCustomer.id,
       credit_limit: parseFloat(formData.credit_limit),
-      default_term_days: parseInt(formData.default_term_days),
+      default_term_days: finalTermDays,
       default_interest_rate: parseFloat(formData.default_interest_rate),
       default_late_fee_rate: parseFloat(formData.default_late_fee_rate),
       risk_level: formData.risk_level,
@@ -301,7 +327,7 @@ export function CreditLimitManager() {
               <p className="text-gray-600 text-sm">Tổng hạn mức</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">
                 {formatCurrency(
-                  creditLimits.reduce((sum, l) => sum + l.credit_limit, 0)
+                  creditLimits.reduce((sum, l) => sum + l.credit_limit, 0),
                 )}
               </p>
             </div>
@@ -398,7 +424,7 @@ export function CreditLimitManager() {
                       <div className="text-xs text-gray-500">
                         Còn:{" "}
                         {formatCurrency(
-                          limit.available_credit || limit.credit_limit
+                          limit.available_credit || limit.credit_limit,
                         )}
                       </div>
                     </td>
@@ -601,20 +627,53 @@ export function CreditLimitManager() {
                     Kỳ hạn mặc định (ngày)
                   </label>
                   <select
-                    value={formData.default_term_days}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        default_term_days: e.target.value,
-                      })
+                    value={
+                      formData.default_term_days === "0"
+                        ? "custom"
+                        : formData.default_term_days
                     }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "custom") {
+                        setFormData({
+                          ...formData,
+                          default_term_days: "0",
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          default_term_days: val,
+                          custom_term_days: "",
+                        });
+                      }
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="30">30 ngày</option>
-                    <option value="60">60 ngày</option>
-                    <option value="90">90 ngày</option>
-                    <option value="120">120 ngày</option>
+                    <option value="30">1 tháng (30 ngày)</option>
+                    <option value="90">3 tháng (90 ngày)</option>
+                    <option value="180">6 tháng (180 ngày)</option>
+                    <option value="365">1 năm (365 ngày)</option>
+                    <option value="1095">3 năm (1095 ngày)</option>
+                    <option value="custom">Tùy chọn khác</option>
                   </select>
+                  {formData.default_term_days === "0" && (
+                    <div className="mt-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="3650"
+                        placeholder="Nhập số ngày (tối đa 3650 ngày)"
+                        value={formData.custom_term_days}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            custom_term_days: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -671,10 +730,7 @@ export function CreditLimitManager() {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        risk_level: e.target.value as
-                          | "low"
-                          | "medium"
-                          | "high",
+                        risk_level: e.target.value as "low" | "medium" | "high",
                       })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"

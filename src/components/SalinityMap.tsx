@@ -23,7 +23,7 @@ const getCropRecommendations = (salinity: number) => {
   if (salinity <= 1) {
     return {
       label: "Vùng Ngọt Hóa",
-      crops: ["🌾", "Sầu riêng", "🥭", "🍊", "🥬"],
+      crops: ["Lúa", "Sầu riêng", "Cam", "Rau"],
       desc: "Nguồn nước an toàn, thích hợp đa canh.",
       color: "text-emerald-700",
       bgColor: "bg-emerald-50",
@@ -33,7 +33,7 @@ const getCropRecommendations = (salinity: number) => {
   } else if (salinity <= 2.5) {
     return {
       label: "Chịu Mặn Nhẹ",
-      crops: ["🌾 (ST24, ST25)", "🥥", "🎋", "🍍", "🍈"],
+      crops: ["Lúa (ST24, ST25)", "Dừa", "Mía", "Dứa"],
       desc: "Cần theo dõi độ mặn triều cường.",
       color: "text-yellow-700",
       bgColor: "bg-yellow-50",
@@ -53,7 +53,7 @@ const getCropRecommendations = (salinity: number) => {
   } else {
     return {
       label: "Vùng Mặn Cao",
-      crops: ["🦐", "🦀", "🌴", "🚫🌾"],
+      crops: ["Tôm/Cua", "Không trồng lúa"],
       desc: "Chuyển đổi sang nuôi trồng thủy sản.",
       color: "text-blue-700",
       bgColor: "bg-blue-50",
@@ -339,22 +339,22 @@ export const SalinityMap: React.FC<SalinityMapProps> = ({ data }) => {
                                 </span>
                               </div>
                               <div className="pt-2 border-t border-gray-200 mt-2">
-                                <div className="text-xs text-gray-500">
+                                {/* <div className="text-xs text-gray-500">
                                   Khoảng tin cậy 95%:
                                 </div>
                                 <div className="text-xs">
                                   [{station.lower_ci.toFixed(2)} -{" "}
                                   {station.upper_ci.toFixed(2)}] g/l
-                                </div>
+                                </div> */}
                               </div>
-                              <div className="flex justify-between text-xs">
+                              {/* <div className="flex justify-between text-xs">
                                 <span className="text-gray-600">
                                   Hệ số vị trí:
                                 </span>
                                 <span>
                                   {station.he_so_vi_tri?.toFixed(2) || "N/A"}
                                 </span>
-                              </div>
+                              </div> */}
                             </div>
 
                             {/* --- PHẦN GỢI Ý CÂY TRỒNG --- */}

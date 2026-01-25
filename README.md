@@ -1,28 +1,13 @@
-# Hệ Thống Quản Lý và Phân Tích Độ Mặn Nước
-
 ## Problem Statement
 
-Hiện nay, việc theo dõi và quản lý độ mặn của nguồn nước đang gặp phải nhiều thách thức:
+- Xâm nhập mặn ảnh hưởng đến đồng bằng sông cửu long
+- Nông dân thiếu thiếu vốn canh tác lẫn chỗ vay vốn uy tín
+- Nông dân thiếu cách giải quyết, vật tư nông nghiệp
+- Tốn nhiều thời gian bằng việc vay vốn trực tiếp từ Bank mà biến đổi khí hậu(xâm nhập mặn) không lường trước được
 
-- **Thiếu dữ liệu thời gian thực**: Khó khăn trong việc thu thập và cập nhật thông tin về độ mặn một cách liên tục
-- **Quản lý phân tán**: Dữ liệu được lưu trữ ở nhiều nguồn khác nhau, khó tổng hợp và phân tích
-- **Thiếu công cụ dự báo**: Không có giải pháp để dự đoán xu hướng thay đổi độ mặn trong tương lai
-- **Khó tiếp cận thông tin**: Người dùng không có công cụ trực quan để xem và theo dõi tình hình độ mặn
+## Tổng quan giải pháp (Solution Overview)
 
-Vấn đề này ảnh hưởng đến nhiều lĩnh vực như nông nghiệp, nuôi trồng thủy sản, và cung cấp nước sinh hoạt.
-
-## 🎯 Tổng quan giải pháp (Solution Overview)
-
-**Hệ Thống Quản Lý và Phân Tích Độ Mặn Nước** là một nền tảng web toàn diện, cung cấp:
-
-- **Theo dõi thời gian thực**: Hiển thị dữ liệu độ mặn cập nhật liên tục trên bản đồ tương tác
-- **Phân tích và báo cáo**: Biểu đồ, bảng số liệu chi tiết giúp phân tích xu hướng
-- **Dự báo thông minh**: Sử dụng AI (Prophet) để dự đoán độ mặn trong tương lai
-- **Quản lý cộng đồng**: Hệ thống đăng bài, bình luận, đánh giá dự án và xếp hạng người dùng
-- **Hệ thống thông báo**: Cảnh báo tự động khi độ mặn vượt ngưỡng
-- **Quản trị viên**: Dashboard quản lý người dùng, nội dung và phân tích hệ thống
-
-Giải pháp được xây dựng với công nghệ hiện đại, đảm bảo hiệu năng cao, bảo mật tốt và dễ mở rộng.
+Xây dựng hệ sinh thái giữa 3 chủ thể chính: Nông dân, Doanh nghiệp cung cấp Vật tư nông nghiệp, Ngân hàng để giải quyết vấn đề nhức nhối trên từ việc Doanh nghiệp cung cấp nông phẩm dựa trên Độ mặn dự đoán của Web app chúng em!
 
 ## Các tính năng chính
 

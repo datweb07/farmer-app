@@ -31,6 +31,7 @@ import { UserAvatar } from "../components/UserAvatar";
 import { NotificationDropdown } from "../components/NotificationDropdown";
 import { ProvinceSelector } from "../components/ProvinceSelector";
 import { VoiceButton } from "../components/VoiceButton";
+import { AlertNotification } from "../components/AlertNotification";
 import { supabase } from "../../lib/supabase/supabase";
 import { getCurrentMonthSalinity } from "../../lib/salinity/salinity.service";
 
@@ -239,6 +240,14 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   if (isMobile) {
     return (
       <div className="min-h-screen relative bg-gray-900 text-white font-sans">
+        {/* Alert Notification - Fixed position */}
+        <AlertNotification
+          province={province}
+          salinity={currentSalinity}
+          latestDate={latestDate}
+          latestStation={latestStation}
+        />
+
         {/* Background Image - Cập nhật để fill full chiều dài màn hình */}
         <div
           className="fixed inset-0 z-0 opacity-60"
@@ -566,6 +575,14 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   // ==================== DESKTOP LAYOUT ====================
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Alert Notification - Fixed position */}
+      <AlertNotification
+        province={province}
+        salinity={currentSalinity}
+        latestDate={latestDate}
+        latestStation={latestStation}
+      />
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Welcome Banner */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-6 mb-8 shadow-lg">

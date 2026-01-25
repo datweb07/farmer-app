@@ -1,0 +1,4 @@
+Link dataset độ mặn vào dry season với time-series là 24 năm (2000-2023): https://zenodo.org/records/15653696
+Link lấy chỉ số ONI: https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php
+Link chạy thuật toán dự đoán Prophet: https://colab.research.google.com/drive/1jrXdmKb1-x29WpCCVZ0wyVXdR9KEtU2t?usp=sharing
+Link python clean-data và đọc file ảnh .tif từ dataset: https://github.com/datweb07/clean_data.git

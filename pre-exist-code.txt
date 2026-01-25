@@ -1,0 +1,16 @@
+- Những features đã phát triển thêm trong thời gian Hackathon: 
++ Chỉnh sửa lại dự đoán độ mặn --> Theo năm và tháng ở từng trạm của từng khu vực thuộc đồng bằng Sông Cửu Long
++ Cập nhật độ mặn theo tỉnh ở màn hình Dashboard của nông dân
++ Thêm chức năng cảnh báo với từng mức độ mặn khác nhau ở khu vực đó với từng giải pháp tương ứng
++ Thêm chức năng cho phép người dùng upload giấy chứng nhận trong phần thanh toán trả sau đối với sản phẩm đã liên kết với doanh nghiệp
++ Chỉnh sửa thời gian của hạn mức tín dụng đối với phần trả sau của nông dân
++ Remove một vài component trong MapSalinity
++ Thêm chức năng VoiceAccessibility cho người nông dân giúp đọc rõ và chính xác vào tháng X ở tỉnh Y có độ mặn Z
++ Chỉnh lại navigation trong MobileBottomNav đối với giao diện dành cho mobile
++ Chỉnh lại giao diện các trang Post, MapSalinity, Product, Invest cho phù hợp với giao diện mobile và người dùng là nông dân
+
+- AI-assisted-development: Team có sử dụng các công cụ và AI Editor như sau:
++ GitHub Copilot
++ Antigravity
++ Gemini 3.0 Pro
++ Claude Sonnet 4.5 (Thinking)

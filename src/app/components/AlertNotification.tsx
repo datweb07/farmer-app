@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, X, AlertTriangle, Droplets, Info } from "lucide-react";
+import { Bell, X, Droplets } from "lucide-react";
 
 interface AlertNotificationProps {
   province: string;
@@ -74,7 +74,6 @@ export function AlertNotification({
   province,
   salinity,
   latestDate,
-  latestStation,
 }: AlertNotificationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [alert, setAlert] = useState<SalinitySolution | null>(null);

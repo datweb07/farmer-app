@@ -107,7 +107,7 @@ After running `npm run dev`, open your browser at `http://localhost:5173`.
 
 ## Contribution
 
-- We welcome all contributions! Please follow these steps:
+We welcome all contributions! Please follow these steps:
   1. Fork the repository.
   2. Create a new branch (`git checkout -b feature/FeatureName`).
   3. Commit your changes (`git commit -m 'Add feature XYZ'`).

@@ -71,7 +71,7 @@ We aim to build an ecosystem connecting three key **stakeholders**: Farmers, **A
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/datweb07/farmer-app.git](https://github.com/datweb07/farmer-app.git)
+git clone https://github.com/datweb07/farmer-app.git
 cd farmer-app
 
 # 2. Install dependencies

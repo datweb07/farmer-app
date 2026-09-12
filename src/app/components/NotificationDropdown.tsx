@@ -28,6 +28,7 @@ export function NotificationDropdown() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [expandedNotificationId, setExpandedNotificationId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Load initial data
@@ -129,12 +130,28 @@ export function NotificationDropdown() {
       setUnreadCount((prev) => Math.max(0, prev - 1));
     }
 
-    // Navigate to link if available
-    if (notification.link) {
-      // This will be handled by the app routing system
-      // For now, just close the dropdown
+    if (notification.type === "PROCUREMENT_REQUEST") {
+      setExpandedNotificationId((current) =>
+        current === notification.id ? null : notification.id
+      );
+    } else if (notification.link) {
       setIsOpen(false);
     }
+  };
+
+  const getMetadataText = (notification: Notification) => {
+    if (notification.type !== "PROCUREMENT_REQUEST" || !notification.metadata) {
+      return [];
+    }
+
+    const metadata = notification.metadata;
+    return [
+      ["Người đăng ký", metadata.farmer_name],
+      ["Số điện thoại", metadata.phone_number],
+      ["Nông sản", metadata.product_name],
+      ["Ngày mong muốn", metadata.desired_date],
+      ["Ghi chú", metadata.note],
+    ].filter((item): item is [string, string] => typeof item[1] === "string" && item[1].length > 0);
   };
 
   const getNotificationIcon = (type: string) => {
@@ -159,6 +176,12 @@ export function NotificationDropdown() {
         return <span className={iconClasses}>@</span>;
       case "PROFILE_LOCATION_UPDATED":
         return <span className={iconClasses}>📍</span>;
+      case "PROCUREMENT_REQUEST":
+        return <span className={iconClasses}>📋</span>;
+      case "PROCUREMENT_COMPLETED":
+        return <span className={iconClasses}>✅</span>;
+      case "BUSINESS_REVIEW_RECEIVED":
+        return <span className={iconClasses}>⭐</span>;
       default:
         return <Bell className={iconClasses} />;
     }
@@ -270,6 +293,19 @@ export function NotificationDropdown() {
                             <p className="text-xs text-gray-500 mt-1">
                               {formatDistanceToNow(notification.created_at)}
                             </p>
+                            {expandedNotificationId === notification.id && (
+                              <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-xs text-gray-700 space-y-1.5">
+                                {getMetadataText(notification).map(([label, value]) => (
+                                  <p key={label}>
+                                    <span className="font-semibold">{label}:</span>{" "}
+                                    {value}
+                                  </p>
+                                ))}
+                                <p className="pt-1 text-emerald-700 font-medium">
+                                  Quản lý yêu cầu này trong mục Hồ sơ cá nhân.
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                           {/* Unread indicator */}

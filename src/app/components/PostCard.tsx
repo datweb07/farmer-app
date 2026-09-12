@@ -30,6 +30,8 @@ import { EditPostModal } from "./EditPostModal";
 import { PostDetailModal } from "./PostDetailModal";
 import { MediaCarousel } from "./MediaCarousel";
 import type { MediaItem } from "./MediaCarousel";
+import { ProcurementRequestModal } from "./ProcurementRequestModal";
+import { BusinessReputationCard } from "./BusinessReputationCard";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -38,7 +40,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showUserProfileModal, setShowUserProfileModal] = useState(false);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
@@ -53,6 +55,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showProcurementModal, setShowProcurementModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReadMore, setShowReadMore] = useState(false);
   const [postMedia, setPostMedia] = useState<MediaItem[]>([]);
@@ -171,7 +174,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
     const badges = {
       experience: { text: "Kinh nghiệm", color: "text-blue-600" },
       "salinity-solution": { text: "Giải pháp mặn", color: "text-green-600" },
-      product: { text: "Sản phẩm", color: "text-purple-600" },
+      product: { text: "Thu mua nông sản", color: "text-emerald-700" },
     };
     return badges[post.category];
   };
@@ -321,15 +324,6 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                 <span className="text-xs text-gray-500">
                   {formatDate(post.created_at)}
                 </span>
-                {post.author_points > 0 && (
-                  <>
-                    <span className="text-gray-300">•</span>
-                    <span className="text-xs text-gray-500 flex items-center gap-1">
-                      <span className="w-1 h-1 bg-yellow-500 rounded-full"></span>
-                      {post.author_points} điểm
-                    </span>
-                  </>
-                )}
               </div>
             </div>
           </div>
@@ -403,6 +397,10 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="px-3 pb-3">
+          <BusinessReputationCard businessId={post.user_id} compact />
         </div>
 
         {/* Content - Phần này sẽ co giãn */}
@@ -561,6 +559,20 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         </div>
 
         {/* Product Link - Nếu có */}
+        {profile?.role === "farmer" && (
+          <div className="px-3 py-2 flex-shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowProcurementModal(true);
+              }}
+              className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
+            >
+              Liên hệ ngay · Đăng ký thu mua
+            </button>
+          </div>
+        )}
+
         {post.product_link && (
           <div className="px-3 py-2 flex-shrink-0">
             <button
@@ -592,6 +604,16 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         isOpen={showUserProfileModal}
         onClose={() => setShowUserProfileModal(false)}
       />
+
+      {profile?.role === "farmer" && (
+        <ProcurementRequestModal
+          post={post}
+          defaultName={profile.username}
+          defaultPhone={profile.phone_number}
+          isOpen={showProcurementModal}
+          onClose={() => setShowProcurementModal(false)}
+        />
+      )}
 
       <EditPostModal
         isOpen={showEditModal}

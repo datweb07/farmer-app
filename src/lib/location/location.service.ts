@@ -11,10 +11,17 @@ export async function getCurrentUserLocation(): Promise<{
 
   if (!user) return { location: null, error: "Chưa đăng nhập" };
 
+  return getUserLocation(user.id);
+}
+
+export async function getUserLocation(userId: string): Promise<{
+  location: UserLocation | null;
+  error?: string;
+}> {
   const { data, error } = await supabase
     .from("user_locations")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (error) return { location: null, error: error.message };

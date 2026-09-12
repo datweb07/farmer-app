@@ -136,10 +136,10 @@ export function MobilePostsView({
                 >
                     <div className="p-5 flex flex-col justify-center h-full">
                         <h2 className="text-xl font-bold text-white mb-1 drop-shadow-lg uppercase">
-                            Cộng đồng nông dân
+                            {profile?.role === "farmer" ? "Đối Tác Thu Mua Tin Cậy" : "Thu mua sản lượng nông phẩm"}
                         </h2>
                         <p className="text-xs text-white/90 drop-shadow">
-                            Chia sẻ kinh nghiệm - Học tập lẫn nhau - Cùng phát triển
+                            RÕ RÀNG - UY TÍN - MINH BẠCH
                         </p>
                     </div>
                 </div>
@@ -155,7 +155,7 @@ export function MobilePostsView({
 
                     <div className="relative z-10 p-4">
                         <h3 className="text-lg font-bold text-white text-center mb-6 uppercase tracking-tight drop-shadow-md font-sans">
-                            Thành tích xuất sắc tháng
+                            Đối tác thu mua uy tín
                         </h3>
 
                         {/* Podium Container: Flexbox align bottom */}
@@ -240,33 +240,13 @@ export function MobilePostsView({
                 </div>
 
                 {/* Create Post Button */}
-                <button
+                {profile?.role === "business" && <button
                     onClick={onCreatePost}
                     className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors"
                 >
                     <PlusCircle className="w-5 h-5" />
-                    Đăng bài mới
-                </button>
-
-                {/* Point System */}
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    Cách tích điểm
-                </h3>
-
-                <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-2 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-black text-green-600 mb-1">+10</div>
-                        <p className="text-xs text-gray-700 leading-tight font-medium">Đăng bài mới</p>
-                    </div>
-                    <div className="text-center p-2 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-black text-green-600 mb-1">+5</div>
-                        <p className="text-xs text-gray-700 leading-tight font-medium">Mỗi 10 like</p>
-                    </div>
-                    <div className="text-center p-2 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-black text-green-600 mb-1">+2</div>
-                        <p className="text-xs text-gray-700 leading-tight font-medium">Mỗi 100 xem</p>
-                    </div>
-                </div>
+                    Đăng nhu cầu thu mua
+                </button>}
 
                 {/* Posts List */}
                 {loading ? (

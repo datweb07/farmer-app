@@ -9,6 +9,7 @@ import {
   Share2,
   Users,
   UserCheck,
+  MapPin,
 } from "lucide-react";
 import { UserAvatar } from "./UserAvatar";
 import { PostCard } from "./PostCard";
@@ -25,6 +26,9 @@ import { getUserPoints } from "../../lib/community/leaderboard.service";
 import { getUserFollowStats } from "../../lib/follow/follow.service";
 import type { FollowStats } from "../../lib/follow/types";
 import { useAuth } from "../../contexts/AuthContext";
+import { getUserLocation } from "../../lib/location/location.service";
+import type { UserLocation } from "../../lib/location/types";
+import { BusinessReputationCard } from "./BusinessReputationCard";
 
 interface UserProfileModalProps {
   username: string;
@@ -45,6 +49,7 @@ export function UserProfileModal({
   const [sharedPosts, setSharedPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [userPoints, setUserPoints] = useState<number>(0);
+  const [location, setLocation] = useState<UserLocation | null>(null);
   const [followStats, setFollowStats] = useState<FollowStats | null>(null);
   const [showFollowersList, setShowFollowersList] = useState(false);
   const [followersListTab, setFollowersListTab] = useState<
@@ -61,6 +66,7 @@ export function UserProfileModal({
       setSharedPosts([]);
       setActiveTab("posts");
       setUserPoints(0);
+      setLocation(null);
     }
   }, [isOpen, username]);
 
@@ -81,6 +87,9 @@ export function UserProfileModal({
 
       if (!error && data) {
         setProfile(data);
+        const locationResult = await getUserLocation(data.id);
+        setLocation(locationResult.location);
+        if (data.role === "farmer") setActiveTab("shared");
         // Load dynamic points
         const pointsResult = await getUserPoints(data.id);
         if (!pointsResult.error) {
@@ -242,16 +251,12 @@ export function UserProfileModal({
                   </div>
                 )}
 
-                {/* Points */}
-                <div className="flex items-center gap-2 p-2 bg-blue-50 rounded">
-                  <Award className="w-3 h-3 text-blue-600" />
-                  <div>
-                    <p className="text-xs text-gray-500">Điểm uy tín</p>
-                    <p className="text-sm font-medium text-blue-700">
-                      {userPoints} điểm
-                    </p>
+                {location && (
+                  <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded">
+                    <MapPin className="w-3 h-3 text-emerald-700" />
+                    <div><p className="text-xs text-gray-500">Khu vực</p><p className="text-sm font-medium text-emerald-800">{location.ward_name}, {location.district_name}, {location.province_name}</p></div>
                   </div>
-                </div>
+                )}
 
                 {/* Join date */}
                 <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
@@ -276,6 +281,8 @@ export function UserProfileModal({
                 </div>
               </div>
 
+              {profile.role === "business" && <div className="mb-6"><BusinessReputationCard businessId={profile.id} /></div>}
+
               {/* Activity Section */}
               <div className="border-t border-gray-200 pt-4">
                 <h3 className="text-base font-semibold text-gray-900 mb-3">
@@ -284,7 +291,7 @@ export function UserProfileModal({
 
                 {/* Tabs */}
                 <div className="flex gap-2 mb-4 border-b border-gray-200">
-                  <button
+                  {profile.role === "business" && <button
                     onClick={() => setActiveTab("posts")}
                     className={`flex items-center gap-2 px-3 py-2 font-medium text-xs transition-colors ${
                       activeTab === "posts"
@@ -294,7 +301,7 @@ export function UserProfileModal({
                   >
                     <FileText className="w-3 h-3" />
                     Bài viết
-                  </button>
+                  </button>}
                   <button
                     onClick={() => setActiveTab("shared")}
                     className={`flex items-center gap-2 px-3 py-2 font-medium text-xs transition-colors ${

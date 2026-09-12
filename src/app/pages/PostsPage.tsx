@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { PlusCircle, Filter, Award, Loader2, Users } from "lucide-react";
+import { PlusCircle, Filter, Award, Loader2 } from "lucide-react";
 import { PostCard } from "../components/PostCard";
-import { CreatePostModal } from "../components/CreatePostModal";
+import { CreateProcurementPostModal } from "../components/CreateProcurementPostModal";
 import { PostDetailModal } from "../components/PostDetailModal";
 import { UserProfileModal } from "../components/UserProfileModal";
-import { FollowingFeed } from "../components/FollowingFeed";
 import { MobilePostsView } from "../components/MobilePostsView";
 import { getPosts, getPostById, deletePost } from "../../lib/community/posts.service";
-import { getTopContributors } from "../../lib/community/leaderboard.service";
+import { getBusinessRanking } from "../../lib/procurement/procurement.service";
 import type { PostWithStats, TopContributor } from "../../lib/community/types";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -28,7 +27,6 @@ export function PostsPage({
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [topContributors, setTopContributors] = useState<TopContributor[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [feedView, setFeedView] = useState<"all" | "following">("all");
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -44,9 +42,7 @@ export function PostsPage({
 
   const categories = [
     { id: "all", label: "Tất cả" },
-    { id: "experience", label: "Kinh nghiệm" },
-    { id: "salinity-solution", label: "Giải pháp mặn" },
-    { id: "product", label: "Sản phẩm" },
+    { id: "product", label: "Nhu cầu thu mua" },
   ];
 
   useEffect(() => {
@@ -95,9 +91,17 @@ export function PostsPage({
   };
 
   const loadLeaderboard = async () => {
-    const result = await getTopContributors(3);
+    const result = await getBusinessRanking(3);
     if (!result.error) {
-      setTopContributors(result.contributors);
+      setTopContributors(result.businesses.map((business, index) => ({
+        user_id: business.business_id,
+        username: business.username,
+        avatar_url: business.avatar_url,
+        total_points: Number(business.total_score),
+        posts_count: Number(business.successful_lots),
+        likes_received: Number(business.review_count),
+        rank: index + 1,
+      })));
     }
   };
 
@@ -150,11 +154,11 @@ export function PostsPage({
         />
 
         {/* Modals */}
-        <CreatePostModal
+        {profile?.role === "business" && <CreateProcurementPostModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onSuccess={handlePostCreated}
-        />
+        />}
 
         <PostDetailModal
           post={selectedPost}
@@ -181,10 +185,10 @@ export function PostsPage({
         {/* Header */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
-            Cộng đồng nông dân
+            {profile?.role === "farmer" ? "Đối Tác Thu Mua Tin Cậy" : "Thu mua sản lượng nông phẩm"}
           </h1>
           <p className="text-gray-600">
-            Chia sẻ kinh nghiệm - Học hỏi lẫn nhau - Cùng phát triển
+            RÕ RÀNG - UY TÍN - MINH BẠCH
           </p>
         </div>
 
@@ -192,7 +196,7 @@ export function PostsPage({
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <h3 className="font-semibold text-lg text-gray-900 mb-4 flex items-center gap-2">
             <Award className="w-5 h-5 text-blue-600" />
-            Thành viên xuất sắc tháng này
+            Đối tác thu mua uy tín
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {topContributors.length > 0 ? (
@@ -230,66 +234,17 @@ export function PostsPage({
           </div>
         </div>
 
-        {/* How to Earn Points */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-          <h3 className="font-semibold text-lg text-gray-900 mb-4">
-            Cách tích điểm uy tín
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="border border-gray-200 rounded-lg p-4">
-              <p className="font-semibold text-blue-600 mb-1">+10 điểm</p>
-              <p className="text-gray-700 text-sm">Đăng bài mới</p>
-            </div>
-            <div className="border border-gray-200 rounded-lg p-4">
-              <p className="font-semibold text-blue-600 mb-1">+2 điểm</p>
-              <p className="text-gray-700 text-sm">Mỗi 100 lượt xem</p>
-            </div>
-            <div className="border border-gray-200 rounded-lg p-4">
-              <p className="font-semibold text-blue-600 mb-1">+5 điểm</p>
-              <p className="text-gray-700 text-sm">Mỗi 10 like</p>
-            </div>
-          </div>
-        </div>
-
         {/* Create Post Button */}
-        <button
+        {profile?.role === "business" && <button
           onClick={() => setShowCreateModal(true)}
           className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors mb-6"
         >
           <PlusCircle className="w-5 h-5" />
-          Đăng bài mới
-        </button>
-
-        {/* Feed View Toggle */}
-        {user && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setFeedView("all")}
-                className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${feedView === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-              >
-                <Filter className="w-4 h-4" />
-                Tất cả bài viết
-              </button>
-              <button
-                onClick={() => setFeedView("following")}
-                className={`flex-1 px-4 py-2 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 ${feedView === "following"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-              >
-                <Users className="w-4 h-4" />
-                Người theo dõi
-              </button>
-            </div>
-          </div>
-        )}
+          Đăng nhu cầu thu mua
+        </button>}
 
         {/* Category Filter - Only show for "all" view */}
-        {feedView === "all" && (
+        {(
           <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
             <div className="flex items-center gap-3 mb-4">
               <Filter className="w-5 h-5 text-gray-700" />
@@ -313,9 +268,7 @@ export function PostsPage({
         )}
 
         {/* Feed Content */}
-        {feedView === "following" ? (
-          <FollowingFeed onNavigateToProduct={onNavigateToProduct} />
-        ) : loading ? (
+        {loading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
@@ -333,32 +286,32 @@ export function PostsPage({
           </div>
         )}
 
-        {!loading && feedView === "all" && posts.length === 0 && (
+        {!loading && posts.length === 0 && (
           <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
             <p className="text-lg text-gray-600 font-semibold mb-2">
               Chưa có bài viết nào
             </p>
-            <p className="text-gray-500">Hãy là người đầu tiên chia sẻ!</p>
+            <p className="text-gray-500">Chưa có doanh nghiệp đăng nhu cầu thu mua.</p>
           </div>
         )}
 
-        {/* Community Guidelines */}
+        {/* Marketplace Guidelines */}
         <div className="mt-8 bg-white border border-gray-200 rounded-lg p-6">
           <h3 className="font-semibold text-lg text-gray-900 mb-4">
-            Quy tắc cộng đồng
+            Nguyên tắc đối tác thu mua
           </h3>
           <ul className="space-y-3 text-gray-700">
             <li className="flex items-start gap-2">
               <span className="text-blue-600 mt-0.5">•</span>
-              <span>Chia sẻ kinh nghiệm thật, có hình ảnh minh họa</span>
+              <span>Doanh nghiệp công khai rõ sản lượng, giá, khu vực và thời gian thu mua</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-600 mt-0.5">•</span>
-              <span>Tôn trọng, lễ phép với mọi thành viên</span>
+              <span>Nông dân chỉ đánh giá sau khi giao dịch đã hoàn thành</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-600 mt-0.5">•</span>
-              <span>Giúp đỡ nhau giải quyết khó khăn</span>
+              <span>Thông tin cân cáp, thanh toán và lịch hẹn cần minh bạch</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-gray-400 mt-0.5">•</span>
@@ -369,11 +322,11 @@ export function PostsPage({
       </div>
 
       {/* Create Post Modal */}
-      <CreatePostModal
+      {profile?.role === "business" && <CreateProcurementPostModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={handlePostCreated}
-      />
+      />}
 
       {/* Post Detail Modal */}
       <PostDetailModal

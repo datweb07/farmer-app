@@ -39,6 +39,8 @@ import type { FollowStats } from "../../lib/follow/types";
 import { FollowersList } from "../../app/components/FollowersList";
 import { BusinessLinksSection } from "../../app/components/BusinessLinksSection";
 import { ProfileLocationEditor } from "../../app/components/ProfileLocationEditor";
+import { BusinessReputationCard } from "../../app/components/BusinessReputationCard";
+import { ProcurementManager } from "../../app/components/ProcurementManager";
 
 interface ProfilePageProps {
   onNavigate?: (page: string) => void;
@@ -137,6 +139,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       loadUserActivity();
     }
   }, [profile?.id, activeTab, loadUserActivity]);
+
+  useEffect(() => {
+    if (profile?.role === "farmer") setActiveTab("shared");
+  }, [profile?.role]);
 
   // Load follow stats
   useEffect(() => {
@@ -458,18 +464,16 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           <ProfileLocationEditor />
         </div>
 
-        {/* Badges Section */}
-        {profile?.id && (
-          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-            <BadgeList userId={profile.id} />
+        {profile.role === "business" && (
+          <div className="mb-6">
+            <BusinessReputationCard businessId={profile.id} />
           </div>
         )}
 
+        <ProcurementManager role={profile.role} />
+
         {/* Business Links Section - Only for farmers */}
         {profile?.role === "farmer" && <BusinessLinksSection />}
-
-        {/* Badge Notification */}
-        <BadgeNotification badge={newBadge} onClose={() => setNewBadge(null)} />
 
         {/* Activity Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -479,7 +483,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
 
           {/* Tabs */}
           <div className="flex gap-2 mb-6 border-b border-gray-200">
-            <button
+            {profile.role === "business" && <button
               onClick={() => setActiveTab("posts")}
               className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === "posts"
                   ? "text-blue-600 border-b-2 border-blue-600"
@@ -488,7 +492,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             >
               <FileText className="w-4 h-4" />
               Bài viết của tôi
-            </button>
+            </button>}
             <button
               onClick={() => setActiveTab("shared")}
               className={`flex items-center gap-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === "shared"

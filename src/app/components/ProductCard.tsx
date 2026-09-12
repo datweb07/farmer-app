@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Phone, Award, Tag, Eye, ShoppingCart } from "lucide-react";
+import { Phone, Tag, Eye, ShoppingCart } from "lucide-react";
 import type { ProductWithStats } from "../../lib/community/types";
 import {
   trackProductView,
@@ -9,6 +9,8 @@ import {
 import { supabase } from "../../lib/supabase/supabase";
 import { MediaCarousel } from "./MediaCarousel";
 import type { MediaItem } from "./MediaCarousel";
+import { UserProfileModal } from "./UserProfileModal";
+import { BusinessReputationCard } from "./BusinessReputationCard";
 
 interface ProductCardProps {
   product: ProductWithStats;
@@ -25,6 +27,7 @@ export function ProductCard({
 }: ProductCardProps) {
   const [productMedia, setProductMedia] = useState<MediaItem[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(true);
+  const [showSellerProfile, setShowSellerProfile] = useState(false);
 
   // Kiểm tra seller role để hiển thị nút phù hợp
   const isBusinessProduct = product.seller_role === "business";
@@ -114,7 +117,7 @@ export function ProductCard({
     window.open(zaloLink, "_blank");
   };
 
-  return (
+  return <>
     <div
       className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
       onClick={onViewDetail}
@@ -157,17 +160,24 @@ export function ProductCard({
         <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200">
           <div className="flex-1">
             <p className="text-xs text-gray-500">Người bán</p>
-            <p className="font-medium text-gray-900 text-sm">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setShowSellerProfile(true);
+              }}
+              className="font-medium text-gray-900 text-sm hover:text-blue-600 hover:underline"
+            >
               {product.seller_username}
-            </p>
-          </div>
-          <div className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded">
-            <Award className="w-3 h-3 text-blue-600" />
-            <span className="text-xs font-medium text-blue-700">
-              {product.seller_points}
-            </span>
+            </button>
           </div>
         </div>
+
+        {isBusinessProduct && (
+          <div className="mb-3">
+            <BusinessReputationCard businessId={product.user_id} compact />
+          </div>
+        )}
 
         {/* Contact Button - Only show if not business user */}
         {showBuyButton && (
@@ -201,5 +211,10 @@ export function ProductCard({
         )}
       </div>
     </div>
-  );
+    <UserProfileModal
+      username={product.seller_username}
+      isOpen={showSellerProfile}
+      onClose={() => setShowSellerProfile(false)}
+    />
+  </>;
 }

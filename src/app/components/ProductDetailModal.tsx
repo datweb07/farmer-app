@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   X,
   Phone,
-  Award,
   Tag,
   Eye,
   Package,
@@ -15,6 +14,8 @@ import { formatPrice, getZaloLink } from "../../lib/community/products.service";
 import { supabase } from "../../lib/supabase/supabase";
 import { MediaCarousel } from "./MediaCarousel";
 import type { MediaItem } from "./MediaCarousel";
+import { UserProfileModal } from "./UserProfileModal";
+import { BusinessReputationCard } from "./BusinessReputationCard";
 
 interface ProductDetailModalProps {
   product: ProductWithStats | null;
@@ -39,6 +40,7 @@ export function ProductDetailModal({
 }: ProductDetailModalProps) {
   const [productMedia, setProductMedia] = useState<MediaItem[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(true);
+  const [showSellerProfile, setShowSellerProfile] = useState(false);
 
   // Fetch product images and videos
   useEffect(() => {
@@ -133,7 +135,7 @@ export function ProductDetailModal({
     window.open(zaloLink, "_blank");
   };
 
-  return (
+  return <>
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
         className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300"
@@ -225,20 +227,20 @@ export function ProductDetailModal({
                       <p className="text-sm text-gray-600 mb-1">
                         Tên người bán
                       </p>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <button
+                        type="button"
+                        onClick={() => setShowSellerProfile(true)}
+                        className="text-lg font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+                      >
                         {product.seller_username}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-lg">
-                      <Award className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <p className="text-xs text-blue-700">Điểm uy tín</p>
-                        <p className="text-lg font-bold text-blue-600">
-                          {product.seller_points}
-                        </p>
-                      </div>
+                      </button>
                     </div>
                   </div>
+                  {isBusinessProduct && (
+                    <div className="mt-3">
+                      <BusinessReputationCard businessId={product.user_id} compact />
+                    </div>
+                  )}
                 </div>
 
                 {/* Contact Information */}
@@ -330,5 +332,10 @@ export function ProductDetailModal({
         </div>
       </div>
     </div>
-  );
+    <UserProfileModal
+      username={product.seller_username}
+      isOpen={showSellerProfile}
+      onClose={() => setShowSellerProfile(false)}
+    />
+  </>;
 }

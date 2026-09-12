@@ -15,7 +15,10 @@ export type NotificationType =
   | "POST_APPROVED"
   | "PRODUCT_APPROVED"
   | "PROJECT_APPROVED"
-  | "PROFILE_LOCATION_UPDATED";
+  | "PROFILE_LOCATION_UPDATED"
+  | "PROCUREMENT_REQUEST"
+  | "PROCUREMENT_COMPLETED"
+  | "BUSINESS_REVIEW_RECEIVED";
 
 export interface Notification {
   id: string;
@@ -29,6 +32,7 @@ export interface Notification {
   actor_avatar?: string;
   is_read: boolean;
   created_at: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface NotificationStats {

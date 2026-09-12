@@ -14,6 +14,18 @@ import type {
 } from "./types";
 import { uploadImage } from "./image-upload";
 
+async function keepBusinessPosts(posts: PostWithStats[]): Promise<PostWithStats[]> {
+  const authorIds = [...new Set(posts.map((post) => post.user_id))];
+  if (authorIds.length === 0) return [];
+  const { data } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("role", "business")
+    .in("id", authorIds);
+  const businessIds = new Set((data || []).map((profile) => profile.id));
+  return posts.filter((post) => businessIds.has(post.user_id));
+}
+
 /**
  * Create a new post
  */
@@ -135,8 +147,9 @@ export async function getPosts(params?: {
       return { posts: [], error: "Không thể tải bài viết" };
     }
 
-    console.log("✅ [Posts] Fetched", data?.length || 0, "posts");
-    return { posts: (data as PostWithStats[]) || [] };
+    const businessPosts = await keepBusinessPosts((data as PostWithStats[]) || []);
+    console.log("✅ [Posts] Fetched", businessPosts.length, "business posts");
+    return { posts: businessPosts };
   } catch (err) {
     console.error("🔴 [Posts] Unexpected error:", err);
     return { posts: [], error: "Đã xảy ra lỗi không mong muốn" };
@@ -165,6 +178,9 @@ export async function getPostById(
     }
 
     const post = data[0] as PostWithStats;
+
+    const visiblePosts = await keepBusinessPosts([post]);
+    if (visiblePosts.length === 0) return null;
 
     // Check if current user liked this post
     if (user) {
@@ -804,6 +820,13 @@ export async function getUserPosts(userId: string): Promise<{
   try {
     console.log("🔵 [Posts] Fetching user posts...");
 
+    const { data: author } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+    if (author?.role !== "business") return { posts: [] };
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -820,7 +843,7 @@ export async function getUserPosts(userId: string): Promise<{
     }
 
     console.log("✅ [Posts] Fetched", data?.length || 0, "user posts");
-    return { posts: (data as PostWithStats[]) || [] };
+    return { posts: await keepBusinessPosts((data as PostWithStats[]) || []) };
   } catch (err) {
     console.error("🔴 [Posts] Unexpected error:", err);
     return { posts: [], error: "Đã xảy ra lỗi không mong muốn" };
@@ -852,8 +875,9 @@ export async function getUserSharedPosts(userId: string): Promise<{
       return { posts: [], error: "Không thể tải bài viết đã chia sẻ" };
     }
 
-    console.log("✅ [Posts] Fetched", data?.length || 0, "shared posts");
-    return { posts: data || [] };
+    const businessPosts = await keepBusinessPosts(data || []);
+    console.log("✅ [Posts] Fetched", businessPosts.length, "business shared posts");
+    return { posts: businessPosts };
   } catch (err) {
     console.error("🔴 [Posts] Unexpected error:", err);
     return { posts: [], error: "Đã xảy ra lỗi không mong muốn" };

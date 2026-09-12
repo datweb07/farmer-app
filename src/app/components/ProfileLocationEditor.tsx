@@ -60,6 +60,10 @@ export function ProfileLocationEditor() {
         setProvinces(data);
         if (result.error) throw new Error(result.error);
         if (result.location) {
+          if (!data.some((province) => province.code === result.location?.province_code)) {
+            setError("Địa chỉ đã lưu trước đây nằm ngoài 13 tỉnh/thành Đồng bằng sông Cửu Long. Vui lòng chọn lại.");
+            return;
+          }
           setSavedLocation(result.location);
           setProvinceCode(result.location.province_code);
           setDistrictCode(result.location.district_code);

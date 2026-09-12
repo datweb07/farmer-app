@@ -7,6 +7,35 @@
 
 import { supabase } from "../supabase/supabase";
 import type { Notification, NotificationStats } from "./types";
+import { getUserSettings } from "../settings/settings.service";
+
+async function filterEnabledNotifications(notifications: Notification[]) {
+  const { settings } = await getUserSettings();
+  if (!settings) return notifications;
+  if (!settings.push_notifications) return [];
+
+  return notifications.filter((notification) => {
+    switch (notification.type) {
+      case "FOLLOW":
+        return settings.push_new_follower;
+      case "POST_LIKE":
+        return settings.push_post_like;
+      case "POST_COMMENT":
+      case "COMMENT_REPLY":
+        return settings.push_post_comment;
+      case "PROJECT_INVESTMENT":
+      case "PROJECT_RATING":
+      case "PROJECT_APPROVED":
+        return settings.push_project_update;
+      case "PROCUREMENT_REQUEST":
+      case "PROCUREMENT_COMPLETED":
+      case "BUSINESS_REVIEW_RECEIVED":
+        return settings.push_procurement;
+      default:
+        return true;
+    }
+  });
+}
 
 /**
  * Get notifications for current user
@@ -55,7 +84,7 @@ export async function getNotifications(params?: {
       return { notifications: [], error: error.message };
     }
 
-    return { notifications: data || [] };
+    return { notifications: await filterEnabledNotifications(data || []) };
   } catch (error: any) {
     console.error("Error in getNotifications:", error);
     return { notifications: [], error: error.message };
@@ -77,19 +106,19 @@ export async function getUnreadCount(): Promise<{
       return { count: 0, error: "Chưa đăng nhập" };
     }
 
-    const { data, error } = await supabase.rpc(
-      "get_unread_notifications_count",
-      {
-        p_user_id: user.id,
-      }
-    );
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_read", false);
 
     if (error) {
       console.error("Error getting unread count:", error);
       return { count: 0, error: error.message };
     }
 
-    return { count: data || 0 };
+    const enabled = await filterEnabledNotifications(data || []);
+    return { count: enabled.length };
   } catch (error: any) {
     console.error("Error in getUnreadCount:", error);
     return { count: 0, error: error.message };
@@ -228,7 +257,9 @@ export function subscribeToNotifications(
         filter: `user_id=eq.${userId}`,
       },
       (payload) => {
-        callback(payload.new as Notification);
+      filterEnabledNotifications([payload.new as Notification]).then((enabled) => {
+        if (enabled[0]) callback(enabled[0]);
+      });
       }
     )
     .subscribe();

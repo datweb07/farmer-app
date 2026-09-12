@@ -165,7 +165,14 @@ export function NotificationDropdown() {
     <div className="relative" ref={dropdownRef}>
       {/* Bell Button - Updated styles to match image */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const nextOpen = !isOpen;
+          setIsOpen(nextOpen);
+          if (nextOpen) {
+            void loadNotifications();
+            void loadUnreadCount();
+          }
+        }}
         className="relative p-2 text-white hover:bg-white/10 rounded-full transition-colors"
       >
         {/* Fill currentColor makes the bell solid white like in the image if SVG supports it, otherwise stroke is white */}

@@ -4,6 +4,7 @@ import type { UserRole } from "../../lib/auth/auth.types";
 import type { PaymentVelocity, ProcurementRequest } from "../../lib/procurement/types";
 import { getPostById } from "../../lib/community/posts.service";
 import type { PostWithStats } from "../../lib/community/types";
+import { PostDetailModal } from "./PostDetailModal";
 import {
   acceptProcurementRequest,
   completeProcurementRequest,
@@ -77,6 +78,7 @@ function Dialog({ title, onClose, children }: { title: string; onClose: () => vo
 function ViewDetailsDialog({ request, onClose }: { request: ProcurementRequest; onClose: () => void }) {
   const [post, setPost] = useState<PostWithStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showPostDetail, setShowPostDetail] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -89,7 +91,7 @@ function ViewDetailsDialog({ request, onClose }: { request: ProcurementRequest; 
     return () => { active = false; };
   }, [request.post_id]);
 
-  return <Dialog title="Chi tiết giao dịch" onClose={onClose}>
+  return <><Dialog title="Chi tiết giao dịch" onClose={onClose}>
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
@@ -135,12 +137,20 @@ function ViewDetailsDialog({ request, onClose }: { request: ProcurementRequest; 
           <div className="rounded-lg bg-gray-50 border p-3">
              <p className="font-semibold text-gray-900">{post.title}</p>
              <p className="text-sm text-gray-700 mt-1 line-clamp-3">{post.content}</p>
-             <a href={`/posts/${post.id}`} className="text-sm text-blue-600 hover:underline mt-2 inline-block font-medium">Xem chi tiết bài viết →</a>
+             <button type="button" onClick={() => setShowPostDetail(true)} className="text-sm text-blue-600 hover:underline mt-2 inline-block font-medium">Xem chi tiết bài viết →</button>
           </div>
         ) : (
           <p className="text-sm text-gray-500 italic">Không thể tải thông tin bài viết gốc.</p>
         )}
       </div>
     </div>
-  </Dialog>;
+  </Dialog>
+  {post && (
+    <PostDetailModal
+      post={post}
+      isOpen={showPostDetail}
+      onClose={() => setShowPostDetail(false)}
+    />
+  )}
+  </>;
 }

@@ -20,7 +20,6 @@ import { LoginPage } from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
 import { ProfilePage } from "../pages/auth/ProfilePage";
 import { SettingsPage } from "../pages/settings/SettingsPage";
-import { useInitStorage } from "../hooks/useInitStorage";
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -33,7 +32,6 @@ function AppContent() {
   const { profile } = useAuth();
 
   // Initialize storage buckets
-  useInitStorage();
 
   // Hiển thị tutorial mỗi khi user login thành công
   useEffect(() => {

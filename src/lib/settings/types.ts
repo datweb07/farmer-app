@@ -26,6 +26,7 @@ export interface UserSettings {
   push_post_like: boolean;
   push_post_comment: boolean;
   push_project_update: boolean;
+  push_procurement: boolean;
 
   // Privacy Settings
   profile_visibility: ProfileVisibility;
@@ -51,6 +52,7 @@ export interface UpdateSettingsPayload {
   push_post_like?: boolean;
   push_post_comment?: boolean;
   push_project_update?: boolean;
+  push_procurement?: boolean;
   profile_visibility?: ProfileVisibility;
   show_email?: boolean;
   show_phone?: boolean;

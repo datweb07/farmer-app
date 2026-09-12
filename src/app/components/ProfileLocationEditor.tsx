@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Loader2, MapPin, Save } from "lucide-react";
+import { CheckCircle2, Loader2, Save } from "lucide-react";
 import {
   ADMINISTRATIVE_DATA_SOURCE,
   ADMINISTRATIVE_DATASET_VERSION,
@@ -126,18 +126,7 @@ export function ProfileLocationEditor() {
 
   return (
     <div className="space-y-4">
-      {savedLocation && (
-        <div className="flex items-start gap-3 rounded-lg bg-emerald-50 p-3 text-emerald-900">
-          <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />
-          <div>
-            <p className="text-xs font-medium text-emerald-700">Địa chỉ đã lưu</p>
-            <p className="mt-0.5 text-sm font-semibold">
-              {savedLocation.ward_name}, {savedLocation.district_name},{" "}
-              {savedLocation.province_name}
-            </p>
-          </div>
-        </div>
-      )}
+
 
       <div className="grid gap-4 md:grid-cols-3">
         <label className="space-y-1.5 text-sm font-medium text-gray-700">

@@ -154,37 +154,9 @@ export function NotificationDropdown() {
     ].filter((item): item is [string, string] => typeof item[1] === "string" && item[1].length > 0);
   };
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (_type: string) => {
     const iconClasses = "w-4 h-4";
-    switch (type) {
-      case "POST_LIKE":
-        return <span className={iconClasses}>❤️</span>;
-      case "POST_COMMENT":
-      case "COMMENT_REPLY":
-        return <span className={iconClasses}>💬</span>;
-      case "POST_SHARE":
-        return <span className={iconClasses}>🔄</span>;
-      case "PROJECT_INVESTMENT":
-        return <span className={iconClasses}>💰</span>;
-      case "PROJECT_RATING":
-        return <span className={iconClasses}>⭐</span>;
-      case "PRODUCT_VIEW_MILESTONE":
-        return <span className={iconClasses}>👀</span>;
-      case "FOLLOW":
-        return <span className={iconClasses}>👤</span>;
-      case "MENTION":
-        return <span className={iconClasses}>@</span>;
-      case "PROFILE_LOCATION_UPDATED":
-        return <span className={iconClasses}>📍</span>;
-      case "PROCUREMENT_REQUEST":
-        return <span className={iconClasses}>📋</span>;
-      case "PROCUREMENT_COMPLETED":
-        return <span className={iconClasses}>✅</span>;
-      case "BUSINESS_REVIEW_RECEIVED":
-        return <span className={iconClasses}>⭐</span>;
-      default:
-        return <Bell className={iconClasses} />;
-    }
+    return <Bell className={iconClasses} />;
   };
 
   if (!user) return null;

@@ -19,11 +19,14 @@ import {
   Users as UsersIcon,
   UserCheck,
   Settings,
+  MapPin,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { uploadAvatar, deleteAvatar } from "../../lib/auth/auth.service";
 import { UserAvatar } from "../../app/components/UserAvatar";
 import { validateImageFile } from "../../lib/utils/image-validation";
+import { getCurrentUserLocation } from "../../lib/location/location.service";
+import type { UserLocation } from "../../lib/location/types";
 import {
   getUserPosts,
   getUserSharedPosts,
@@ -69,6 +72,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   const [followersListTab, setFollowersListTab] = useState<
     "followers" | "following"
   >("followers");
+  const [savedLocation, setSavedLocation] = useState<UserLocation | null>(null);
 
   const loadUserActivity = useCallback(async () => {
     if (!profile?.id) return;
@@ -144,10 +148,13 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     if (profile?.role === "farmer") setActiveTab("shared");
   }, [profile?.role]);
 
-  // Load follow stats
+  // Load follow stats and location
   useEffect(() => {
     if (profile?.id) {
       loadFollowStats();
+      getCurrentUserLocation().then((res) => {
+        if (res.location) setSavedLocation(res.location);
+      });
     }
   }, [profile?.id]);
 
@@ -408,6 +415,21 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   <p className="text-xs text-gray-500">Tổ chức</p>
                   <p className="text-base font-medium text-gray-900">
                     {profile.organization_id}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Saved Location */}
+            {savedLocation && (
+              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                <div className="flex-shrink-0 w-8 h-8 bg-white rounded flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Địa chỉ đã lưu</p>
+                  <p className="text-base font-medium text-gray-900">
+                    {savedLocation.ward_name}, {savedLocation.district_name}, {savedLocation.province_name}
                   </p>
                 </div>
               </div>

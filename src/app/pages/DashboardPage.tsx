@@ -587,7 +587,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         {/* Welcome Banner */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-6 mb-8 shadow-lg">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">
-            {greeting.greeting}, {profile?.username || "Nông dân"}! 👋
+            {greeting.greeting}, {profile?.username || "Nông dân"}!
           </h1>
           <p className="text-blue-100">{greeting.message}</p>
         </div>

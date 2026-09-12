@@ -133,7 +133,7 @@ export async function getRecentActivities(limit: number = 10): Promise<{
           description: post.title,
           timestamp: post.created_at,
           link: `/posts/${post.id}`,
-          icon: "📝",
+          icon: "",
           color: "blue",
         });
       });
@@ -156,7 +156,7 @@ export async function getRecentActivities(limit: number = 10): Promise<{
           description: product.name,
           timestamp: product.created_at,
           link: `/products/${product.id}`,
-          icon: "🛒",
+          icon: "",
           color: "purple",
         });
       });
@@ -179,7 +179,7 @@ export async function getRecentActivities(limit: number = 10): Promise<{
           description: `"${comment.content.substring(0, 50)}..."`,
           timestamp: comment.created_at,
           link: `/posts/${comment.post_id}`,
-          icon: "💬",
+          icon: "",
           color: "green",
         });
       });
@@ -202,7 +202,7 @@ export async function getRecentActivities(limit: number = 10): Promise<{
           description: like.posts?.title || "Bài viết",
           timestamp: like.created_at,
           link: `/posts/${like.post_id}`,
-          icon: "❤️",
+          icon: "",
           color: "red",
         });
       });

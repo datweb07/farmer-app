@@ -16,7 +16,7 @@ export function CreateProcurementPostModal({ isOpen, onClose, onSuccess }: Props
     if (!form.product || !form.quantity || !form.area || !form.minPrice || !form.startDate || !form.endDate || !form.contact) {
       return setError("Vui lòng nhập đầy đủ các trường bắt buộc.");
     }
-    const content = `🏪 THU MUA NÔNG SẢN\n\n📌 Tên nông sản: ${form.product}\n📦 Sản lượng cần mua: ${form.quantity} tấn\n📍 Khu vực thu mua: ${form.area}\n💰 Giá thu mua: ${Number(form.minPrice).toLocaleString("vi-VN")}${form.maxPrice ? ` – ${Number(form.maxPrice).toLocaleString("vi-VN")}` : ""}đ/kg\n🗓️ Thời gian thu mua: ${new Date(form.startDate).toLocaleDateString("vi-VN")} – ${new Date(form.endDate).toLocaleDateString("vi-VN")}\n🚚 Hình thức nhận hàng: ${form.receiving || "Thỏa thuận trực tiếp"}\n⚖️ Tiêu chuẩn: ${form.standard || "Trao đổi khi liên hệ"}\n📞 Liên hệ: ${form.contact}\n\n📝 Mô tả:\n${form.description || "Doanh nghiệp đang có nhu cầu thu mua."}`;
+    const content = `THU MUA NÔNG SẢN\n\nTên nông sản: ${form.product}\nSản lượng cần mua: ${form.quantity} tấn\nKhu vực thu mua: ${form.area}\nGiá thu mua: ${Number(form.minPrice).toLocaleString("vi-VN")}${form.maxPrice ? ` – ${Number(form.maxPrice).toLocaleString("vi-VN")}` : ""}đ/kg\nThời gian thu mua: ${new Date(form.startDate).toLocaleDateString("vi-VN")} – ${new Date(form.endDate).toLocaleDateString("vi-VN")}\nHình thức nhận hàng: ${form.receiving || "Thỏa thuận trực tiếp"}\nTiêu chuẩn: ${form.standard || "Trao đổi khi liên hệ"}\nLiên hệ: ${form.contact}\n\nMô tả:\n${form.description || "Doanh nghiệp đang có nhu cầu thu mua."}`;
     setSaving(true); setError(null);
     const result = await createPost({ title: `Thu mua ${form.product}`, content, category: "product" });
     setSaving(false);

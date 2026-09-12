@@ -20,6 +20,7 @@ export function ProcurementManager({ role }: { role: UserRole }) {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<ProcurementRequest | null>(null);
   const [mode, setMode] = useState<"complete" | "review" | "view" | null>(null);
+  const [originalPost, setOriginalPost] = useState<PostWithStats | null>(null);
 
   const load = useCallback(async () => {
     const result = role === "business" ? await getIncomingProcurementRequests() : await getFarmerProcurementRequests();
@@ -55,7 +56,8 @@ export function ProcurementManager({ role }: { role: UserRole }) {
     </div>)}</div>}
     {selected && mode === "complete" && <CompletionDialog request={selected} onClose={() => { setSelected(null); setMode(null); }} onDone={load} />}
     {selected && mode === "review" && <ReviewDialog request={selected} onClose={() => { setSelected(null); setMode(null); }} onDone={load} />}
-    {selected && mode === "view" && <ViewDetailsDialog request={selected} onClose={() => { setSelected(null); setMode(null); }} />}
+    {selected && mode === "view" && <ViewDetailsDialog request={selected} onClose={() => { setSelected(null); setMode(null); }} onOpenPost={(post) => { setSelected(null); setMode(null); setOriginalPost(post); }} />}
+    {originalPost && <PostDetailModal post={originalPost} isOpen onClose={() => setOriginalPost(null)} />}
   </div>;
 }
 
@@ -75,10 +77,9 @@ function ReviewDialog({ request, onClose, onDone }: { request: ProcurementReques
 function Rating({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) { return <div><p className="mb-1 text-sm font-medium">{label}</p><div className="flex gap-1">{[1,2,3,4,5].map((n) => <button key={n} onClick={() => onChange(n)}><Star className={`h-7 w-7 ${n <= value ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} /></button>)}</div></div>; }
 function Dialog({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) { return <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4" onClick={onClose}><div className="w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col rounded-xl bg-white p-5" onClick={(e) => e.stopPropagation()}><div className="flex justify-between mb-4"><h3 className="font-bold">{title}</h3><button onClick={onClose}>×</button></div><div className="overflow-y-auto">{children}</div></div></div>; }
 
-function ViewDetailsDialog({ request, onClose }: { request: ProcurementRequest; onClose: () => void }) {
+function ViewDetailsDialog({ request, onClose, onOpenPost }: { request: ProcurementRequest; onClose: () => void; onOpenPost: (post: PostWithStats) => void }) {
   const [post, setPost] = useState<PostWithStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showPostDetail, setShowPostDetail] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -137,20 +138,12 @@ function ViewDetailsDialog({ request, onClose }: { request: ProcurementRequest; 
           <div className="rounded-lg bg-gray-50 border p-3">
              <p className="font-semibold text-gray-900">{post.title}</p>
              <p className="text-sm text-gray-700 mt-1 line-clamp-3">{post.content}</p>
-             <button type="button" onClick={() => setShowPostDetail(true)} className="text-sm text-blue-600 hover:underline mt-2 inline-block font-medium">Xem chi tiết bài viết →</button>
+             <button type="button" onClick={() => onOpenPost(post)} className="text-sm text-blue-600 hover:underline mt-2 inline-block font-medium">Xem chi tiết bài viết →</button>
           </div>
         ) : (
           <p className="text-sm text-gray-500 italic">Không thể tải thông tin bài viết gốc.</p>
         )}
       </div>
     </div>
-  </Dialog>
-  {post && (
-    <PostDetailModal
-      post={post}
-      isOpen={showPostDetail}
-      onClose={() => setShowPostDetail(false)}
-    />
-  )}
-  </>;
+  </Dialog></>;
 }

@@ -7,6 +7,7 @@ import type {
   PostWithStats,
   ProductWithStats,
 } from "../../lib/community/types";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface EditPostModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export function EditPostModal({
   onClose,
   onSuccess,
 }: EditPostModalProps) {
+  const { profile } = useAuth();
   const [formData, setFormData] = useState({
     title: post.title || "",
     content: post.content || "",
@@ -69,8 +71,8 @@ export function EditPostModal({
   const categories = [
     { value: "experience", label: "Kinh nghiệm" },
     { value: "salinity-solution", label: "Giải pháp mặn" },
-    { value: "product", label: "Sản phẩm" },
-  ];
+    { value: "product", label: "Thu mua nông sản" },
+  ].filter((category) => profile?.role !== "business" || category.value === "product");
 
   if (!isOpen) return null;
 
@@ -106,11 +108,6 @@ export function EditPostModal({
 
     if (!formData.content.trim()) {
       setError("Vui lòng nhập nội dung");
-      return;
-    }
-
-    if (formData.category === "product" && !formData.product_link.trim()) {
-      setError("Vui lòng nhập link sản phẩm cho bài viết sản phẩm");
       return;
     }
 
@@ -257,7 +254,7 @@ export function EditPostModal({
                   />
                 </div>
 
-                {formData.category === "product" && (
+                {formData.category === "product" && profile?.role !== "business" && (
                   <div className="space-y-1">
                     <label className="block text-sm font-medium text-gray-700">
                       Sản phẩm liên quan (tùy chọn)

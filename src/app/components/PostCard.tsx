@@ -32,6 +32,7 @@ import { MediaCarousel } from "./MediaCarousel";
 import type { MediaItem } from "./MediaCarousel";
 import { ProcurementRequestModal } from "./ProcurementRequestModal";
 import { BusinessReputationCard } from "./BusinessReputationCard";
+import { ReportPostModal } from "./ReportPostModal";
 
 interface PostCardProps {
   post: PostWithStats;
@@ -56,6 +57,8 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showProcurementModal, setShowProcurementModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReadMore, setShowReadMore] = useState(false);
   const [postMedia, setPostMedia] = useState<MediaItem[]>([]);
@@ -244,16 +247,35 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
     setIsDeleting(false);
   };
 
-  const handleCopyLink = () => {
-    const postUrl = `${window.location.origin}?post=${post.id}`;
-    navigator.clipboard.writeText(postUrl);
+  const handleCopyLink = async () => {
+    const postUrl = new URL(window.location.origin);
+    postUrl.searchParams.set("post", post.id);
+    const value = postUrl.toString();
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const input = document.createElement("textarea");
+        input.value = value;
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
+        const copied = document.execCommand("copy");
+        input.remove();
+        if (!copied) throw new Error("Clipboard unavailable");
+      }
+      setCopyMessage("Đã sao chép liên kết bài viết");
+    } catch {
+      setCopyMessage("Không thể sao chép liên kết trên trình duyệt này");
+    }
     setShowMenu(false);
-    // Could add a toast notification here
+    window.setTimeout(() => setCopyMessage(null), 2500);
   };
 
   const handleReport = () => {
     setShowMenu(false);
-    alert("Tính năng báo cáo sẽ được cập nhật sớm");
+    setShowReportModal(true);
   };
 
   const toggleContent = () => {
@@ -368,7 +390,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                       </button>
                       <div className="border-t border-gray-200 my-1"></div>
                     </>
-                  ) : (
+                  ) : profile?.role === "farmer" ? (
                     <>
                       <button
                         onClick={(e) => {
@@ -382,7 +404,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                       </button>
                       <div className="border-t border-gray-200 my-1"></div>
                     </>
-                  )}
+                  ) : null}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -613,6 +635,20 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
           isOpen={showProcurementModal}
           onClose={() => setShowProcurementModal(false)}
         />
+      )}
+
+      {profile?.role === "farmer" && !isOwner && (
+        <ReportPostModal
+          post={post}
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+        />
+      )}
+
+      {copyMessage && (
+        <div role="status" className="fixed bottom-24 left-1/2 z-[110] -translate-x-1/2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+          {copyMessage}
+        </div>
       )}
 
       <EditPostModal

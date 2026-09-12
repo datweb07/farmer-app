@@ -31,6 +31,22 @@ function AppContent() {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const { profile } = useAuth();
 
+  useEffect(() => {
+    if (!profile) return;
+    const postId = new URLSearchParams(window.location.search).get("post");
+    if (postId && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(postId)) {
+      setSelectedPostId(postId);
+      setCurrentPage("posts");
+    }
+  }, [profile]);
+
+  const handlePostViewed = () => {
+    setSelectedPostId(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("post");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  };
+
   // Initialize storage buckets
 
   // Hiển thị tutorial mỗi khi user login thành công
@@ -117,7 +133,7 @@ function AppContent() {
             onNavigate={handleNavigate}
             onNavigateToProduct={handleNavigateToProduct}
             selectedPostId={selectedPostId}
-            onPostViewed={() => setSelectedPostId(null)}
+            onPostViewed={handlePostViewed}
           />
         );
       case "products":

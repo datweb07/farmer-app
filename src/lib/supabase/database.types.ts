@@ -66,6 +66,44 @@ export interface Database {
           updated_at?: string;
         };
       };
+      user_locations: {
+        Row: {
+          user_id: string;
+          province_code: string;
+          province_name: string;
+          district_code: string;
+          district_name: string;
+          ward_code: string;
+          ward_name: string;
+          dataset_version: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          province_code: string;
+          province_name: string;
+          district_code: string;
+          district_name: string;
+          ward_code: string;
+          ward_name: string;
+          dataset_version?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          province_code?: string;
+          province_name?: string;
+          district_code?: string;
+          district_name?: string;
+          ward_code?: string;
+          ward_name?: string;
+          dataset_version?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       organizations: {
         Row: {
           id: string;

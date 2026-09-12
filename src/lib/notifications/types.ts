@@ -14,7 +14,8 @@ export type NotificationType =
   | "MENTION"
   | "POST_APPROVED"
   | "PRODUCT_APPROVED"
-  | "PROJECT_APPROVED";
+  | "PROJECT_APPROVED"
+  | "PROFILE_LOCATION_UPDATED";
 
 export interface Notification {
   id: string;

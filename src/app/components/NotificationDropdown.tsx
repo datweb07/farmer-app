@@ -157,6 +157,8 @@ export function NotificationDropdown() {
         return <span className={iconClasses}>👤</span>;
       case "MENTION":
         return <span className={iconClasses}>@</span>;
+      case "PROFILE_LOCATION_UPDATED":
+        return <span className={iconClasses}>📍</span>;
       default:
         return <Bell className={iconClasses} />;
     }

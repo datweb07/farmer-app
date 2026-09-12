@@ -38,6 +38,7 @@ import { getUserFollowStats } from "../../lib/follow/follow.service";
 import type { FollowStats } from "../../lib/follow/types";
 import { FollowersList } from "../../app/components/FollowersList";
 import { BusinessLinksSection } from "../../app/components/BusinessLinksSection";
+import { ProfileLocationEditor } from "../../app/components/ProfileLocationEditor";
 
 interface ProfilePageProps {
   onNavigate?: (page: string) => void;
@@ -442,6 +443,19 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               Đăng xuất
             </button>
           </div>
+        </div>
+
+        {/* Private administrative location */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Khu vực sinh sống
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Chọn đơn vị hành chính để cá nhân hóa thông tin theo khu vực.
+            </p>
+          </div>
+          <ProfileLocationEditor />
         </div>
 
         {/* Badges Section */}

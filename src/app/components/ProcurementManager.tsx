@@ -62,10 +62,31 @@ export function ProcurementManager({ role }: { role: UserRole }) {
 }
 
 function CompletionDialog({ request, onClose, onDone }: { request: ProcurementRequest; onClose: () => void; onDone: () => void }) {
-  const [product, setProduct] = useState(request.product_name); const [weight, setWeight] = useState(""); const [payment, setPayment] = useState<PaymentVelocity>("on_site"); const [coords, setCoords] = useState<{ latitude: number; longitude: number }>(); const [error, setError] = useState("");
-  const capture = () => navigator.geolocation?.getCurrentPosition(({ coords: c }) => setCoords({ latitude: c.latitude, longitude: c.longitude }), () => setError("Không lấy được GPS, có thể hoàn tất không kèm xác thực vị trí."));
+  const [product, setProduct] = useState(request.product_name); const [weight, setWeight] = useState(""); const [payment, setPayment] = useState<PaymentVelocity>("on_site"); const [coords, setCoords] = useState<{ latitude: number; longitude: number }>(); const [locating, setLocating] = useState(false); const [error, setError] = useState("");
+  const capture = () => {
+    setError("");
+    setCoords(undefined);
+    if (!navigator.geolocation) {
+      setError("Thiết bị không hỗ trợ GPS. Có thể hoàn tất không kèm xác thực vị trí.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords: current }) => {
+        const valid = Number.isFinite(current.latitude) && Number.isFinite(current.longitude) && current.latitude >= -90 && current.latitude <= 90 && current.longitude >= -180 && current.longitude <= 180;
+        if (valid) setCoords({ latitude: current.latitude, longitude: current.longitude });
+        else setError("Thiết bị trả về tọa độ không hợp lệ. Có thể hoàn tất không kèm xác thực vị trí.");
+        setLocating(false);
+      },
+      () => {
+        setError("Không lấy được GPS, có thể hoàn tất không kèm xác thực vị trí.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+    );
+  };
   const submit = async () => { const amount = Number(weight); if (!product || amount <= 0) return setError("Nhập nông sản và khối lượng hợp lệ."); const result = await completeProcurementRequest(request.id, { actual_product_name: product, actual_weight_tons: amount, payment_velocity: payment, buyer_latitude: coords?.latitude, buyer_longitude: coords?.longitude }); if (result.error) return setError(result.error); onDone(); onClose(); };
-  return <Dialog title="Xác nhận thu mua hoàn thành" onClose={onClose}><input value={product} onChange={(e) => setProduct(e.target.value)} className="w-full rounded-lg border px-3 py-2" placeholder="Nông sản thực tế" /><input type="number" step="0.001" value={weight} onChange={(e) => setWeight(e.target.value)} className="w-full rounded-lg border px-3 py-2" placeholder="Khối lượng thực tế (tấn)" /><select value={payment} onChange={(e) => setPayment(e.target.value as PaymentVelocity)} className="w-full rounded-lg border px-3 py-2"><option value="on_site">Thanh toán tại vườn</option><option value="within_48h">Trong 24–48 giờ</option><option value="within_7d">Trong 7 ngày</option><option value="over_7d">Công nợ trên 7 ngày</option></select><button onClick={capture} className="flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm"><MapPin className="h-4 w-4" /> {coords ? "Đã ghi nhận GPS" : "Ghi nhận GPS xe thu mua"}</button>{error && <p className="text-sm text-red-600">{error}</p>}<button onClick={submit} className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 py-2.5 font-medium text-white"><CheckCircle2 className="h-4 w-4" /> Hoàn tất</button></Dialog>;
+  return <Dialog title="Xác nhận thu mua hoàn thành" onClose={onClose}><input value={product} onChange={(e) => setProduct(e.target.value)} className="w-full rounded-lg border px-3 py-2" placeholder="Nông sản thực tế" /><input type="number" step="0.001" value={weight} onChange={(e) => setWeight(e.target.value)} className="w-full rounded-lg border px-3 py-2" placeholder="Khối lượng thực tế (tấn)" /><select value={payment} onChange={(e) => setPayment(e.target.value as PaymentVelocity)} className="w-full rounded-lg border px-3 py-2"><option value="on_site">Thanh toán tại vườn</option><option value="within_48h">Trong 24–48 giờ</option><option value="within_7d">Trong 7 ngày</option><option value="over_7d">Công nợ trên 7 ngày</option></select><button onClick={capture} disabled={locating} className="flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm disabled:opacity-60">{locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />} {coords ? "Đã ghi nhận GPS" : locating ? "Đang lấy vị trí..." : "Ghi nhận GPS xe thu mua"}</button>{error && <p className="text-sm text-red-600">{error}</p>}<button onClick={submit} className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 py-2.5 font-medium text-white"><CheckCircle2 className="h-4 w-4" /> Hoàn tất</button></Dialog>;
 }
 
 function ReviewDialog({ request, onClose, onDone }: { request: ProcurementRequest; onClose: () => void; onDone: () => void }) {

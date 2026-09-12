@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CalendarDays, LocateFixed, Loader2, Phone, Send, X } from "lucide-react";
 import type { PostWithStats } from "../../lib/community/types";
 import { createProcurementRequest } from "../../lib/procurement/procurement.service";
+import { CurrentLocationMap } from "./CurrentLocationMap";
 
 interface ProcurementRequestModalProps {
   post: PostWithStats;
@@ -23,7 +24,11 @@ export function ProcurementRequestModal({
   const [desiredDate, setDesiredDate] = useState("");
   const [productName, setProductName] = useState("");
   const [note, setNote] = useState("");
-  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [coordinates, setCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+  } | null>(null);
   const [locating, setLocating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,20 +38,50 @@ export function ProcurementRequestModal({
 
   const captureLocation = () => {
     if (!navigator.geolocation) {
+      setCoordinates(null);
       setError("Thiết bị không hỗ trợ định vị GPS.");
       return;
     }
+    setError(null);
+    setCoordinates(null);
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setCoordinates({ latitude: coords.latitude, longitude: coords.longitude });
+        const isValid =
+          Number.isFinite(coords.latitude) &&
+          Number.isFinite(coords.longitude) &&
+          coords.latitude >= -90 &&
+          coords.latitude <= 90 &&
+          coords.longitude >= -180 &&
+          coords.longitude <= 180;
+
+        if (!isValid) {
+          setError("Thiết bị trả về tọa độ không hợp lệ. Vui lòng thử lại.");
+          setCoordinates(null);
+          setLocating(false);
+          return;
+        }
+
+        setError(null);
+        setCoordinates({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          accuracy: coords.accuracy,
+        });
         setLocating(false);
       },
-      () => {
-        setError("Không thể lấy vị trí. Bạn vẫn có thể gửi đăng ký không kèm GPS.");
+      (positionError) => {
+        const message =
+          positionError.code === positionError.PERMISSION_DENIED
+            ? "Quyền truy cập vị trí đã bị từ chối. Hãy bật quyền vị trí trong trình duyệt rồi thử lại."
+            : positionError.code === positionError.TIMEOUT
+              ? "Quá thời gian lấy vị trí. Hãy ra nơi thoáng hơn rồi thử lại."
+              : "Không thể xác định vị trí hiện tại. Bạn vẫn có thể gửi đăng ký không kèm GPS.";
+        setCoordinates(null);
+        setError(message);
         setLocating(false);
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   };
 
@@ -113,6 +148,13 @@ export function ProcurementRequestModal({
               {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
               {coordinates ? "Đã ghi nhận GPS trang trại" : "Ghi nhận GPS trang trại (không bắt buộc)"}
             </button>
+            {coordinates && !error && (
+              <CurrentLocationMap
+                latitude={coordinates.latitude}
+                longitude={coordinates.longitude}
+                accuracy={coordinates.accuracy}
+              />
+            )}
             {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
             <button disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white disabled:opacity-50">
               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />} Gửi đăng ký
@@ -123,4 +165,3 @@ export function ProcurementRequestModal({
     </div>
   );
 }
-

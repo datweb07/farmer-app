@@ -73,6 +73,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     "followers" | "following"
   >("followers");
   const [savedLocation, setSavedLocation] = useState<UserLocation | null>(null);
+  const [lastProfileUpdatedAt, setLastProfileUpdatedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (profile?.updated_at) setLastProfileUpdatedAt(profile.updated_at);
+  }, [profile?.updated_at]);
 
   const loadUserActivity = useCallback(async () => {
     if (!profile?.id) return;
@@ -190,6 +195,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
 
     if (result.success) {
       await refreshProfile();
+      setLastProfileUpdatedAt(new Date().toISOString());
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } else {
@@ -210,6 +216,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
 
     if (result.success) {
       await refreshProfile();
+      setLastProfileUpdatedAt(new Date().toISOString());
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } else {
@@ -447,7 +454,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 <div>
                   <p className="text-gray-500">Cập nhật lần cuối</p>
                   <p className="font-medium text-gray-900">
-                    {new Date(profile.updated_at).toLocaleDateString("vi-VN")}
+                    {new Date(lastProfileUpdatedAt || profile.updated_at).toLocaleDateString("vi-VN")}
                   </p>
                 </div>
               </div>
@@ -483,7 +490,12 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               Chọn đơn vị hành chính để cá nhân hóa thông tin theo khu vực.
             </p>
           </div>
-          <ProfileLocationEditor />
+          <ProfileLocationEditor
+            onSaved={(location) => {
+              setSavedLocation(location);
+              setLastProfileUpdatedAt(location.updated_at);
+            }}
+          />
         </div>
 
         {profile.role === "business" && (

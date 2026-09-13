@@ -588,7 +588,7 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
                 e.stopPropagation();
                 setShowProcurementModal(true);
               }}
-              className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800"
+              className="w-full rounded-lg border-2 border-emerald-700 bg-transparent px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
             >
               Liên hệ ngay · Đăng ký thu mua
             </button>

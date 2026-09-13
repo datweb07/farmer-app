@@ -356,7 +356,7 @@ export function MobileProductsView({
                 </div>
                 <button
                     onClick={handleSearch}
-                    className="w-full bg-green-700 text-white py-3 rounded-xl font-medium hover:bg-green-800 transition-colors flex items-center justify-center gap-2"
+                    className="w-full border-2 border-green-700 text-green-700 bg-transparent py-3 rounded-xl font-medium hover:bg-green-50 transition-colors flex items-center justify-center gap-2"
                 >
                     <Search className="w-5 h-5" />
                     Tìm kiếm
@@ -367,7 +367,7 @@ export function MobileProductsView({
                 {/* Create Product Button */}
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors"
+                    className="w-full border-2 border-green-700 text-green-700 hover:bg-green-50 bg-transparent font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
                 >
                     <ShoppingBag className="w-5 h-5" />
                     Đăng bán sản phẩm
@@ -385,7 +385,7 @@ export function MobileProductsView({
                                 key={category.id}
                                 onClick={() => setSelectedCategory(category.id)}
                                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${selectedCategory === category.id
-                                    ? "bg-green-600 text-white shadow-md"
+                                    ? "border-2 border-green-600 text-green-600 bg-transparent"
                                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     }`}
                             >

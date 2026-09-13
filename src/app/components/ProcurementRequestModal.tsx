@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarDays, LocateFixed, Loader2, Phone, Send, X } from "lucide-react";
+import { CalendarDays, LocateFixed, Loader2, Phone, Send, X, Map as MapIcon } from "lucide-react";
 import type { PostWithStats } from "../../lib/community/types";
 import { createProcurementRequest } from "../../lib/procurement/procurement.service";
 import { CurrentLocationMap } from "./CurrentLocationMap";
@@ -144,18 +144,28 @@ export function ProcurementRequestModal({
             <label className="block text-sm font-medium text-gray-700">Ghi chú
               <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Sản lượng dự kiến, địa chỉ vườn, thời gian thuận tiện..." className="mt-1.5 w-full rounded-lg border px-3 py-2.5" />
             </label>
-            <button type="button" onClick={captureLocation} disabled={locating} className="flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700">
-              {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
-              {coordinates ? "Đã ghi nhận GPS trang trại" : "Ghi nhận GPS trang trại (không bắt buộc)"}
+            <button type="button" onClick={captureLocation} disabled={locating} className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+              {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4 text-gray-500" />}
+              {coordinates ? "Đã ghi nhận GPS trang trại" : "Ghi nhận GPS trang trại (bắt buộc)"}
             </button>
             {coordinates && !error && (
-              <CurrentLocationMap
-                latitude={coordinates.latitude}
-                longitude={coordinates.longitude}
-                accuracy={coordinates.accuracy}
-              />
+              <div className="space-y-2">
+                <CurrentLocationMap
+                  latitude={coordinates.latitude}
+                  longitude={coordinates.longitude}
+                  accuracy={coordinates.accuracy}
+                />
+                <button
+                  type="button"
+                  onClick={() => window.open(`https://www.google.com/maps?q=${coordinates.latitude},${coordinates.longitude}`, '_blank')}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                >
+                  <MapIcon className="h-4 w-4" />
+                  Xem trong Google Map
+                </button>
+              </div>
             )}
-            {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
             <button disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white disabled:opacity-50">
               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />} Gửi đăng ký
             </button>

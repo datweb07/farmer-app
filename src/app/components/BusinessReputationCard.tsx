@@ -6,9 +6,9 @@ import type { BusinessReputation, BusinessReview } from "../../lib/procurement/t
 interface Props { businessId: string; compact?: boolean; }
 
 const tierStyle = {
-  "Top Partner": "bg-amber-100 text-amber-800",
-  "Verified Buyer": "bg-blue-100 text-blue-800",
-  "New Member": "bg-gray-100 text-gray-700",
+  "Top Partner": "text-amber-700",
+  "Verified Buyer": "text-blue-700",
+  "New Member": "text-gray-700",
 };
 
 export function BusinessReputationCard({ businessId, compact = false }: Props) {
@@ -21,12 +21,12 @@ export function BusinessReputationCard({ businessId, compact = false }: Props) {
   }, [businessId, compact]);
 
   if (!score) return null;
-  return <div className="rounded-xl border border-emerald-200 bg-white p-4">
+  return <div className="rounded-xl border border-gray-200 bg-white p-4">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="flex items-center gap-2"><Building2 className="h-5 w-5 text-emerald-700" /><div><p className="font-bold text-gray-900">{score.username} {score.verified_id && <span className="text-blue-600">(Verified) <BadgeCheck className="inline h-4 w-4" /></span>}</p><p className="flex items-center gap-1 text-sm text-gray-600"><Star className="h-4 w-4 fill-amber-400 text-amber-400" /> {Number(score.star_rating).toFixed(1)} / 5.0 · {score.review_count} đánh giá</p></div></div>
-      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tierStyle[score.tier]}`}>{score.tier}</span>
+      <div className="flex items-center gap-2"><Building2 className="h-5 w-5 text-gray-600" /><div><p className="font-bold text-gray-900">{score.username} {score.verified_id && <span className="text-blue-600">(Verified) <BadgeCheck className="inline h-4 w-4" /></span>}</p><p className="flex items-center gap-1 text-sm text-gray-600"><Star className="h-4 w-4 fill-amber-400 text-amber-400" /> {Number(score.star_rating).toFixed(1)} / 5.0 · {score.review_count} đánh giá</p></div></div>
+      <span className={`text-sm font-semibold ${tierStyle[score.tier]}`}>{score.tier}</span>
     </div>
-    <div className="mt-3 flex items-start gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900"><Target className="mt-0.5 h-4 w-4" /><span>Đã thu mua thành công: <strong>{score.successful_lots} lô</strong> ({Number(score.total_tons).toLocaleString("vi-VN")} tấn nông sản)</span></div>
+    <div className="mt-3 flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-sm text-gray-900"><Target className="mt-0.5 h-4 w-4 text-gray-500" /><span>Đã thu mua thành công: <strong>{score.successful_lots} lô</strong> ({Number(score.total_tons).toLocaleString("vi-VN")} tấn nông sản)</span></div>
     {!compact && <>
       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs"><div className="rounded-lg bg-gray-50 p-2"><strong className="block text-lg text-blue-700">{score.transaction_score}</strong>Giao dịch /40</div><div className="rounded-lg bg-gray-50 p-2"><strong className="block text-lg text-blue-700">{score.review_score}</strong>Đánh giá /40</div><div className="rounded-lg bg-gray-50 p-2"><strong className="block text-lg text-blue-700">{score.legal_score}</strong>Pháp lý /20</div></div>
       <div className="mt-3 flex items-center justify-between border-t pt-3"><span className="flex items-center gap-1 text-sm font-medium"><ShieldCheck className="h-4 w-4 text-blue-600" /> Điểm uy tín</span><strong className="text-xl text-blue-700">{score.total_score}/100</strong></div>

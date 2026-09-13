@@ -37,14 +37,14 @@ export function CurrentLocationMap({
   accuracy,
 }: CurrentLocationMapProps) {
   return (
-    <div className="animate-in fade-in zoom-in-95 overflow-hidden rounded-xl border border-emerald-200 bg-white duration-500">
+    <div className="animate-in fade-in zoom-in-95 overflow-hidden rounded-xl border border-gray-200 bg-white duration-500">
       <div className="h-52 w-full">
         <Map center={[105.7, 10.2]} zoom={6} dragRotate={false}>
           <FlyToCurrentLocation latitude={latitude} longitude={longitude} />
           <MapMarker longitude={longitude} latitude={latitude}>
             <MarkerContent>
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-white shadow-lg">
-                <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-40" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-white shadow-lg">
+                <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-40" />
                 <MapPin className="relative h-5 w-5" />
               </div>
             </MarkerContent>
@@ -52,7 +52,7 @@ export function CurrentLocationMap({
           <MapControls position="bottom-right" showZoom showCompass={false} />
         </Map>
       </div>
-      <div className="border-t border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+      <div className="border-t border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
         <p className="font-medium">Vị trí GPS vừa ghi nhận</p>
         <p className="mt-0.5">
           {latitude.toFixed(6)}, {longitude.toFixed(6)}

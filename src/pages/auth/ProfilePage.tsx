@@ -42,6 +42,7 @@ import type { FollowStats } from "../../lib/follow/types";
 import { FollowersList } from "../../app/components/FollowersList";
 import { BusinessLinksSection } from "../../app/components/BusinessLinksSection";
 import { ProfileLocationEditor } from "../../app/components/ProfileLocationEditor";
+import { ProfileGpsLocation } from "../../app/components/ProfileGpsLocation";
 import { BusinessReputationCard } from "../../app/components/BusinessReputationCard";
 import { ProcurementManager } from "../../app/components/ProcurementManager";
 
@@ -496,6 +497,20 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               setLastProfileUpdatedAt(location.updated_at);
             }}
           />
+        </div>
+
+        {/* Private precise GPS location */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Vị trí GPS hồ sơ
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Lưu vị trí hiện tại để xác định chính xác khu vực hoạt động của bạn.
+              Tọa độ này chỉ tài khoản của bạn được truy cập.
+            </p>
+          </div>
+          <ProfileGpsLocation onSaved={setLastProfileUpdatedAt} />
         </div>
 
         {profile.role === "business" && (

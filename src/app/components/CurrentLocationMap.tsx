@@ -12,6 +12,7 @@ interface CurrentLocationMapProps {
   latitude: number;
   longitude: number;
   accuracy?: number;
+  label?: string;
 }
 
 function FlyToCurrentLocation({ latitude, longitude }: CurrentLocationMapProps) {
@@ -35,6 +36,7 @@ export function CurrentLocationMap({
   latitude,
   longitude,
   accuracy,
+  label = "Vị trí GPS vừa ghi nhận",
 }: CurrentLocationMapProps) {
   return (
     <div className="animate-in fade-in zoom-in-95 overflow-hidden rounded-xl border border-gray-200 bg-white duration-500">
@@ -53,9 +55,9 @@ export function CurrentLocationMap({
         </Map>
       </div>
       <div className="border-t border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-800">
-        <p className="font-medium">Vị trí GPS vừa ghi nhận</p>
+        <p className="font-medium">{label}</p>
         <p className="mt-0.5">
-          {latitude.toFixed(6)}, {longitude.toFixed(6)}
+          Vĩ độ {latitude.toFixed(6)} · Kinh độ {longitude.toFixed(6)}
           {accuracy != null ? ` · độ chính xác khoảng ${Math.round(accuracy)} m` : ""}
         </p>
       </div>

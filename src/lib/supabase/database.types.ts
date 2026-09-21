@@ -104,6 +104,35 @@ export interface Database {
           updated_at?: string;
         };
       };
+      user_gps_locations: {
+        Row: {
+          user_id: string;
+          latitude: number;
+          longitude: number;
+          accuracy_m: number | null;
+          captured_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          latitude: number;
+          longitude: number;
+          accuracy_m?: number | null;
+          captured_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          latitude?: number;
+          longitude?: number;
+          accuracy_m?: number | null;
+          captured_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       organizations: {
         Row: {
           id: string;

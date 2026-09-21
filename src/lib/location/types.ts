@@ -35,3 +35,19 @@ export interface LocationSelection {
   ward_code: string;
   ward_name: string;
 }
+
+export interface UserGpsLocation {
+  user_id: string;
+  latitude: number;
+  longitude: number;
+  accuracy_m: number | null;
+  captured_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GpsCoordinates {
+  latitude: number;
+  longitude: number;
+  accuracy: number | null;
+}

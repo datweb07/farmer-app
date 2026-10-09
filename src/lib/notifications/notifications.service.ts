@@ -30,6 +30,7 @@ async function filterEnabledNotifications(notifications: Notification[]) {
       case "PROCUREMENT_REQUEST":
       case "PROCUREMENT_COMPLETED":
       case "BUSINESS_REVIEW_RECEIVED":
+      case "SEASON_CONNECTION":
         return settings.push_procurement;
       default:
         return true;

@@ -18,7 +18,8 @@ export type NotificationType =
   | "PROFILE_LOCATION_UPDATED"
   | "PROCUREMENT_REQUEST"
   | "PROCUREMENT_COMPLETED"
-  | "BUSINESS_REVIEW_RECEIVED";
+  | "BUSINESS_REVIEW_RECEIVED"
+  | "SEASON_CONNECTION";
 
 export interface Notification {
   id: string;

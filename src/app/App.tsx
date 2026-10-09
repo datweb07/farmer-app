@@ -77,6 +77,22 @@ function AppContent() {
     }
   }, [profile, currentPage]);
 
+  useEffect(() => {
+    const navigateFromNotification = (event: Event) => {
+      const detail = (event as CustomEvent<{ page?: string; matchId?: string }>).detail;
+      if (detail?.page !== "connections") return;
+      setCurrentPage("connections");
+      if (detail.matchId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("match", detail.matchId);
+        window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    window.addEventListener("champ:navigate", navigateFromNotification);
+    return () => window.removeEventListener("champ:navigate", navigateFromNotification);
+  }, []);
+
   const handleNavigate = (page: string, id?: string) => {
     // Prevent business users from accessing farmer-only pages
     if (profile?.role === "business") {

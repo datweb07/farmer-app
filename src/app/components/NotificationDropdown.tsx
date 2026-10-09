@@ -134,6 +134,11 @@ export function NotificationDropdown() {
       setExpandedNotificationId((current) =>
         current === notification.id ? null : notification.id
       );
+    } else if (notification.type === "SEASON_CONNECTION") {
+      setIsOpen(false);
+      window.dispatchEvent(new CustomEvent("champ:navigate", {
+        detail: { page: "connections", matchId: notification.metadata?.match_id },
+      }));
     } else if (notification.link) {
       setIsOpen(false);
     }

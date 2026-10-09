@@ -9,6 +9,7 @@ import { ComparisonCharts } from "@/components/ComparisonCharts";
 import { TrendCharts } from "@/components/TrendCharts";
 import { MobileSalinityView } from "../components/MobileSalinityView";
 import type { FilterState } from "@/types/prophet";
+import { SalinityPushSettings } from "../components/SalinityPushSettings";
 
 // Hook phát hiện thiết bị di động tương tự như trong ProductsPage
 function useIsMobile(breakpoint: number = 768) {
@@ -101,15 +102,18 @@ export function SalinityPage() {
   // ==================== MOBILE LAYOUT ====================
   if (isMobile) {
     return (
-      <MobileSalinityView
-        data={data}
-        filteredData={filteredData}
-        filters={filters}
-        setFilters={setFilters}
-        loading={loading}
-        error={error}
-        refetch={refetch}
-      />
+      <>
+        <div className="bg-gray-50 px-4 pt-4"><SalinityPushSettings data={data} /></div>
+        <MobileSalinityView
+          data={data}
+          filteredData={filteredData}
+          filters={filters}
+          setFilters={setFilters}
+          loading={loading}
+          error={error}
+          refetch={refetch}
+        />
+      </>
     );
   }
 
@@ -128,6 +132,7 @@ export function SalinityPage() {
         </div>
 
         {/* Filter Bar */}
+        <SalinityPushSettings data={data} />
         <div className="mb-8">
           <FilterBar
             data={data}

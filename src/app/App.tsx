@@ -213,7 +213,7 @@ function AppContent() {
                         onClick={() => handleNavigate("posts")}
                         className="hover:text-white transition-colors"
                       >
-                        Cộng đồng Thu mua
+                        Thu mua
                       </button>
                     </li>
                     <li>

@@ -40,7 +40,7 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
       roles: ["business"],
     },
     { id: "salinity", label: "Độ mặn", icon: Droplet, roles: ["farmer", "business"] },
-    { id: "posts", label: "Cộng đồng Thu mua", icon: DurianFruitIcon, roles: ["farmer", "business"] },
+    { id: "posts", label: "Thu mua", icon: DurianFruitIcon, roles: ["farmer", "business"] },
     {
       id: "products",
       label: "Sản phẩm",
@@ -111,8 +111,8 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                     key={item.id}
                     onClick={() => onNavigate(item.id)}
                     className={`flex flex-col items-center gap-1 px-6 py-3 rounded-xl transition-all ${isActive
-                        ? "bg-blue-500 text-white shadow-lg scale-105"
-                        : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-blue-500 text-white shadow-lg scale-105"
+                      : "text-gray-600 hover:bg-gray-100"
                       }`}
                   >
                     <Icon className="w-6 h-6" />
@@ -157,8 +157,8 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                       setMobileMenuOpen(false);
                     }}
                     className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all ${isActive
-                        ? "bg-blue-500 text-white shadow-lg"
-                        : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-blue-500 text-white shadow-lg"
+                      : "text-gray-700 hover:bg-gray-100"
                       }`}
                   >
                     <Icon className="w-7 h-7" />

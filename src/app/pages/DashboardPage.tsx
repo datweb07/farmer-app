@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  Clock,
   ChevronRight,
   Heart,
   TrendingUp,
@@ -26,6 +25,7 @@ import { UserAvatar } from "../components/UserAvatar";
 import { NotificationDropdown } from "../components/NotificationDropdown";
 import { LocalitySalinityLookup } from "../components/LocalitySalinityLookup";
 import { SuccessfulSeasonTransactions } from "../components/SuccessfulSeasonTransactions";
+import { ProfileLocationTimeBar } from "../components/ProfileLocationTimeBar";
 import { supabase } from "../../lib/supabase/supabase";
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat("vi-VN", {
@@ -229,14 +229,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
           {/* Home salinity and locality panel */}
           <div className="mb-8">
-            <div className="mb-3 flex justify-end">
-              <div className="flex items-center gap-1 text-sm font-medium text-white">
-                <Clock className="h-4 w-4" />
-                {currentTime.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false })}
-                <span className="px-1">|</span>
-                {currentTime.toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" })}
-              </div>
-            </div>
+            <ProfileLocationTimeBar time={currentTime} className="mb-3" />
             <LocalitySalinityLookup />
           </div>
 
@@ -395,12 +388,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <p className="text-blue-100">{greeting.message}</p>
         </div>
 
-        <div className="mb-8 flex justify-end text-sm text-gray-600">
-          <Clock className="mr-2 h-4 w-4" />
-          {currentTime.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false })}
-          <span className="px-2">|</span>
-          {currentTime.toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" })}
-        </div>
+        <ProfileLocationTimeBar time={currentTime} variant="dark" className="mb-8" />
         <div className="mb-8"><LocalitySalinityLookup /></div>
 
         {/* User Stats Grid */}

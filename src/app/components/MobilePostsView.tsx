@@ -1,9 +1,10 @@
-import { MapPin, Clock, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { useState, useEffect } from "react"; // Thêm useEffect
 import { PostCard } from "./PostCard";
 import { UserAvatar } from "./UserAvatar";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { UserProfileModal } from "./UserProfileModal";
+import { ProfileLocationTimeBar } from "./ProfileLocationTimeBar";
 import type { PostWithStats, TopContributor } from "../../lib/community/types";
 
 // Function to get greeting based on time of day
@@ -61,20 +62,6 @@ export function MobilePostsView({
     // Sử dụng currentTime để tính toán
     const greeting = getGreeting(currentTime.getHours());
 
-    const formattedTime = currentTime.toLocaleTimeString('vi-VN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-    });
-
-    const formattedDate = currentTime.toLocaleDateString('vi-VN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    });
-
-    const province = "AN GIANG";
-
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header Section */}
@@ -113,15 +100,7 @@ export function MobilePostsView({
                 </div>
 
                 {/* Location and Time */}
-                <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" /> Tỉnh <span className="font-bold">{province}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="w-4 h-4" />
-                        <span>{formattedTime} | {formattedDate}</span>
-                    </div>
-                </div>
+                <ProfileLocationTimeBar time={currentTime} dateStyle="short" />
             </div>
 
             {/* Main Content */}

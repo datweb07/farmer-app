@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import {
     MapPin,
-    Clock,
     Bell,
     Plus,
     Loader2,
@@ -23,6 +22,7 @@ import SponsorsSlider from "../components/SponsorsSlider";
 import { getProjects, getOverallStats, type OverallStats } from "../../lib/investments/investments.service";
 import type { InvestmentProjectWithStats } from "../../lib/investments/types";
 import { NotificationDropdown } from "./NotificationDropdown";
+import { ProfileLocationTimeBar } from "./ProfileLocationTimeBar";
 
 interface MobileInvestViewProps {
     onNavigate?: (page: string) => void;
@@ -92,18 +92,6 @@ export function MobileInvestView({
     };
 
     const greeting = getGreeting(currentTime.getHours());
-    const formattedTime = currentTime.toLocaleTimeString('vi-VN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-    });
-    const formattedDate = currentTime.toLocaleDateString('vi-VN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    });
-    const province = "AN GIANG";
-
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header Section - Đồng bộ với MobilePostsView & MobileProductsView */}
@@ -142,15 +130,7 @@ export function MobileInvestView({
                 </div>
 
                 {/* Location and Time */}
-                <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" /> Tỉnh <span className="font-bold">{province}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="w-4 h-4" />
-                        <span>{formattedTime} | {formattedDate}</span>
-                    </div>
-                </div>
+                <ProfileLocationTimeBar time={currentTime} dateStyle="short" />
             </div>
 
             {/* Main Content */}

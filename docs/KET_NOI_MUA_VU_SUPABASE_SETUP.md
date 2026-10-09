@@ -1,6 +1,6 @@
 # Thiết lập Supabase — Kết nối mùa vụ
 
-Chức năng dùng migration `supabase/migrations/046_season_connections.sql`, `047_season_listing_gps.sql`, `048_limited_season_connection_admins.sql` và `049_season_admin_auth_lookup.sql`. Migration 046 tạo bảng nguồn cung, nhu cầu thu mua, lời mời ghép cặp, tin nhắn, các phiên bản phiếu thỏa thuận và giao dịch; migration 047 thêm tọa độ GPS cho tin mùa vụ; migration 048 thêm quyền điều phối kết nối giới hạn, không cấp quyền Admin toàn hệ thống; migration 049 hỗ trợ khôi phục profile cho các tài khoản Auth được chỉ định bị tạo dở.
+Chức năng dùng migration `supabase/migrations/046_season_connections.sql`, `047_season_listing_gps.sql`, `048_limited_season_connection_admins.sql`, `049_season_admin_auth_lookup.sql` và `050_public_season_transaction_summary.sql`. Migration 046 tạo bảng nguồn cung, nhu cầu thu mua, lời mời ghép cặp, tin nhắn, các phiên bản phiếu thỏa thuận và giao dịch; migration 047 thêm tọa độ GPS cho tin mùa vụ; migration 048 thêm quyền điều phối kết nối giới hạn, không cấp quyền Admin toàn hệ thống; migration 049 hỗ trợ khôi phục profile cho các tài khoản Auth được chỉ định bị tạo dở; migration 050 chỉ công khai số hồ sơ và mã giao dịch đã chốt cho người dùng đăng nhập, không công khai thông tin hai bên hay điều khoản hợp đồng.
 
 ## Chạy migration trên Supabase
 
@@ -11,8 +11,9 @@ Chức năng dùng migration `supabase/migrations/046_season_connections.sql`, `
 5. Chạy tiếp `supabase/migrations/047_season_listing_gps.sql` để thêm ba cột GPS vào `season_supplies` và `season_demands` (giao diện hiện yêu cầu ghi nhận GPS khi đăng/cập nhật tin).
 6. Chạy `supabase/migrations/048_limited_season_connection_admins.sql` để cài cờ quyền riêng `can_manage_season_connections` và cập nhật RLS/RPC.
 7. Chạy `supabase/migrations/049_season_admin_auth_lookup.sql` nếu dùng script cấp tài khoản trong `docs/SEASON_CONNECTION_ADMIN_SETUP.md`.
-8. Xác nhận query chạy thành công. Trong **Database → Tables**, kiểm tra các bảng mùa vụ; ở `season_supplies`/`season_demands` sẽ có `farm_latitude`, `farm_longitude`, `farm_accuracy_m`.
-9. Tải lại ứng dụng, đăng nhập lại nếu cần. Hiện tại `.env` không có service-role key nên thao tác tạo tài khoản phải dùng script quản trị riêng; xem `docs/SEASON_CONNECTION_ADMIN_SETUP.md`.
+8. Chạy `supabase/migrations/050_public_season_transaction_summary.sql` để trang Home đọc được số lượng và mã giao dịch đã chốt mà không mở quyền đọc hợp đồng hoặc thông tin cá nhân.
+9. Xác nhận query chạy thành công. Trong **Database → Tables**, kiểm tra các bảng mùa vụ; ở `season_supplies`/`season_demands` sẽ có `farm_latitude`, `farm_longitude`, `farm_accuracy_m`.
+10. Tải lại ứng dụng, đăng nhập lại nếu cần. Hiện tại `.env` không có service-role key nên thao tác tạo tài khoản phải dùng script quản trị riêng; xem `docs/SEASON_CONNECTION_ADMIN_SETUP.md`.
 
 Migration không cần bucket Storage mới. Tin nhắn, phiếu và điều kiện giao dịch được lưu trong database; thông báo dùng bảng `notifications` hiện có.
 

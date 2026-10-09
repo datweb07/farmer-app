@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
-import { Search, Filter, ShoppingBag, Loader2, MapPin, Clock, Bell } from "lucide-react";
+import { Search, Filter, ShoppingBag, Loader2, Bell } from "lucide-react";
 import { ProductCard } from "../components/ProductCard";
 import { CreateProductModal } from "../components/CreateProductModal";
 import { ProductDetailModal } from "../components/ProductDetailModal";
@@ -17,6 +17,7 @@ import type { ProductWithStats } from "../../lib/community/types";
 import { useAuth } from "../../contexts/AuthContext";
 import { UserAvatar } from "../components/UserAvatar";
 import { NotificationDropdown } from "../components/NotificationDropdown";
+import { ProfileLocationTimeBar } from "../components/ProfileLocationTimeBar";
 
 interface MobileProductsViewProps {
     selectedProductId?: string | null;
@@ -229,18 +230,6 @@ export function MobileProductsView({
     };
 
     const greeting = getGreeting(currentTime.getHours());
-    const formattedTime = currentTime.toLocaleTimeString('vi-VN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-    });
-    const formattedDate = currentTime.toLocaleDateString('vi-VN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    });
-    const province = "AN GIANG";
-
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header Section - Đã đồng bộ hoàn toàn với MobilePostsView */}
@@ -279,15 +268,7 @@ export function MobileProductsView({
                 </div>
 
                 {/* Location and Time */}
-                <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" /> Tỉnh <span className="font-bold">{province}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="w-4 h-4" />
-                        <span>{formattedTime} | {formattedDate}</span>
-                    </div>
-                </div>
+                <ProfileLocationTimeBar time={currentTime} dateStyle="short" />
             </div>
 
             {/* Main Content */}

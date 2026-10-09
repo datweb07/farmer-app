@@ -183,13 +183,18 @@ export function PostsPage({
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-2">
-            {profile?.role === "farmer" ? "Đối Tác Thu Mua Tin Cậy" : "Thu mua sản lượng nông phẩm"}
-          </h1>
-          <p className="text-gray-600">
-            RÕ RÀNG - UY TÍN - MINH BẠCH
-          </p>
+        <div
+          className="relative mb-8 min-h-36 overflow-hidden rounded-xl border border-gray-200 bg-cover bg-center p-6 md:p-8"
+          style={{ backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.5)), url("/images/durian-partner-banner.jpg")' }}
+        >
+          <div className="flex min-h-24 flex-col justify-center">
+            <h1 className="text-2xl font-semibold text-white drop-shadow md:text-3xl">
+              {profile?.role === "farmer" ? "Đối Tác Thu Mua Tin Cậy" : "Thu mua sản lượng nông phẩm"}
+            </h1>
+            <p className="mt-1 text-sm text-white/90 drop-shadow">
+              RÕ RÀNG - UY TÍN - MINH BẠCH
+            </p>
+          </div>
         </div>
 
         {/* Top Contributors */}

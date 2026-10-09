@@ -27,23 +27,23 @@ export function SuccessfulSeasonTransactions() {
 
   const completion = totalMatches ? Math.min(100, Math.round(transactions.length / totalMatches * 100)) : 0;
 
-  return <section className="rounded-xl border border-gray-200 bg-white p-4 text-gray-900 md:p-5">
+  return <section className="rounded-xl border border-emerald-800 bg-[#245f2f] p-4 text-white md:p-5">
     <button type="button" onClick={() => setExpanded((value) => !value)} className="w-full text-left" aria-expanded={expanded}>
       <div className="flex items-center justify-between gap-3">
-        <div><h2 className="text-base font-bold">Mã giao dịch kết nối đã thành công</h2><p className="mt-1 text-sm text-gray-600">{loading ? "Đang tải số liệu..." : loadError ? "Chưa tải được số liệu kết nối." : `${transactions.length} mã giao dịch đã chốt trên ${totalMatches} hồ sơ kết nối`}</p></div>
+        <div><h2 className="text-base font-bold text-white">Mã giao dịch kết nối đã thành công</h2><p className="mt-1 text-sm text-lime-100">{loading ? "Đang tải số liệu..." : loadError ? "Chưa tải được số liệu kết nối." : `${transactions.length} mã giao dịch đã chốt trên ${totalMatches} hồ sơ kết nối`}</p></div>
         {expanded ? <ChevronUp className="h-5 w-5 shrink-0" /> : <ChevronDown className="h-5 w-5 shrink-0" />}
       </div>
-      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-gray-200"><div className="h-full rounded-full bg-emerald-400 transition-all duration-500" style={{ width: `${completion}%` }} /></div>
-      <p className="mt-1 text-right text-xs text-gray-600">{completion}%</p>
+      <div className="mt-3 h-2.5 overflow-hidden rounded-full border border-white/70 bg-lime-600"><div className="h-full rounded-full bg-lime-300 transition-all duration-500" style={{ width: `${completion}%` }} /></div>
+      <p className="mt-1 text-right text-xs text-lime-100">{completion}%</p>
     </button>
-    {expanded && <div className="mt-4 space-y-2 border-t border-gray-200 pt-3">
-      {loading ? <p className="py-2 text-sm text-gray-600">Đang tải danh sách mã...</p> : loadError ? <p className="py-2 text-sm text-red-700">Không thể tải danh sách. Hãy kiểm tra migration 050 và 051 đã được áp dụng.</p> : !transactions.length ? <p className="py-2 text-sm text-gray-600">Chưa có giao dịch kết nối nào được hai bên xác nhận.</p> : transactions.map((transaction) => <div key={transaction.transaction_code}>
+    {expanded && <div className="mt-4 space-y-2 border-t border-white/30 pt-3">
+      {loading ? <p className="py-2 text-sm text-lime-100">Đang tải danh sách mã...</p> : loadError ? <p className="py-2 text-sm text-red-200">Không thể tải danh sách. Hãy kiểm tra migration 050 và 051 đã được áp dụng.</p> : !transactions.length ? <p className="py-2 text-sm text-lime-100">Chưa có giao dịch kết nối nào được hai bên xác nhận.</p> : transactions.map((transaction) => <div key={transaction.transaction_code}>
         <button type="button" onClick={() => setSelectedCode((current) => current === transaction.transaction_code ? null : transaction.transaction_code)} aria-expanded={selectedCode === transaction.transaction_code} className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-left hover:bg-gray-50">
           <span><span className="block font-semibold text-emerald-800">{transaction.transaction_code}</span><span className="mt-0.5 block text-xs text-gray-600">Đã xác nhận {new Date(transaction.confirmed_at).toLocaleDateString("vi-VN")}</span></span>
           <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
         </button>
-        {selectedCode === transaction.transaction_code && <div className="mt-2 rounded-lg border border-emerald p-3 text-sm text-gray-800">
-          <p className="mb-2 font-semibold text-gray-900">Chi tiết giao dịch</p>
+        {selectedCode === transaction.transaction_code && <div className="mt-2 p-3 text-sm text-white">
+          <p className="mb-2 font-semibold text-white">Chi tiết giao dịch</p>
           <div className="grid gap-x-5 gap-y-1 sm:grid-cols-2">
             <p><b>Nông sản:</b> {transaction.crop_name || "—"}{transaction.variety ? ` · ${transaction.variety}` : ""}</p>
             <p><b>Sản lượng chốt:</b> {transaction.quantity_tons} tấn</p>

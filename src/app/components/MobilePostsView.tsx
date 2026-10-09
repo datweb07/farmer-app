@@ -109,7 +109,7 @@ export function MobilePostsView({
                 <div
                     className="relative bg-cover bg-center rounded-2xl overflow-hidden shadow-md"
                     style={{
-                        backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url("https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&q=80")',
+                        backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.5)), url("/images/durian-partner-banner.jpg")',
                         minHeight: '100px'
                     }}
                 >

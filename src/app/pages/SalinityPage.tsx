@@ -102,18 +102,15 @@ export function SalinityPage() {
   // ==================== MOBILE LAYOUT ====================
   if (isMobile) {
     return (
-      <>
-        <div className="bg-gray-50 px-4 pt-4"><SalinityPushSettings data={data} /></div>
-        <MobileSalinityView
-          data={data}
-          filteredData={filteredData}
-          filters={filters}
-          setFilters={setFilters}
-          loading={loading}
-          error={error}
-          refetch={refetch}
-        />
-      </>
+      <MobileSalinityView
+        data={data}
+        filteredData={filteredData}
+        filters={filters}
+        setFilters={setFilters}
+        loading={loading}
+        error={error}
+        refetch={refetch}
+      />
     );
   }
 

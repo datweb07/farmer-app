@@ -10,6 +10,7 @@ import { SalinityTable } from "@/components/SalinityTable";
 import { useAuth } from "../../contexts/AuthContext";
 import { UserAvatar } from "../components/UserAvatar";
 import { NotificationDropdown } from "../components/NotificationDropdown";
+import { SalinityPushSettings } from "./SalinityPushSettings";
 import type { FilterState } from "@/types/prophet";
 
 interface MobileSalinityViewProps {
@@ -136,6 +137,8 @@ export function MobileSalinityView({
 
       {/* Main Content - copy từ SalinityPage */}
       <div className="px-4 py-4">
+        <SalinityPushSettings data={data} />
+
         {/* Header */}
         <div className="bg-white rounded-lg p-4 mb-4 shadow-sm">
           <h1 className="text-xl font-semibold text-gray-900 mb-1">

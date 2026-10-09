@@ -27,10 +27,10 @@ const firebaseConfig = {
 
 const firebaseReady = Boolean(
   firebaseConfig.apiKey &&
-    firebaseConfig.projectId &&
-    firebaseConfig.messagingSenderId &&
-    firebaseConfig.appId &&
-    import.meta.env.VITE_FIREBASE_VAPID_KEY,
+  firebaseConfig.projectId &&
+  firebaseConfig.messagingSenderId &&
+  firebaseConfig.appId &&
+  import.meta.env.VITE_FIREBASE_VAPID_KEY,
 );
 let unsubscribeForegroundMessage: (() => void) | null = null;
 
@@ -186,12 +186,12 @@ export function SalinityPushSettings({ data }: { data: Prediction[] }) {
   }
 
   return (
-    <section className="mb-5 rounded-lg border border-emerald-200 bg-white p-4 md:p-5" aria-labelledby="salinity-push-title">
+    <section className="mb-5 rounded-lg border border-emerald bg-white p-4 md:p-5" aria-labelledby="salinity-push-title">
       <div className="flex items-start gap-3">
-        <div className="rounded-md border border-emerald-200 p-2 text-emerald-700"><BellRing size={20} /></div>
+
         <div className="min-w-0 flex-1">
           <h2 id="salinity-push-title" className="font-semibold text-gray-900">Cảnh báo độ mặn</h2>
-          <p className="mt-1 text-sm text-gray-600">Nhận thông báo trên trình duyệt/điện thoại khi dữ liệu mới tại khu vực vượt ngưỡng.</p>
+          <p className="mt-1 text-sm text-gray-600">Lưu ý từ người phát triển: Chỉ nhận được Web Push từ iOS 16.4+ và đối với một số phiên bản, người dùng phải thêm Web App vào màn hình chính thì mới bật được tính năng Push. Cảm ơn!</p>
         </div>
       </div>
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">

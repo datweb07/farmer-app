@@ -368,3 +368,22 @@ export async function isAdmin(): Promise<boolean> {
     return false;
   }
 }
+
+/** Access to season matching only; does not grant legacy admin capabilities. */
+export async function canManageSeasonConnections(): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("is_admin, can_manage_season_connections")
+      .eq("id", user.id)
+      .single();
+
+    if (error || !data) return false;
+    return data.is_admin === true || data.can_manage_season_connections === true;
+  } catch {
+    return false;
+  }
+}

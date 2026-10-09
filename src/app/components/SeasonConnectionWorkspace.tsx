@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { Check, CheckCheck, CircleHelp, Handshake, Leaf, LoaderCircle, MapPin, MessageCircle, PackageCheck, Send, Truck, Wheat } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { GpsCaptureField } from "./GpsCaptureField";
-import { isAdmin } from "../../lib/admin/admin.service";
+import { canManageSeasonConnections } from "../../lib/admin/admin.service";
 import {
   confirmSeasonProposal,
   createSeasonProposal,
@@ -147,9 +147,9 @@ export function SeasonConnectionWorkspace() {
     if (!user) return;
     if (!quiet) setLoading(true);
     try {
-      const [adminStatus, workspace] = await Promise.all([isAdmin(), loadSeasonWorkspace(admin)]);
+      const [adminStatus, workspace] = await Promise.all([canManageSeasonConnections(), loadSeasonWorkspace(admin)]);
       setAdmin(adminStatus);
-      // Admin access is checked server-side too; reload once role is known so all open listings are included.
+      // Scoped and full admins both load open supply/demand for matching; the database checks permission too.
       const finalWorkspace = adminStatus && !admin ? await loadSeasonWorkspace(true) : workspace;
       setData(finalWorkspace);
       setError("");

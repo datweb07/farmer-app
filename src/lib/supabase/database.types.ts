@@ -26,6 +26,7 @@ export interface Database {
           points: number;
           avatar_url: string | null;
           is_admin: boolean;
+          can_manage_season_connections: boolean;
           is_banned: boolean;
           banned_reason: string | null;
           banned_at: string | null;
@@ -42,6 +43,7 @@ export interface Database {
           points?: number;
           avatar_url?: string | null;
           is_admin?: boolean;
+          can_manage_season_connections?: boolean;
           is_banned?: boolean;
           banned_reason?: string | null;
           banned_at?: string | null;
@@ -58,6 +60,7 @@ export interface Database {
           points?: number;
           avatar_url?: string | null;
           is_admin?: boolean;
+          can_manage_season_connections?: boolean;
           is_banned?: boolean;
           banned_reason?: string | null;
           banned_at?: string | null;

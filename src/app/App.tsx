@@ -4,6 +4,7 @@ import { PublicRoute } from "../components/auth/PublicRoute";
 import { Navigation } from "./components/Navigation";
 // import { MobileTopBar } from "./components/MobileTopBar"; // Removed - using header in pages
 import { MobileBottomNav } from "./components/MobileBottomNav";
+import { FooterSupportMap } from "./components/FooterSupportMap";
 import { DashboardPage } from "./pages/DashboardPage";
 import { BusinessDashboardPage } from "./pages/BusinessDashboardPage";
 import { SalinityPage } from "./pages/SalinityPage";
@@ -178,7 +179,7 @@ function AppContent() {
           {/* Footer - QUAN TRỌNG: Thêm 'hidden md:block' để ẩn footer ở mobile */}
           <footer className="hidden md:block bg-gradient-to-r from-gray-800 to-gray-900 text-white py-8 mt-12">
             <div className="max-w-7xl mx-auto px-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+              <div className="grid grid-cols-1 gap-8 mb-6 md:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
                     Nông nghiệp ĐBSCL
@@ -212,7 +213,7 @@ function AppContent() {
                         onClick={() => handleNavigate("posts")}
                         className="hover:text-white transition-colors"
                       >
-                        Cộng đồng
+                        Cộng đồng Thu mua
                       </button>
                     </li>
                     <li>
@@ -228,11 +229,15 @@ function AppContent() {
                 <div>
                   <h4 className="font-bold mb-3">Liên hệ hỗ trợ</h4>
                   <ul className="space-y-2 text-sm text-gray-300">
-                    <li>📞 Hotline: 1800-1234</li>
-                    <li>✉️ Email: dat82770@gmail.com</li>
-                    <li>📍 TP.HCM, Việt Nam</li>
-                    <li>🕐 8:00 - 20:00 hàng ngày</li>
+                    <li>Hotline: <a href="tel:+84585708372" className="hover:text-white hover:underline">0585708372</a></li>
+                    <li>Email: <a href="mailto:champmanhchat.official@gmail.com" className="hover:text-white hover:underline">champmanhchat.official@gmail.com</a></li>
+                    <li>TP.HCM, Việt Nam</li>
+                    <li>6:00 - 23:59, hằng ngày</li>
                   </ul>
+                </div>
+                <div>
+                  <h4 className="font-bold mb-3">Bản đồ</h4>
+                  <FooterSupportMap />
                 </div>
               </div>
               <div className="border-t border-gray-700 pt-6 text-center text-sm text-gray-400">

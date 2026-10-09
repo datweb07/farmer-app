@@ -1,6 +1,5 @@
 import {
   Home,
-  FileText,
   ShoppingBag,
   Handshake,
   Menu,
@@ -8,6 +7,7 @@ import {
   User,
   Shield,
   BarChart3,
+  Droplet,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -39,8 +39,8 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
       icon: BarChart3,
       roles: ["business"],
     },
-    { id: "salinity", label: "Độ mặn", icon: DurianFruitIcon, roles: ["farmer", "business"] },
-    { id: "posts", label: "Cộng đồng", icon: FileText, roles: ["farmer", "business"] },
+    { id: "salinity", label: "Độ mặn", icon: Droplet, roles: ["farmer", "business"] },
+    { id: "posts", label: "Cộng đồng Thu mua", icon: DurianFruitIcon, roles: ["farmer", "business"] },
     {
       id: "products",
       label: "Sản phẩm",

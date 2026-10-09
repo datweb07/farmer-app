@@ -3,7 +3,7 @@ import {
   Droplet,
   FileText,
   ShoppingBag,
-  TrendingUp,
+  Handshake,
   Menu,
   X,
   User,
@@ -53,9 +53,9 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
       roles: ["farmer", "business"],
     },
     {
-      id: "invest",
-      label: "Đầu tư",
-      icon: TrendingUp,
+      id: "connections",
+      label: "Kết nối",
+      icon: Handshake,
       roles: ["farmer", "business"],
     },
     {

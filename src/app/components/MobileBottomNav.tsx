@@ -1,4 +1,4 @@
-import { Home, FileText, ShoppingBag, TrendingUp, Droplet, BarChart3 } from 'lucide-react';
+import { Home, FileText, ShoppingBag, Droplet, BarChart3, ArrowLeftRight, Building2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface NavItem {
@@ -12,7 +12,7 @@ const farmerNavItems: NavItem[] = [
     { icon: Home, label: '', page: 'dashboard' },
     { icon: FileText, label: '', page: 'posts' },
     { icon: ShoppingBag, label: '', page: 'products' },
-    { icon: TrendingUp, label: '', page: 'invest' },
+    { icon: Droplet, label: '', page: 'salinity' },
 ];
 
 // Navigation items for business users
@@ -20,7 +20,7 @@ const businessNavItems: NavItem[] = [
     { icon: BarChart3, label: '', page: 'business-dashboard' },
     { icon: FileText, label: '', page: 'posts' },
     { icon: ShoppingBag, label: '', page: 'products' },
-    { icon: TrendingUp, label: '', page: 'invest' },
+    { icon: Droplet, label: '', page: 'salinity' },
 ];
 
 interface MobileBottomNavProps {
@@ -43,13 +43,17 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
                 {/* Central FAB - Primary Action (positioned above notch) */}
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-[4.5rem] z-20">
                     <button
-                        onClick={() => onNavigate('salinity')}
+                        onClick={() => onNavigate('connections')}
                         className="group relative"
-                        aria-label="Kiểm tra độ mặn"
+                        aria-label="Kết nối nông dân và doanh nghiệp"
                     >
                         {/* FAB Button */}
                         <div className="w-16 h-16 translate-y-2 bg-[#84cc16] rounded-full shadow-2xl hover:shadow-lime-500/40 active:scale-95 transition-all duration-200 flex items-center justify-center ring-4 ring-white">
-                            <Droplet className="w-8 h-8 text-white drop-shadow-md group-active:rotate-12 transition-transform fill-white" />
+                            <span className="flex items-center gap-0.5 text-white drop-shadow-md group-active:scale-95 transition-transform" aria-hidden="true">
+                                <DurianTreeIcon />
+                                <ArrowLeftRight className="w-4 h-4" />
+                                <Building2 className="w-5 h-5" />
+                            </span>
                         </div>
 
                         {/* Permanent Label (Primary Action should be clear) */}
@@ -178,5 +182,17 @@ function NavItemButton({ item, active, onNavigate }: NavItemButtonProps) {
                 {item.label}
             </span>
         </button>
+    );
+}
+
+function DurianTreeIcon() {
+    return (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 20v-6m0 2-4-3m4 1 4-4m-4 1V8" />
+            <path d="M8.2 13.2c-2.3.3-4-1-4-3 0-1.4 1-2.6 2.4-2.9.2-2.2 2-3.8 4.2-3.8 1.1 0 2.1.4 2.8 1.2 1.8-.5 3.7.5 4.2 2.3 1.7.3 2.9 1.7 2.9 3.4 0 2-1.7 3.5-3.8 3.4" />
+            <path d="M6.8 20h10.4" />
+            <path d="m7.7 8.5.5-.7m3.3-.8.3-.8m3.1 2.1.7-.5m1 3 .8.1" />
+            <path d="M8 10.4c-.7.5-.8 1.3-.3 1.9.5.6 1.3.7 1.9.2.6-.5.7-1.3.2-1.9" />
+        </svg>
     );
 }

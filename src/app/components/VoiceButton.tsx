@@ -8,7 +8,6 @@ import { useTextToSpeech } from "../../hooks/useTextToSpeech";
 
 interface VoiceButtonProps {
   salinity: number | null;
-  month: number;
   province: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl"; // Thêm size "xl" cho người già
   variant?: "default" | "outline" | "ghost" | "elderly"; // Thêm variant cho người già
@@ -17,7 +16,6 @@ interface VoiceButtonProps {
 
 export function VoiceButton({
   salinity,
-  month,
   province,
   size = "md",
   variant = "default",
@@ -41,9 +39,16 @@ export function VoiceButton({
     }
 
     // Format the speech text
-    const salinityText = salinity.toFixed(1).replace(".", " phẩy ");
-    const monthName = getVietnameseMonth(month);
-    const speechText = `Tháng ${monthName} ở tỉnh ${province} có độ mặn là ${salinityText} gam trên lít.`;
+    const [whole, decimal] = salinity.toFixed(2).split(".");
+    const digitNames = ["không", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+    const exactValue = `${whole.split("").map((digit) => digitNames[Number(digit)]).join(" ")} phẩy ${decimal.split("").map((digit) => digitNames[Number(digit)]).join(" ")}`;
+    const today = new Date();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const fmt = (date: Date) => date.toLocaleDateString("vi-VN");
+    const speechText = `Độ mặn tỉnh ${province} khoảng ${exactValue} gam trên lít, được cập nhật tuần mới nhất gần đây là từ ngày ${fmt(monday)} đến ${fmt(sunday)}.`;
 
     // Speak with slower rate for elderly
     speak(speechText, { rate: 0.85 });
@@ -132,21 +137,3 @@ export function VoiceButton({
   );
 }
 
-// Helper function to convert month number to Vietnamese
-function getVietnameseMonth(month: number): string {
-  const months = [
-    "một",
-    "hai",
-    "ba",
-    "bốn",
-    "năm",
-    "sáu",
-    "bảy",
-    "tám",
-    "chín",
-    "mười",
-    "mười một",
-    "mười hai",
-  ];
-  return months[month - 1] || month.toString();
-}

@@ -7,7 +7,6 @@ import {
   FileText,
   ShoppingBag,
   MessageCircle,
-  Award,
   Eye, // Đã thêm icon Eye
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -16,32 +15,23 @@ import {
   getRecentActivities,
   getTrendingPosts,
   getRecentProducts,
-  getActiveProjects,
 } from "../../lib/dashboard/dashboard.service";
 import type { UserStats, ActivityItem } from "../../lib/dashboard/types";
 import type { PostWithStats } from "../../lib/community/types";
 import type { ProductWithStats } from "../../lib/community/types";
-import type { InvestmentProjectWithStats } from "../../lib/investments/types";
 import { UserStatsCard } from "../components/UserStatsCard";
 import { ActivityFeed } from "../components/ActivityFeed";
 import { TrendingPosts } from "../components/TrendingPosts";
 import { RecentProducts } from "../components/RecentProducts";
-import { ActiveProjects } from "../components/ActiveProjects";
 import { UserAvatar } from "../components/UserAvatar";
 import { NotificationDropdown } from "../components/NotificationDropdown";
-import { ProvinceSelector } from "../components/ProvinceSelector";
-import { VoiceButton } from "../components/VoiceButton";
-import { AlertNotification } from "../components/AlertNotification";
+import { LocalitySalinityLookup } from "../components/LocalitySalinityLookup";
 import { supabase } from "../../lib/supabase/supabase";
-import { getCurrentMonthSalinity } from "../../lib/salinity/salinity.service";
 
-// Helper to format currency
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(amount);
-};
+const formatCurrency = (amount: number) => new Intl.NumberFormat("vi-VN", {
+  style: "currency",
+  currency: "VND",
+}).format(amount);
 
 // Custom hook to detect mobile screen
 function useIsMobile(breakpoint: number = 768) {
@@ -101,17 +91,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [trendingPosts, setTrendingPosts] = useState<PostWithStats[]>([]);
   const [recentProducts, setRecentProducts] = useState<ProductWithStats[]>([]);
-  const [activeProjects, setActiveProjects] = useState<
-    InvestmentProjectWithStats[]
-  >([]);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [greeting, setGreeting] = useState(getGreeting());
-  const [currentSalinity, setCurrentSalinity] = useState<number | null>(null);
-  const [latestDate, setLatestDate] = useState<string | null>(null);
-  const [latestStation, setLatestStation] = useState<string | null>(null);
-  const [province, setProvince] = useState<string>("An Giang");
-  const [salinityLoading, setSalinityLoading] = useState(true);
 
   // Update clock every minute (for mobile layout)
   useEffect(() => {
@@ -131,44 +113,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   useEffect(() => {
     loadDashboardData();
-    loadSalinityData(province);
   }, []);
-
-  // Load salinity data for current month and province
-  const loadSalinityData = async (selectedProvince: string) => {
-    setSalinityLoading(true);
-    try {
-      // Fetch current month salinity data
-      const result = await getCurrentMonthSalinity(selectedProvince);
-
-      if (result.averageSalinity !== null) {
-        setCurrentSalinity(result.averageSalinity);
-        setLatestDate(result.latestDate || null);
-        setLatestStation(result.latestStation || null);
-      } else {
-        // If no data for current month, clear the values
-        console.warn(
-          `No salinity data found for ${selectedProvince} in current month`,
-        );
-        setCurrentSalinity(null);
-        setLatestDate(null);
-        setLatestStation(null);
-      }
-    } catch (error) {
-      console.error("Error loading salinity data:", error);
-      setCurrentSalinity(null);
-      setLatestDate(null);
-      setLatestStation(null);
-    } finally {
-      setSalinityLoading(false);
-    }
-  };
-
-  // Handle province change
-  const handleProvinceChange = (newProvince: string) => {
-    setProvince(newProvince);
-    loadSalinityData(newProvince);
-  };
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -179,13 +124,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         activitiesResult,
         postsResult,
         productsResult,
-        projectsResult,
       ] = await Promise.all([
         getUserStats(),
         getRecentActivities(10),
         getTrendingPosts(5),
         getRecentProducts(4),
-        getActiveProjects(isMobile ? 1 : 3), // Get 1 for mobile, 3 for desktop
       ]);
 
       if (statsResult.stats) setStats(statsResult.stats);
@@ -227,8 +170,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
         setRecentProducts(productsWithMedia);
       }
-      if (projectsResult && !projectsResult.error)
-        setActiveProjects(projectsResult.projects || []);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
     }
@@ -240,14 +181,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   if (isMobile) {
     return (
       <div className="min-h-screen relative bg-gray-900 text-white font-sans">
-        {/* Alert Notification - Fixed position */}
-        <AlertNotification
-          province={province}
-          salinity={currentSalinity}
-          latestDate={latestDate}
-          latestStation={latestStation}
-        />
-
         {/* Background Image - Cập nhật để fill full chiều dài màn hình */}
         <div
           className="fixed inset-0 z-0 opacity-60"
@@ -294,145 +227,20 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <NotificationDropdown />
           </header>
 
-          {/* Main Stats Board */}
+          {/* Home salinity and locality panel */}
           <div className="mb-8">
-            <div className="flex justify-between items-end mb-2 text-sm font-medium">
-              <ProvinceSelector
-                selectedProvince={province}
-                onProvinceChange={handleProvinceChange}
-              />
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {currentTime.toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                })}{" "}
-                |{" "}
-                {currentTime.toLocaleDateString("vi-VN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
+            <div className="mb-3 flex justify-end">
+              <div className="flex items-center gap-1 text-sm font-medium text-white">
+                <Clock className="h-4 w-4" />
+                {currentTime.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                <span className="px-1">|</span>
+                {currentTime.toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" })}
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                {salinityLoading ? (
-                  <div className="text-5xl font-bold font-mono tracking-tighter">
-                    <div className="inline-block animate-pulse">--.-</div>{" "}
-                    <span className="text-2xl">g/l</span>
-                  </div>
-                ) : currentSalinity !== null ? (
-                  <>
-                    <div className="flex items-baseline gap-6">
-                      <div className="text-5xl font-bold font-mono tracking-tighter">
-                        {currentSalinity} <span className="text-2xl">g/l</span>
-                      </div>
-                      <VoiceButton
-                        salinity={currentSalinity}
-                        month={new Date().getMonth() + 1}
-                        province={province}
-                        size="sm"
-                        variant="ghost"
-                      />
-                    </div>
-                    {latestDate && (
-                      <div className="text-xs text-gray-300 mt-0.5">
-                        Cập nhật:{" "}
-                        {new Date(latestDate).toLocaleDateString("vi-VN", {
-                          day: "2-digit",
-                          month: "2-digit",
-                        })}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-5xl font-bold font-mono tracking-tighter text-gray-400">
-                    N/A <span className="text-2xl">g/l</span>
-                  </div>
-                )}
-                <div className="text-sm font-medium opacity-90 mt-1">
-                  Độ mặn TB tháng {new Date().getMonth() + 1}/
-                  {new Date().getFullYear()}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-5xl font-bold font-mono tracking-tighter">
-                  {stats?.total_points || 0}
-                </div>
-                <div className="text-sm font-medium opacity-90 mt-1">
-                  Tổng điểm
-                </div>
-              </div>
-            </div>
+            <LocalitySalinityLookup />
           </div>
 
-          {/* Featured Project */}
-          {activeProjects.length > 0 && (
-            // Background Container (Dark Green)
-            <div className="mb-8 bg-[#2e6b31] rounded-xl p-4 shadow-lg">
-              <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                Dự án đang kêu gọi
-              </h2>
-              {/* Inner Card (Lime Green with White Border) */}
-              <div
-                className="bg-[#84bd00] border-2 border-white rounded-xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
-                onClick={() => onNavigate?.("invest")}
-              >
-                <div className="flex flex-col h-full justify-between">
-                  {/* Title */}
-                  <h3 className="font-medium text-sm text-[#1a3c1e] uppercase mb-6 leading-relaxed">
-                    {activeProjects[0].title}
-                  </h3>
-
-                  <div className="space-y-1">
-                    {/* Money & Percentage */}
-                    <div className="flex justify-between text-[10px] text-[#1a3c1e] font-medium">
-                      <span>
-                        {formatCurrency(activeProjects[0].current_funding)}
-                      </span>
-                      <span>
-                        {Math.round(
-                          (activeProjects[0].current_funding /
-                            activeProjects[0].funding_goal) *
-                            100,
-                        )}
-                        %
-                      </span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="h-1.5 w-full bg-white rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-white rounded-full"
-                        style={{
-                          width: `${Math.min(
-                            (activeProjects[0].current_funding /
-                              activeProjects[0].funding_goal) *
-                              100,
-                            100,
-                          )}%`,
-                        }}
-                      />
-                    </div>
-
-                    {/* Goal & Investors */}
-                    <div className="flex justify-between text-[10px] text-[#1a3c1e] mt-1 font-medium">
-                      <span>
-                        Mục tiêu:{" "}
-                        {formatCurrency(activeProjects[0].funding_goal)}
-                      </span>
-                      <span>
-                        {activeProjects[0].investors_count} nhà đầu tư
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Dự án đang kêu gọi đã được gỡ khỏi trang chủ. */}
 
           {/* New Products */}
           <div className="mb-8">
@@ -575,14 +383,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   // ==================== DESKTOP LAYOUT ====================
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Alert Notification - Fixed position */}
-      <AlertNotification
-        province={province}
-        salinity={currentSalinity}
-        latestDate={latestDate}
-        latestStation={latestStation}
-      />
-
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Welcome Banner */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-6 mb-8 shadow-lg">
@@ -592,100 +392,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <p className="text-blue-100">{greeting.message}</p>
         </div>
 
-        {/* Salinity Card - Desktop */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-600" />
-              Độ mặn hiện tại
-            </h3>
-            <ProvinceSelector
-              selectedProvince={province}
-              onProvinceChange={handleProvinceChange}
-              className="text-gray-700"
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2">
-              {salinityLoading ? (
-                <div className="flex items-baseline gap-2">
-                  <div className="text-5xl font-bold font-mono animate-pulse text-gray-400">
-                    --.-
-                  </div>
-                  <span className="text-2xl font-medium text-gray-600">
-                    g/l
-                  </span>
-                </div>
-              ) : currentSalinity !== null ? (
-                <div>
-                  <div className="flex items-baseline gap-3 mb-2">
-                    <div
-                      className={`text-5xl font-bold font-mono ${
-                        currentSalinity < 1
-                          ? "text-green-600"
-                          : currentSalinity < 4
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                      }`}
-                    >
-                      {currentSalinity}
-                    </div>
-                    <span className="text-2xl font-medium text-gray-600">
-                      g/l
-                    </span>
-                    <VoiceButton
-                      salinity={currentSalinity}
-                      month={new Date().getMonth() + 1}
-                      province={province}
-                      size="md"
-                      variant="outline"
-                    />
-                  </div>
-                  {latestDate && (
-                    <p className="text-sm text-gray-600">
-                      Cập nhật:{" "}
-                      {new Date(latestDate).toLocaleDateString("vi-VN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
-                      {latestStation && (
-                        <span className="ml-2">• Trạm: {latestStation}</span>
-                      )}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-baseline gap-2">
-                  <div className="text-5xl font-bold font-mono text-gray-400">
-                    N/A
-                  </div>
-                  <span className="text-2xl font-medium text-gray-600">
-                    g/l
-                  </span>
-                </div>
-              )}
-              <p className="text-sm text-gray-500 mt-3">
-                Độ mặn trung bình tháng {new Date().getMonth() + 1}/
-                {new Date().getFullYear()} tại {province}
-              </p>
-            </div>
-
-            <div className="flex flex-col justify-center">
-              <button
-                onClick={() => onNavigate?.("salinity")}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center flex items-center justify-center gap-2"
-              >
-                <ChevronRight className="w-5 h-5" />
-                Xem chi tiết
-              </button>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                Dữ liệu dự báo theo mô hình Prophet
-              </p>
-            </div>
-          </div>
+        <div className="mb-8 flex justify-end text-sm text-gray-600">
+          <Clock className="mr-2 h-4 w-4" />
+          {currentTime.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false })}
+          <span className="px-2">|</span>
+          {currentTime.toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" })}
         </div>
+        <div className="mb-8"><LocalitySalinityLookup /></div>
 
         {/* User Stats Grid */}
         {stats && (
@@ -717,30 +430,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           </div>
         )}
 
-        {/* Points & Rank Card */}
-        {stats && stats.rank_position > 0 && (
-          <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg p-6 mb-8 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="w-6 h-6" />
-                  <h3 className="text-lg font-bold">Thứ hạng của bạn</h3>
-                </div>
-                <p className="text-2xl font-bold">
-                  #{stats.rank_position}
-                  <span className="text-base font-normal ml-2">
-                    / {stats.total_users} thành viên
-                  </span>
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm opacity-90 mb-1">Tổng điểm</p>
-                <p className="text-3xl font-bold">{stats.total_points}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Left Column - Activity Feed */}
@@ -757,11 +446,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="space-y-6">
             <RecentProducts
               products={recentProducts}
-              loading={loading}
-              onNavigate={onNavigate}
-            />
-            <ActiveProjects
-              projects={activeProjects}
               loading={loading}
               onNavigate={onNavigate}
             />
@@ -793,10 +477,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               Mua sắm thiết bị
             </button>
             <button
-              onClick={() => onNavigate?.("invest")}
+              onClick={() => onNavigate?.("connections")}
               className="bg-white text-blue-600 border-2 border-blue-600 p-5 rounded-lg font-medium text-base hover:bg-blue-50 transition-all hover:shadow-md"
             >
-              Tìm nguồn đầu tư
+              Kết nối đối tác
             </button>
           </div>
         </div>
@@ -846,8 +530,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               </span>
               <div>
                 <p className="font-medium text-gray-900">Kêu gọi đầu tư</p>
-                <p className="text-sm text-gray-600">
-                  Tạo dự án và kết nối với nhà đầu tư, doanh nghiệp
+                  <p className="text-sm text-gray-600">
+                  Theo dõi thông tin độ mặn và kết nối với doanh nghiệp thu mua
                 </p>
               </div>
             </div>

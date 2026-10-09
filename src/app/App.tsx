@@ -11,9 +11,7 @@ import { BusinessDashboardPage } from "./pages/BusinessDashboardPage";
 import { SalinityPage } from "./pages/SalinityPage";
 import { PostsPage } from "./pages/PostsPage";
 import { ProductsPage } from "./pages/ProductsPage";
-import { InvestPage } from "./pages/InvestPage";
-import { CreateProjectPage } from "./pages/CreateProjectPage";
-import { EditProjectPage } from "./pages/EditProjectPage";
+import { ConnectionsPage } from "./pages/ConnectionsPage";
 import { AdminPage } from "./pages/AdminPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { LoginPage } from "../pages/auth/LoginPage";
@@ -23,7 +21,6 @@ import { SettingsPage } from "../pages/settings/SettingsPage";
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState("dashboard");
-  const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null,
@@ -61,15 +58,13 @@ function AppContent() {
     setShowTutorial(false);
   };
 
-  // Redirect business users to invest page if they try to access restricted pages
+  // Redirect business users away from farmer-only pages.
   useEffect(() => {
     if (profile?.role === "business") {
       const allowedPages = [
-        "invest",
+        "connections",
         "profile",
         "settings",
-        "create-project",
-        "edit-project",
         "products", // Business có thể đăng sản phẩm
         "business-dashboard", // Dashboard quản lý bán hàng
         "salinity", // Độ mặn
@@ -86,11 +81,9 @@ function AppContent() {
     // Prevent business users from accessing farmer-only pages
     if (profile?.role === "business") {
       const allowedPages = [
-        "invest",
+        "connections",
         "profile",
         "settings",
-        "create-project",
-        "edit-project",
         "products", // Business có thể đăng sản phẩm
         "business-dashboard", // Dashboard quản lý bán hàng
         "salinity", // Độ mặn
@@ -144,26 +137,8 @@ function AppContent() {
             onNavigate={handleNavigate} // <--- ĐÃ THÊM: Truyền prop onNavigate vào đây
           />
         );
-      case "invest":
-        return (
-          <InvestPage
-            onNavigate={handleNavigate}
-            onEditProject={(id) => {
-              setEditProjectId(id);
-              setCurrentPage("edit-project");
-            }}
-          />
-        );
-      case "create-project":
-        return <CreateProjectPage onNavigate={handleNavigate} />;
-      case "edit-project":
-        return editProjectId ? (
-          <EditProjectPage
-            projectId={editProjectId}
-            onNavigate={handleNavigate}
-            onSuccess={() => setEditProjectId(null)}
-          />
-        ) : null;
+      case "connections":
+        return <ConnectionsPage />;
       case "admin":
         return <AdminPage onNavigate={handleNavigate} />;
       case "analytics":
@@ -252,10 +227,10 @@ function AppContent() {
                     </li>
                     <li>
                       <button
-                        onClick={() => handleNavigate("invest")}
+                        onClick={() => handleNavigate("connections")}
                         className="hover:text-white transition-colors"
                       >
-                        Đầu tư & Hợp tác
+                        Kết nối
                       </button>
                     </li>
                   </ul>

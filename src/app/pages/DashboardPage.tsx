@@ -21,11 +21,11 @@ import type { PostWithStats } from "../../lib/community/types";
 import type { ProductWithStats } from "../../lib/community/types";
 import { UserStatsCard } from "../components/UserStatsCard";
 import { ActivityFeed } from "../components/ActivityFeed";
-import { TrendingPosts } from "../components/TrendingPosts";
 import { RecentProducts } from "../components/RecentProducts";
 import { UserAvatar } from "../components/UserAvatar";
 import { NotificationDropdown } from "../components/NotificationDropdown";
 import { LocalitySalinityLookup } from "../components/LocalitySalinityLookup";
+import { SuccessfulSeasonTransactions } from "../components/SuccessfulSeasonTransactions";
 import { supabase } from "../../lib/supabase/supabase";
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat("vi-VN", {
@@ -242,6 +242,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
           {/* Dự án đang kêu gọi đã được gỡ khỏi trang chủ. */}
 
+          {/* Successful transaction progress replaces trending posts on home. */}
+          <div className="mb-8"><SuccessfulSeasonTransactions /></div>
+
           {/* New Products */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -305,7 +308,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           </div>
 
           {/* === BÀI VIẾT THỊNH HÀNH (Thay thế Footer) === */}
-          <div className="mt-auto">
+          <div className="mt-auto hidden">
             <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-8">
               Bài viết thịnh hành
             </h2>
@@ -435,11 +438,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           {/* Left Column - Activity Feed */}
           <div className="lg:col-span-2 space-y-6">
             <ActivityFeed activities={activities} loading={loading} />
-            <TrendingPosts
-              posts={trendingPosts}
-              loading={loading}
-              onNavigate={onNavigate}
-            />
+            <SuccessfulSeasonTransactions />
           </div>
 
           {/* Right Column - Sidebar */}

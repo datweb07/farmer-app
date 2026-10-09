@@ -1,8 +1,9 @@
-import { Home, FileText, ShoppingBag, Droplet, BarChart3, ArrowLeftRight, Building2 } from 'lucide-react';
+import { Home, ShoppingBag, Droplet, BarChart3, ArrowLeftRight, Building2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import type { ComponentType } from 'react';
 
 interface NavItem {
-    icon: typeof Home;
+    icon: ComponentType<{ className?: string }>;
     label: string;
     page: string;
 }
@@ -10,7 +11,7 @@ interface NavItem {
 // Navigation items for farmers
 const farmerNavItems: NavItem[] = [
     { icon: Home, label: '', page: 'dashboard' },
-    { icon: FileText, label: '', page: 'posts' },
+    { icon: DurianFruitIcon, label: '', page: 'posts' },
     { icon: ShoppingBag, label: '', page: 'products' },
     { icon: Droplet, label: '', page: 'salinity' },
 ];
@@ -18,7 +19,7 @@ const farmerNavItems: NavItem[] = [
 // Navigation items for business users
 const businessNavItems: NavItem[] = [
     { icon: BarChart3, label: '', page: 'business-dashboard' },
-    { icon: FileText, label: '', page: 'posts' },
+    { icon: DurianFruitIcon, label: '', page: 'posts' },
     { icon: ShoppingBag, label: '', page: 'products' },
     { icon: Droplet, label: '', page: 'salinity' },
 ];
@@ -195,4 +196,11 @@ function DurianTreeIcon() {
             <path d="M8 10.4c-.7.5-.8 1.3-.3 1.9.5.6 1.3.7 1.9.2.6-.5.7-1.3.2-1.9" />
         </svg>
     );
+}
+
+function DurianFruitIcon({ className }: { className?: string }) {
+    return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 5c-1.2-1.5-1.1-2.8-.6-4" />
+        <path d="M11.2 6.1c-1.2-1.3-2.7-1.4-3.6-1.1l.3 2.1c-1.5-.2-2.8.4-3.5 1.5l1.4 1.4c-1.3.6-2 1.8-2 3.1l1.9.7c-.9 1.2-.9 2.6-.2 3.8l2-.3c-.3 1.5.4 2.8 1.5 3.5l1.4-1.4c.6 1.3 1.8 2 3.1 2l.7-1.9c1.2.9 2.6.9 3.8.2l-.3-2c1.5.3 2.8-.4 3.5-1.5l-1.4-1.4c1.3-.6 2-1.8 2-3.1l-1.9-.7c.9-1.2.9-2.6.2-3.8l-2 .3c.3-1.5-.4-2.8-1.5-3.5l-1.4 1.4c-.6-1.3-1.8-2-3.1-2l-.7 1.9Z" />
+    </svg>;
 }

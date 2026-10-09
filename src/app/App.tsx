@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { HelpCircle } from "lucide-react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { PublicRoute } from "../components/auth/PublicRoute";
 import { Navigation } from "./components/Navigation";
 // import { MobileTopBar } from "./components/MobileTopBar"; // Removed - using header in pages
 import { MobileBottomNav } from "./components/MobileBottomNav";
-import { Tutorial } from "./components/Tutorial";
 import { DashboardPage } from "./pages/DashboardPage";
 import { BusinessDashboardPage } from "./pages/BusinessDashboardPage";
 import { SalinityPage } from "./pages/SalinityPage";
@@ -21,7 +19,6 @@ import { SettingsPage } from "../pages/settings/SettingsPage";
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState("dashboard");
-  const [showTutorial, setShowTutorial] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null,
   );
@@ -45,18 +42,6 @@ function AppContent() {
   };
 
   // Initialize storage buckets
-
-  // Hiển thị tutorial mỗi khi user login thành công
-  useEffect(() => {
-    if (profile) {
-      setShowTutorial(true);
-    }
-  }, [profile?.id]); // Chỉ trigger khi user ID thay đổi (login mới)
-
-  // Đóng tutorial
-  const handleTutorialClose = () => {
-    setShowTutorial(false);
-  };
 
   // Redirect business users away from farmer-only pages.
   useEffect(() => {
@@ -173,7 +158,6 @@ function AppContent() {
       redirectTo={
         // Authenticated content
         <div className="min-h-screen bg-gray-50">
-          {showTutorial && <Tutorial onClose={handleTutorialClose} />}
 
           {/* Desktop Navigation - Hidden on mobile */}
           <div className="hidden md:block">
@@ -190,16 +174,6 @@ function AppContent() {
             currentPage={currentPage}
             onNavigate={handleNavigate}
           />
-
-          {/* Help Button - Hide on mobile */}
-          <button
-            onClick={() => setShowTutorial(true)}
-            className="hidden md:flex fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform z-40 items-center gap-2"
-            title="Mở hướng dẫn"
-          >
-            <HelpCircle className="w-6 h-6" />
-            <span className="font-bold">Trợ giúp</span>
-          </button>
 
           {/* Footer - QUAN TRỌNG: Thêm 'hidden md:block' để ẩn footer ở mobile */}
           <footer className="hidden md:block bg-gradient-to-r from-gray-800 to-gray-900 text-white py-8 mt-12">

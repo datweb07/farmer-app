@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Check, CheckCheck, CircleHelp, Handshake, Leaf, LoaderCircle, MapPin, MessageCircle, PackageCheck, Send, Truck, Wheat } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { GpsCaptureField } from "./GpsCaptureField";
 import { isAdmin } from "../../lib/admin/admin.service";
 import {
   confirmSeasonProposal,
@@ -22,6 +23,15 @@ const cardClass = "rounded-lg border border-gray-200 bg-white";
 const dateText = (value?: string) => value ? new Date(`${value}T00:00:00`).toLocaleDateString("vi-VN") : "Chưa xác định";
 const dateTime = (value?: string) => value ? new Date(value).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" }) : "";
 const priceLabel = (row) => row.price_mode === "fixed" && row.price_per_kg ? `${Number(row.price_per_kg).toLocaleString("vi-VN")} đ/kg` : "Thỏa thuận";
+const formatDateInput = (value?: string | null) => value ? new Date(`${value.slice(0, 10)}T00:00:00`).toLocaleDateString("en-GB") : "";
+function parseDateInput(value: FormDataEntryValue | null) {
+  const match = String(value ?? "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!match) throw new Error("Ngày phải theo định dạng ngày/tháng/năm, ví dụ 09/11/2026.");
+  const [, day, month, year] = match;
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) throw new Error("Ngày không hợp lệ.");
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
 
 function Field({ label, children, className = "" }) {
   return <label className={`block text-sm font-medium text-gray-700 ${className}`}>{label}{children}</label>;
@@ -35,6 +45,10 @@ function StatusTag({ children, tone = "gray" }) {
 function ListingForm({ role, userId, initial, onCancel, onSaved }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [gps, setGps] = useState(initial?.farm_latitude != null && initial?.farm_longitude != null ? {
+    latitude: Number(initial.farm_latitude), longitude: Number(initial.farm_longitude),
+    accuracy: initial.farm_accuracy_m == null ? null : Number(initial.farm_accuracy_m),
+  } : null);
   const isSupply = role === "farmer";
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,12 +57,22 @@ function ListingForm({ role, userId, initial, onCancel, onSaved }) {
     const values = Object.fromEntries(new FormData(event.currentTarget).entries());
     const numeric = (field) => Number(values[field]);
     try {
+      if (!gps) throw new Error("Vui lòng ghi nhận GPS trước khi đăng tin mùa vụ.");
+      const startDate = parseDateInput(values.start);
+      const endDate = parseDateInput(values.end);
+      if (endDate < startDate) throw new Error("Ngày kết thúc phải sau hoặc trùng ngày bắt đầu.");
+      const gpsValues = {
+        farm_latitude: gps?.latitude ?? null,
+        farm_longitude: gps?.longitude ?? null,
+        farm_accuracy_m: gps?.accuracy ?? null,
+      };
       if (isSupply) {
         await saveSeasonListing("season_supplies", initial?.id, {
           farmer_id: userId,
+          ...gpsValues,
           crop_name: values.crop_name, variety: values.variety || null,
           province: values.province, commune: values.commune || null, area_detail: values.area_detail || null,
-          harvest_start: values.start, harvest_end: values.end, estimated_tons: numeric("estimated_tons"),
+          harvest_start: startDate, harvest_end: endDate, estimated_tons: numeric("estimated_tons"),
           sellable_tons: numeric("sellable_tons"), quantity_is_estimated: values.quantity_is_estimated === "on",
           quality_standard: values.quality_standard || null, delivery_mode: values.delivery_mode,
           note: values.note || null, status: initial?.status ?? "open",
@@ -56,9 +80,10 @@ function ListingForm({ role, userId, initial, onCancel, onSaved }) {
       } else {
         await saveSeasonListing("season_demands", initial?.id, {
           business_id: userId,
+          ...gpsValues,
           crop_name: values.crop_name, variety: values.variety || null, desired_tons: numeric("desired_tons"),
           province: values.province, commune: values.commune || null,
-          needed_start: values.start, needed_end: values.end, quality_standard: values.quality_standard || null,
+          needed_start: startDate, needed_end: endDate, quality_standard: values.quality_standard || null,
           price_mode: values.price_mode, price_per_kg: values.price_mode === "fixed" ? numeric("price_per_kg") : null,
           delivery_terms: values.delivery_terms || null, payment_terms: values.payment_terms || null,
           note: values.note || null, status: initial?.status ?? "open",
@@ -82,8 +107,8 @@ function ListingForm({ role, userId, initial, onCancel, onSaved }) {
       <Field label="Tỉnh / thành phố *"><input required name="province" className={inputClass} placeholder="Cần Thơ" defaultValue={initial?.province} /></Field>
       <Field label="Xã / phường"><input name="commune" className={inputClass} placeholder="Phong Điền" defaultValue={initial?.commune ?? ""} /></Field>
       {isSupply && <Field label="Địa chỉ / khu vực vườn"><input name="area_detail" className={inputClass} placeholder="Ấp, tên vườn..." defaultValue={initial?.area_detail ?? ""} /></Field>}
-      <Field label={isSupply ? "Bắt đầu thu hoạch *" : "Cần hàng từ ngày *"}><input required type="date" name="start" className={inputClass} defaultValue={initial?.[isSupply ? "harvest_start" : "needed_start"]} /></Field>
-      <Field label={isSupply ? "Kết thúc thu hoạch *" : "Cần hàng đến ngày *"}><input required type="date" name="end" className={inputClass} defaultValue={initial?.[isSupply ? "harvest_end" : "needed_end"]} /></Field>
+      <Field label={isSupply ? "Bắt đầu thu hoạch (ngày/tháng/năm) *" : "Cần hàng từ ngày (ngày/tháng/năm) *"}><input required inputMode="numeric" pattern="\d{1,2}/\d{1,2}/\d{4}" placeholder="dd/mm/yyyy" name="start" className={inputClass} defaultValue={formatDateInput(initial?.[isSupply ? "harvest_start" : "needed_start"])} /></Field>
+      <Field label={isSupply ? "Kết thúc thu hoạch (ngày/tháng/năm) *" : "Cần hàng đến ngày (ngày/tháng/năm) *"}><input required inputMode="numeric" pattern="\d{1,2}/\d{1,2}/\d{4}" placeholder="dd/mm/yyyy" name="end" className={inputClass} defaultValue={formatDateInput(initial?.[isSupply ? "harvest_end" : "needed_end"])} /></Field>
       <Field label="Chất lượng / tiêu chuẩn"><input name="quality_standard" className={inputClass} placeholder="Kích cỡ, độ chín, mã vùng trồng..." defaultValue={initial?.quality_standard ?? ""} /></Field>
       {isSupply ? <Field label="Cách giao hàng"><select name="delivery_mode" className={inputClass} defaultValue={initial?.delivery_mode ?? "at_farm"}><option value="at_farm">Tại vườn</option><option value="collection_point">Điểm tập kết</option><option value="transport_help">Cần hỗ trợ vận chuyển</option></select></Field> : <>
         <Field label="Giá mua"><select name="price_mode" className={inputClass} defaultValue={initial?.price_mode ?? "negotiable"}><option value="negotiable">Thỏa thuận</option><option value="fixed">Giá cố định</option></select></Field>
@@ -94,6 +119,7 @@ function ListingForm({ role, userId, initial, onCancel, onSaved }) {
       {isSupply && <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="quantity_is_estimated" defaultChecked={initial?.quantity_is_estimated ?? true} />Sản lượng hiện là dự kiến</label>}
     </div>
     <Field label="Ghi chú"><textarea name="note" rows={3} className={inputClass} placeholder="Thông tin bổ sung để đối tác đánh giá phù hợp" defaultValue={initial?.note ?? ""} /></Field>
+    <div className="space-y-2"><p className="text-sm font-medium text-gray-700">Vị trí GPS của {isSupply ? "vườn" : "khu vực thu mua"} <span className="text-red-600">*</span> <span className="text-xs font-normal text-gray-500">(bắt buộc)</span></p><GpsCaptureField initial={gps} onChange={setGps} required /></div>
     {error && <p className="text-sm text-red-700">{error}</p>}
     <div className="flex flex-wrap gap-2"><button disabled={busy} className="inline-flex items-center gap-2 rounded-md border border-emerald-700 bg-transparent px-4 py-2.5 text-sm font-semibold text-emerald-800 disabled:opacity-60">{busy && <LoaderCircle className="h-4 w-4 animate-spin" />}{initial ? "Lưu cập nhật" : "Đăng thông tin"}</button>{onCancel && <button type="button" onClick={onCancel} className="rounded-md border px-4 py-2.5 text-sm">Hủy</button>}</div>
   </form>;

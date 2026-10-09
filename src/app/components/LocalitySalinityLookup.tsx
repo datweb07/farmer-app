@@ -151,7 +151,7 @@ export function LocalitySalinityLookup() {
                       {isSpeaking ? <VolumeX className="h-7 w-7" /> : <Volume2 className="h-7 w-7" />}
                     </button>}
                   </div>
-                  <p className="mt-1 inline-flex items-center gap-1 text-sm text-emerald-100"><ShieldCheck className="h-4 w-4" />Mức độ: {salinity < 4 ? "An toàn" : salinity < 8 ? "Cảnh báo" : "Nguy hiểm"}</p>
+                  <p className="mt-1 inline-flex items-center gap-1 text-sm text-emerald-100"><ShieldCheck className="h-4 w-4" />Mức độ: {salinity < 1 ? "An toàn" : salinity <= 4 ? "Đáng báo động" : "Rất nguy hiểm"}</p>
                 </div>
               </div>
               <div className="mt-4 grid gap-2 border-t border-white/20 pt-3 text-sm text-white/85 sm:grid-cols-2">

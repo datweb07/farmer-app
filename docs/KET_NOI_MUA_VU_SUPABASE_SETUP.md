@@ -1,15 +1,16 @@
 # Thiết lập Supabase — Kết nối mùa vụ
 
-Chức năng dùng migration `supabase/migrations/046_season_connections.sql`. Migration tạo bảng nguồn cung, nhu cầu thu mua, lời mời ghép cặp, tin nhắn, các phiên bản phiếu thỏa thuận và giao dịch; đồng thời bật RLS, thêm RPC kiểm tra quyền/chốt giao dịch và kiểu thông báo `SEASON_CONNECTION`.
+Chức năng dùng migration `supabase/migrations/046_season_connections.sql` và `supabase/migrations/047_season_listing_gps.sql`. Migration 046 tạo bảng nguồn cung, nhu cầu thu mua, lời mời ghép cặp, tin nhắn, các phiên bản phiếu thỏa thuận và giao dịch; migration 047 thêm tọa độ GPS tùy chọn cho tin mùa vụ. Các migration đồng thời bật RLS, RPC kiểm tra quyền/chốt giao dịch và kiểu thông báo `SEASON_CONNECTION`.
 
 ## Chạy migration trên Supabase
 
 1. Mở đúng project Supabase đang được ứng dụng sử dụng. Đối chiếu Project URL trong phần **Project Settings → API** với `VITE_SUPABASE_URL` trong `.env`; không chia sẻ hoặc gửi `VITE_SUPABASE_ANON_KEY` cho người khác. Không đưa `service_role` key vào frontend.
 2. Tạo backup database trước khi cập nhật, nhất là nếu project đang có dữ liệu thật.
 3. Mở **SQL Editor → New query**.
-4. Mở file `supabase/migrations/046_season_connections.sql` trong repo, sao chép toàn bộ nội dung, dán vào SQL Editor và nhấn **Run**.
-5. Xác nhận query chạy thành công. Trong **Database → Tables**, kiểm tra có các bảng `season_supplies`, `season_demands`, `season_matches`, `season_messages`, `season_proposals` và `season_transactions`.
-6. Tải lại ứng dụng, đăng nhập lại nếu cần. Khi migration chưa chạy, trang Kết nối mùa vụ sẽ không thể đọc các bảng mới.
+4. Nếu chưa cài chức năng Kết nối mùa vụ, chạy trước `supabase/migrations/046_season_connections.sql`.
+5. Chạy tiếp `supabase/migrations/047_season_listing_gps.sql` để thêm ba cột GPS tùy chọn vào `season_supplies` và `season_demands`.
+6. Xác nhận query chạy thành công. Trong **Database → Tables**, kiểm tra các bảng mùa vụ; ở `season_supplies`/`season_demands` sẽ có `farm_latitude`, `farm_longitude`, `farm_accuracy_m`.
+7. Tải lại ứng dụng, đăng nhập lại nếu cần. GPS chỉ được lưu khi người dùng chủ động bấm ghi nhận; nếu không cấp quyền, vẫn có thể đăng tin không kèm GPS.
 
 Migration không cần bucket Storage mới. Tin nhắn, phiếu và điều kiện giao dịch được lưu trong database; thông báo dùng bảng `notifications` hiện có.
 

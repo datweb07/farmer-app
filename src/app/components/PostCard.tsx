@@ -30,7 +30,6 @@ import { EditPostModal } from "./EditPostModal";
 import { PostDetailModal } from "./PostDetailModal";
 import { MediaCarousel } from "./MediaCarousel";
 import type { MediaItem } from "./MediaCarousel";
-import { ProcurementRequestModal } from "./ProcurementRequestModal";
 import { BusinessReputationCard } from "./BusinessReputationCard";
 import { ReportPostModal } from "./ReportPostModal";
 
@@ -56,7 +55,6 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showProcurementModal, setShowProcurementModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -581,20 +579,6 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         </div>
 
         {/* Product Link - Nếu có */}
-        {profile?.role === "farmer" && (
-          <div className="px-3 py-2 flex-shrink-0">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowProcurementModal(true);
-              }}
-              className="w-full rounded-lg border-2 border-emerald-700 bg-transparent px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
-            >
-              Liên hệ ngay · Đăng ký thu mua
-            </button>
-          </div>
-        )}
-
         {post.product_link && (
           <div className="px-3 py-2 flex-shrink-0">
             <button
@@ -626,16 +610,6 @@ export function PostCard({ post, onProductClick, onUpdate }: PostCardProps) {
         isOpen={showUserProfileModal}
         onClose={() => setShowUserProfileModal(false)}
       />
-
-      {profile?.role === "farmer" && (
-        <ProcurementRequestModal
-          post={post}
-          defaultName={profile.username}
-          defaultPhone={profile.phone_number}
-          isOpen={showProcurementModal}
-          onClose={() => setShowProcurementModal(false)}
-        />
-      )}
 
       {profile?.role === "farmer" && !isOwner && (
         <ReportPostModal

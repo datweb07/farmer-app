@@ -1,6 +1,5 @@
 import {
   Home,
-  Droplet,
   FileText,
   ShoppingBag,
   Handshake,
@@ -26,15 +25,11 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
-    checkAdminStatus();
+    let active = true;
+    if (!profile?.id) return () => { active = false; };
+    isAdmin().then((adminStatus) => { if (active) setIsAdminUser(adminStatus); });
+    return () => { active = false; };
   }, [profile?.id]);
-
-  const checkAdminStatus = async () => {
-    if (profile?.id) {
-      const adminStatus = await isAdmin();
-      setIsAdminUser(adminStatus);
-    }
-  };
 
   const allNavItems = [
     { id: "dashboard", label: "Trang chủ", icon: Home, roles: ["farmer"] },
@@ -44,7 +39,7 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
       icon: BarChart3,
       roles: ["business"],
     },
-    { id: "salinity", label: "Độ mặn", icon: Droplet, roles: ["farmer", "business"] },
+    { id: "salinity", label: "Độ mặn", icon: DurianFruitIcon, roles: ["farmer", "business"] },
     { id: "posts", label: "Cộng đồng", icon: FileText, roles: ["farmer", "business"] },
     {
       id: "products",
@@ -177,4 +172,11 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
       </nav>
     </>
   );
+}
+
+function DurianFruitIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 5c-.9-1.2-.9-2.5-.5-4" />
+    <path d="M11.2 6.1c-1.2-1.3-2.7-1.4-3.6-1.1l.3 2.1c-1.5-.2-2.8.4-3.5 1.5l1.4 1.4c-1.3.6-2 1.8-2 3.1l1.9.7c-.9 1.2-.9 2.6-.2 3.8l2-.3c-.3 1.5.4 2.8 1.5 3.5l1.4-1.4c.6 1.3 1.8 2 3.1 2l.7-1.9c1.2.9 2.6.9 3.8.2l-.3-2c1.5.3 2.8-.4 3.5-1.5l-1.4-1.4c1.3-.6 2-1.8 2-3.1l-1.9-.7c.9-1.2.9-2.6.2-3.8l-2 .3c.3-1.5-.4-2.8-1.5-3.5l-1.4 1.4c-.6-1.3-1.8-2-3.1-2l-.7 1.9Z" />
+  </svg>;
 }

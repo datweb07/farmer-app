@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck - database types are generated after applying migration 046.
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { Check, CheckCheck, CircleHelp, Handshake, Leaf, LoaderCircle, MapPin, MessageCircle, PackageCheck, Send } from "lucide-react";
+import { Check, CheckCheck, CircleHelp, Handshake, Leaf, LoaderCircle, MapPin, MessageCircle, PackageCheck, Send, Truck, Wheat } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { isAdmin } from "../../lib/admin/admin.service";
 import {

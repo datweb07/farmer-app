@@ -191,7 +191,7 @@ export function SalinityPushSettings({ data }: { data: Prediction[] }) {
 
         <div className="min-w-0 flex-1">
           <h2 id="salinity-push-title" className="font-semibold text-gray-900">Cảnh báo độ mặn</h2>
-          <p className="mt-1 text-sm text-gray-600">Lưu ý từ người phát triển: Chỉ nhận được Web Push từ iOS 16.4+ và đối với một số phiên bản, người dùng phải thêm Web App vào màn hình chính thì mới bật được tính năng Push. Cảm ơn!</p>
+          <p className="mt-1 text-sm text-gray-600">Lưu ý từ người phát triển phần mềm: Chỉ nhận được Web Push từ iOS 16.4+ và đối với một số phiên bản IOS, người dùng phải thêm Web App vào màn hình chính thì mới bật được tính năng Push. Cảm ơn!</p>
         </div>
       </div>
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">

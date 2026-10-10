@@ -178,12 +178,12 @@ export function NotificationDropdown() {
             void loadUnreadCount();
           }
         }}
-        className="relative p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+        className="relative rounded-full p-2 text-white transition-colors hover:bg-white/10 md:bg-gray-100 md:text-gray-700 md:hover:bg-gray-200"
       >
         {/* Fill currentColor makes the bell solid white like in the image if SVG supports it, otherwise stroke is white */}
-        <Bell className="w-10 h-10" fill="currentColor" />
+        <Bell className="h-10 w-10 md:h-6 md:w-6" fill="currentColor" />
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 border-2 border-[#004e45]">
+          <span className="absolute right-0 top-0 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-[#004e45] bg-red-600 px-1 text-[10px] font-bold text-white md:border-white">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}

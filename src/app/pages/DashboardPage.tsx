@@ -26,6 +26,7 @@ import { NotificationDropdown } from "../components/NotificationDropdown";
 import { LocalitySalinityLookup } from "../components/LocalitySalinityLookup";
 import { SuccessfulSeasonTransactions } from "../components/SuccessfulSeasonTransactions";
 import { ProfileLocationTimeBar } from "../components/ProfileLocationTimeBar";
+import { AgronomyAdvisor } from "../components/AgronomyAdvisor";
 import { supabase } from "../../lib/supabase/supabase";
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat("vi-VN", {
@@ -233,6 +234,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <LocalitySalinityLookup />
           </div>
 
+          <div className="mb-8"><AgronomyAdvisor /></div>
+
           {/* Dự án đang kêu gọi đã được gỡ khỏi trang chủ. */}
 
           {/* Successful transaction progress replaces trending posts on home. */}
@@ -390,6 +393,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
         <ProfileLocationTimeBar time={currentTime} variant="dark" className="mb-8" />
         <div className="mb-8"><LocalitySalinityLookup /></div>
+        <div className="mb-8"><AgronomyAdvisor /></div>
 
         {/* User Stats Grid */}
         {stats && (

@@ -16,6 +16,54 @@ interface AdvisorResponse {
   error?: string;
 }
 
+function renderInlineMarkdown(text: string, keyPrefix: string) {
+  const tokens = text.split(/(\*\*[^*]+?\*\*|\*[^*]+?\*|`[^`]+`|\[Nguồn\s+\d+\])/g);
+
+  return tokens.map((token, index) => {
+    const key = `${keyPrefix}-${index}`;
+    if (token.startsWith("**") && token.endsWith("**")) {
+      return <strong key={key}>{token.slice(2, -2)}</strong>;
+    }
+    if (token.startsWith("*") && token.endsWith("*")) {
+      return <em key={key}>{token.slice(1, -1)}</em>;
+    }
+    if (token.startsWith("`") && token.endsWith("`")) {
+      return <code key={key} className="rounded bg-gray-100 px-1 py-0.5 text-[0.9em]">{token.slice(1, -1)}</code>;
+    }
+    if (/^\[Nguồn\s+\d+\]$/.test(token)) {
+      return <span key={key} className="font-semibold text-emerald-800">{token}</span>;
+    }
+    return token;
+  });
+}
+
+function MarkdownAnswer({ content }: { content: string }) {
+  return <div className="space-y-2 text-sm leading-6 text-gray-800">
+    {content.split(/\r?\n/).map((line, index) => {
+      const key = `answer-line-${index}`;
+      const trimmed = line.trim();
+      if (!trimmed) return <div key={key} className="h-1" aria-hidden="true" />;
+
+      const heading = trimmed.match(/^#{1,3}\s+(.+)$/);
+      if (heading) return <h4 key={key} className="pt-2 font-bold text-gray-900">{renderInlineMarkdown(heading[1], key)}</h4>;
+
+      const numbered = trimmed.match(/^(\d+)\.\s+(.+)$/);
+      if (numbered) return <div key={key} className="mt-3 flex gap-2 first:mt-0">
+        <span className="shrink-0 font-semibold text-emerald-800">{numbered[1]}.</span>
+        <div>{renderInlineMarkdown(numbered[2], key)}</div>
+      </div>;
+
+      const bullet = trimmed.match(/^[-*]\s+(.+)$/);
+      if (bullet) return <div key={key} className="ml-4 flex gap-2">
+        <span className="shrink-0 text-emerald-700" aria-hidden="true">•</span>
+        <div>{renderInlineMarkdown(bullet[1], key)}</div>
+      </div>;
+
+      return <p key={key}>{renderInlineMarkdown(trimmed, key)}</p>;
+    })}
+  </div>;
+}
+
 export function AgronomyAdvisor() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
@@ -87,7 +135,7 @@ export function AgronomyAdvisor() {
       {error && <p role="alert" className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{error}</p>}
       {answer && <div className="mt-5 rounded-xl bg-emerald-50/70 p-4">
         <h3 className="font-semibold text-gray-900">Khuyến nghị</h3>
-        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-800">{answer}</p>
+        <div className="mt-2"><MarkdownAnswer content={answer} /></div>
         {sources.length > 0 && <div className="mt-4 border-t border-emerald-200 pt-3">
           <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-800"><BookOpen className="h-4 w-4 text-emerald-700" />Nguồn đã truy xuất</h4>
           <ul className="mt-2 space-y-2">

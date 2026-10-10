@@ -14,7 +14,7 @@ const SponsorsSlider = () => {
     <div className="bg-white border border-gray-200 p-8 mb-8 overflow-hidden">
       {/* Title */}
       <h2 className="font-bold text-2xl text-gray-900 mb-8 text-center">
-        Các Nhà tài trợ & Đối tác chiến lược
+        Các Nhà tài trợ, Đối tác chiến lược ở YDCC 2025 & Dự kiến Thương mại hoá
       </h2>
 
       <div className="relative">

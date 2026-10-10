@@ -41,17 +41,26 @@ export async function loadSeasonWorkspace(isAdmin) {
 }
 
 export async function loadSeasonMatchDetails(match) {
-  const [supplyResult, demandResult, messagesResult, proposalsResult, transactionResult] = await Promise.all([
+  const [supplyResult, demandResult, messagesResult, proposalsResult, transactionResult, reactionsResult] = await Promise.all([
     supabase.from("season_supplies").select("*").eq("id", match.supply_id).single(),
     supabase.from("season_demands").select("*").eq("id", match.demand_id).single(),
     supabase.from("season_messages").select("*").eq("match_id", match.id).order("created_at"),
     supabase.from("season_proposals").select("*").eq("match_id", match.id).order("version", { ascending: false }),
     supabase.from("season_transactions").select("*").eq("match_id", match.id).maybeSingle(),
+    supabase.from("season_message_reactions").select("message_id,user_id,emoji").eq("match_id", match.id),
   ]);
+  const messages = unwrap(messagesResult) ?? [];
+  const reactions = unwrap(reactionsResult) ?? [];
+  await Promise.all(messages.map(async (message) => {
+    if (!message.attachment_path) return;
+    const { data, error } = await supabase.storage.from("season-chat-media").createSignedUrl(message.attachment_path, 3600);
+    if (!error) message.attachment_url = data.signedUrl;
+  }));
   return {
     supply: unwrap(supplyResult),
     demand: unwrap(demandResult),
-    messages: unwrap(messagesResult) ?? [],
+    messages,
+    reactions,
     proposals: unwrap(proposalsResult) ?? [],
     transaction: unwrap(transactionResult),
   };
@@ -82,6 +91,39 @@ export async function respondToSeasonMatch(matchId, response) {
 
 export async function sendSeasonMessage(matchId, body) {
   return unwrap(await supabase.rpc("send_season_message", { p_match_id: matchId, p_body: body }));
+}
+
+export async function sendSeasonChatMessage(matchId, body, attachment) {
+  return unwrap(await supabase.rpc("send_season_chat_message", {
+    p_match_id: matchId,
+    p_body: body || null,
+    p_attachment_path: attachment?.path ?? null,
+    p_attachment_mime_type: attachment?.mimeType ?? null,
+    p_attachment_name: attachment?.name ?? null,
+    p_attachment_size: attachment?.size ?? null,
+  }));
+}
+
+export async function uploadSeasonChatMedia(matchId, userId, file) {
+  const safeName = file.name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-100) || "media";
+  const path = `${matchId}/${userId}/${crypto.randomUUID()}-${safeName}`;
+  const { error } = await supabase.storage.from("season-chat-media").upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw error;
+  return { path, mimeType: file.type, name: file.name, size: file.size };
+}
+
+export async function removeSeasonChatMedia(path) {
+  if (path) await supabase.storage.from("season-chat-media").remove([path]);
+}
+
+export async function toggleSeasonMessageReaction(matchId, messageId, userId, emoji, selected) {
+  if (selected) {
+    const { error } = await supabase.from("season_message_reactions").delete().eq("message_id", messageId).eq("user_id", userId).eq("emoji", emoji);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("season_message_reactions").insert({ match_id: matchId, message_id: messageId, user_id: userId, emoji });
+    if (error) throw error;
+  }
 }
 
 export async function createSeasonProposal(matchId, terms) {

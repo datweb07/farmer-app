@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck - database types are generated after applying migration 046.
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { Check, CheckCheck, CircleHelp, Handshake, Leaf, LoaderCircle, MapPin, MessageCircle, PackageCheck, Send, Truck, Wheat } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { Check, CheckCheck, CircleHelp, Handshake, ImagePlus, Leaf, LoaderCircle, MapPin, MessageCircle, PackageCheck, Send, Smile, Truck, Wheat, X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { GpsCaptureField } from "./GpsCaptureField";
 import { canManageSeasonConnections } from "../../lib/admin/admin.service";
@@ -14,9 +14,13 @@ import {
   respondToSeasonMatch,
   rejectSeasonProposal,
   saveSeasonListing,
-  sendSeasonMessage,
+  sendSeasonChatMessage,
+  removeSeasonChatMedia,
+  toggleSeasonMessageReaction,
+  uploadSeasonChatMedia,
   updateSeasonListingStatus,
 } from "../../lib/season-connections/season-connections.service";
+import { supabase } from "../../lib/supabase/supabase";
 
 const inputClass = "mt-1.5 w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-100";
 const cardClass = "rounded-lg border border-gray-200 bg-white";
@@ -141,6 +145,9 @@ export function SeasonConnectionWorkspace() {
   const [inviteDemand, setInviteDemand] = useState("");
   const [inviteReason, setInviteReason] = useState("");
   const [messageDraft, setMessageDraft] = useState("");
+  const [messageFile, setMessageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const messageFileRef = useRef<HTMLInputElement>(null);
   const [proposalOpen, setProposalOpen] = useState(false);
 
   const load = useCallback(async (quiet = false) => {
@@ -175,6 +182,14 @@ export function SeasonConnectionWorkspace() {
     catch (e) { setError(e?.message || "Không tải được hồ sơ kết nối."); }
   }, [selectedMatch]);
   useEffect(() => { loadDetails(); }, [loadDetails]);
+  useEffect(() => {
+    if (selectedMatch?.status !== "connected" || !selectedMatch) return;
+    const channel = supabase.channel(`season-chat-${selectedMatch.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "season_messages", filter: `match_id=eq.${selectedMatch.id}` }, () => loadDetails())
+      .on("postgres_changes", { event: "*", schema: "public", table: "season_message_reactions", filter: `match_id=eq.${selectedMatch.id}` }, () => loadDetails())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [selectedMatch, loadDetails]);
 
   const perform = async (action, successMessage) => {
     setBusy(true); setError(""); setNotice("");
@@ -191,9 +206,27 @@ export function SeasonConnectionWorkspace() {
   };
   const handleSendMessage = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!selectedMatch || !messageDraft.trim()) return;
-    const body = messageDraft.trim(); setMessageDraft("");
-    await perform(() => sendSeasonMessage(selectedMatch.id, body), "Đã gửi tin nhắn.");
+    if (!selectedMatch || (!messageDraft.trim() && !messageFile) || uploading) return;
+    if (messageFile && messageFile.size > 20 * 1024 * 1024) { setError("Mỗi ảnh/video tối đa 20 MB để tiết kiệm dung lượng miễn phí."); return; }
+    const body = messageDraft.trim();
+    setUploading(true); setError(""); setNotice("");
+    let attachment;
+    try {
+      if (messageFile) attachment = await uploadSeasonChatMedia(selectedMatch.id, user.id, messageFile);
+      await sendSeasonChatMessage(selectedMatch.id, body, attachment);
+      setMessageDraft(""); setMessageFile(null);
+      if (messageFileRef.current) messageFileRef.current.value = "";
+      setNotice("Đã gửi tin nhắn."); await loadDetails();
+    } catch (e) {
+      if (attachment?.path) await removeSeasonChatMedia(attachment.path);
+      setError(e?.message || "Không gửi được tin nhắn. Vui lòng thử lại.");
+    } finally { setUploading(false); }
+  };
+  const handleReaction = async (message, emoji) => {
+    if (!user?.id || admin) return;
+    const selected = details.reactions.some((reaction) => reaction.message_id === message.id && reaction.user_id === user.id && reaction.emoji === emoji);
+    try { await toggleSeasonMessageReaction(selectedMatch.id, message.id, user.id, emoji, selected); await loadDetails(); }
+    catch (e) { setError(e?.message || "Không cập nhật được cảm xúc."); }
   };
   const handleProposal = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -278,12 +311,41 @@ export function SeasonConnectionWorkspace() {
             {admin && <p className="mt-4 rounded-lg bg-gray-50 p-3 text-xs text-gray-600">Admin theo dõi hồ sơ và có thể hỗ trợ khi cần; không thể nhắn thay, đồng ý hay xác nhận mua bán thay hai bên.</p>}
           </section>
 
-          {connected && <section className={`${cardClass} overflow-hidden`}><div className="flex items-center justify-between border-b px-5 py-4"><div className="flex items-center gap-2"><MessageCircle className="h-5 w-5 text-emerald-700" /><div><h2 className="font-bold">Trao đổi giữa hai bên</h2><p className="text-xs text-gray-500">{admin ? "Admin chỉ theo dõi" : `Bạn đang trao đổi với ${counterpartName}`}</p></div></div><StatusTag tone="green">Đang mở</StatusTag></div><div className="max-h-[360px] min-h-36 space-y-3 overflow-y-auto bg-gray-50 p-4">{details.messages.length ? details.messages.map((message) => { const mine = message.sender_id === user?.id; const sender = profileName(message.sender_id); return <div key={message.id} className={`max-w-[85%] ${mine ? "ml-auto" : ""}`}><p className={`mb-1 text-[11px] text-gray-500 ${mine ? "text-right" : ""}`}>{sender} · {dateTime(message.created_at)}</p><p className={`rounded-xl px-3 py-2.5 text-sm ${mine ? "rounded-br-sm bg-emerald-100 text-gray-900" : "rounded-bl-sm bg-white text-gray-800 shadow-sm"}`}>{message.body}</p></div>; }) : <p className="py-10 text-center text-sm text-gray-500">Chưa có tin nhắn. Hai bên có thể bắt đầu trao đổi.</p>}</div>{!admin && <form onSubmit={handleSendMessage} className="flex gap-2 border-t p-3"><input value={messageDraft} onChange={(e) => setMessageDraft(e.target.value)} maxLength={4000} className="min-w-0 flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-emerald-600" placeholder="Trao đổi về mùa vụ, chất lượng, giao nhận..." /><button disabled={busy || !messageDraft.trim()} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 font-semibold text-white disabled:opacity-50"><Send className="h-4 w-4" /><span className="hidden sm:inline">Gửi</span></button></form>}</section>}
+          {connected && <section className={`${cardClass} overflow-hidden`}>
+            <div className="flex items-center justify-between border-b px-5 py-4"><div className="flex items-center gap-2"><MessageCircle className="h-5 w-5 text-emerald-700" /><div><h2 className="font-bold">Trao đổi giữa hai bên</h2><p className="text-xs text-gray-500">{admin ? "Admin chỉ theo dõi" : `Bạn đang trao đổi với ${counterpartName}`}</p></div></div><StatusTag tone="green">Đang mở</StatusTag></div>
+            <div className="max-h-[520px] min-h-36 space-y-4 overflow-y-auto bg-gray-50 p-4">
+              {details.messages.length ? details.messages.map((message) => {
+                const mine = message.sender_id === user?.id;
+                const sender = profileName(message.sender_id);
+                const reactions = details.reactions.filter((reaction) => reaction.message_id === message.id);
+                const counts = [...new Set(reactions.map((reaction) => reaction.emoji))].map((emoji) => ({ emoji, count: reactions.filter((reaction) => reaction.emoji === emoji).length, mine: reactions.some((reaction) => reaction.emoji === emoji && reaction.user_id === user?.id) }));
+                return <div key={message.id} className={`max-w-[92%] sm:max-w-[85%] ${mine ? "ml-auto" : ""}`}>
+                  <p className={`mb-1 text-[11px] text-gray-500 ${mine ? "text-right" : ""}`}>{sender} · {dateTime(message.created_at)}</p>
+                  <div className={`space-y-2 rounded-xl px-3 py-2.5 text-sm ${mine ? "rounded-br-sm bg-emerald-100 text-gray-900" : "rounded-bl-sm bg-white text-gray-800 shadow-sm"}`}>
+                    {message.body && <p className="whitespace-pre-wrap break-words">{message.body}</p>}
+                    {message.attachment_url && (message.attachment_mime_type?.startsWith("video/")
+                      ? <video controls preload="metadata" playsInline className="max-h-72 max-w-full rounded-lg"><source src={message.attachment_url} type={message.attachment_mime_type} />Trình duyệt không hỗ trợ phát video.</video>
+                      : <a href={message.attachment_url} target="_blank" rel="noreferrer"><img src={message.attachment_url} alt={message.attachment_name || "Ảnh đính kèm"} loading="lazy" className="max-h-72 max-w-full rounded-lg object-contain" /></a>)}
+                    {message.attachment_name && <p className="text-xs text-gray-500">{message.attachment_name}</p>}
+                  </div>
+                  <div className={`mt-1.5 flex flex-wrap items-center gap-1 ${mine ? "justify-end" : ""}`}>
+                    {counts.map(({ emoji, count, mine: reacted }) => <button type="button" key={emoji} disabled={admin} onClick={() => handleReaction(message, emoji)} className={`rounded-full border px-2 py-0.5 text-xs ${reacted ? "border-emerald-400 bg-emerald-50" : "border-gray-200 bg-white"}`}>{emoji} {count}</button>)}
+                    {!admin && <details className="relative"><summary aria-label="Thả cảm xúc" className="list-none cursor-pointer rounded-full p-1 text-gray-500 hover:bg-white"><Smile className="h-4 w-4" /></summary><div className="absolute bottom-full left-0 z-10 flex gap-1 rounded-full border bg-white p-1 shadow-sm">{["👍", "❤️", "😂", "🙏", "🎉"].map((emoji) => <button type="button" key={emoji} onClick={() => handleReaction(message, emoji)} className="rounded-full p-1 hover:bg-emerald-50" aria-label={`Thả ${emoji}`}>{emoji}</button>)}</div></details>}
+                  </div>
+                </div>;
+              }) : <p className="py-10 text-center text-sm text-gray-500">Chưa có tin nhắn. Hai bên có thể bắt đầu trao đổi.</p>}
+            </div>
+            {!admin && <form onSubmit={handleSendMessage} className="space-y-2 border-t p-3">
+              {messageFile && <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600"><span className="truncate">{messageFile.name} · {(messageFile.size / 1024 / 1024).toFixed(1)} MB</span><button type="button" onClick={() => { setMessageFile(null); if (messageFileRef.current) messageFileRef.current.value = ""; }} aria-label="Bỏ tệp đính kèm"><X className="h-4 w-4" /></button></div>}
+              <div className="flex gap-2"><input value={messageDraft} onChange={(e) => setMessageDraft(e.target.value)} maxLength={4000} className="min-w-0 flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-emerald-600" placeholder="Trao đổi về mùa vụ, chất lượng, giao nhận..." /><input ref={messageFileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" className="hidden" onChange={(event) => setMessageFile(event.target.files?.[0] ?? null)} /><button type="button" onClick={() => messageFileRef.current?.click()} aria-label="Đính kèm ảnh hoặc video" title="Đính kèm ảnh/video" className="rounded-lg border px-3 text-emerald-800 hover:bg-emerald-50"><ImagePlus className="h-5 w-5" /></button><button disabled={uploading || (!messageDraft.trim() && !messageFile)} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 font-semibold text-white disabled:opacity-50">{uploading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}<span className="hidden sm:inline">{uploading ? "Đang gửi" : "Gửi"}</span></button></div>
+              <p className="text-xs text-gray-500">Ảnh/video tối đa 20 MB mỗi tệp. Chỉ hai bên trong hồ sơ mới xem được.</p>
+            </form>}
+          </section>}
 
           {connected && <section className={`${cardClass} p-5 md:p-6`}><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-bold">Phiếu thỏa thuận</h2><p className="text-sm text-gray-500">Một giao dịch chỉ được ghi nhận khi cùng xác nhận đúng một phiên bản.</p></div>{!admin && !transaction && <button onClick={() => setProposalOpen((v) => !v)} className="rounded-lg border border-emerald-700 px-3 py-2 text-sm font-semibold text-emerald-800">{currentProposal ? "Đề nghị chỉnh sửa / v mới" : "Tạo phiếu thỏa thuận"}</button>}</div>
             {proposalOpen && !transaction && !admin && <form onSubmit={handleProposal} className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/60 p-4"><div className="grid gap-3 sm:grid-cols-2"><Field label="Nông sản *"><input required name="crop_name" defaultValue={currentProposal?.crop_name ?? details.supply.crop_name} className={inputClass} /></Field><Field label="Sản lượng (tấn) *"><input required type="number" min="0.01" step="0.01" name="quantity_tons" defaultValue={currentProposal?.quantity_tons ?? details.supply.sellable_tons} className={inputClass} /></Field><Field label="Cách xác định giá *"><select name="price_mode" defaultValue={currentProposal?.price_mode ?? details.demand.price_mode} className={inputClass}><option value="negotiable">Hai bên thỏa thuận</option><option value="fixed">Giá cố định</option></select></Field><Field label="Giá cố định (đ/kg)"><input type="number" min="1" name="price_per_kg" defaultValue={currentProposal?.price_per_kg ?? details.demand.price_per_kg ?? ""} className={inputClass} /></Field><Field label="Ngày giao nhận *"><input required type="date" name="delivery_date" defaultValue={currentProposal?.delivery_date ?? details.supply.harvest_start} className={inputClass} /></Field><Field label="Địa điểm giao nhận *"><input required name="delivery_location" defaultValue={currentProposal?.delivery_location ?? `${details.supply.commune ? `${details.supply.commune}, ` : ""}${details.supply.province}`} className={inputClass} /></Field><Field label="Tiêu chuẩn chất lượng"><input name="quality_standard" defaultValue={currentProposal?.quality_standard ?? details.supply.quality_standard ?? details.demand.quality_standard ?? ""} className={inputClass} /></Field><Field label="Điều kiện thanh toán *"><input required name="payment_terms" defaultValue={currentProposal?.payment_terms ?? details.demand.payment_terms ?? "Hai bên thỏa thuận khi cân hàng"} className={inputClass} /></Field></div><Field label="Điều kiện khác"><textarea rows={2} name="other_terms" defaultValue={currentProposal?.other_terms ?? ""} className={inputClass} /></Field><p className="my-3 text-xs text-gray-600">Khi gửi, người tạo được ghi nhận đồng ý với phiên bản mới này. Phiên bản cũ sẽ mất hiệu lực và đối tác cần xem lại toàn bộ điều kiện.</p><div className="flex gap-2"><button disabled={busy} className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white">Gửi phiếu và đồng ý</button><button type="button" onClick={() => setProposalOpen(false)} className="rounded-lg border px-4 py-2.5 text-sm">Hủy</button></div></form>}
             {details.proposals.length ? <div className="mt-4 space-y-3">{details.proposals.map((proposal) => <article key={proposal.id} className={`rounded-xl border p-4 ${proposal.status === "pending" ? "border-emerald-300" : "border-gray-200"}`}><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-bold">Phiếu thỏa thuận v{proposal.version}</h3><StatusTag tone={proposal.status === "accepted" ? "green" : proposal.status === "pending" ? "amber" : proposal.status === "rejected" ? "red" : "gray"}>{proposal.status === "accepted" ? "Hai bên đồng ý" : proposal.status === "pending" ? "Phiên bản hiện hành · chờ xác nhận" : proposal.status === "rejected" ? "Đã từ chối" : "Đã thay thế"}</StatusTag></div><div className="mt-3 grid gap-2 text-sm sm:grid-cols-2"><Fact label="Nông sản / sản lượng" value={`${proposal.crop_name} · ${proposal.quantity_tons} tấn`} /><Fact label="Giá" value={priceLabel(proposal)} /><Fact label="Giao nhận" value={`${dateText(proposal.delivery_date)} · ${proposal.delivery_location}`} /><Fact label="Chất lượng" value={proposal.quality_standard || "Chưa ghi rõ"} /><Fact label="Thanh toán" value={proposal.payment_terms} /><Fact label="Điều kiện khác" value={proposal.other_terms || "Không có"} /></div><div className="mt-3 flex flex-wrap gap-2"><StatusTag tone={proposal.farmer_confirmed_at ? "green" : "amber"}>Nhà vườn {proposal.farmer_confirmed_at ? "đã đồng ý" : "chờ xác nhận"}</StatusTag><StatusTag tone={proposal.business_confirmed_at ? "green" : "amber"}>Doanh nghiệp {proposal.business_confirmed_at ? "đã đồng ý" : "chờ xác nhận"}</StatusTag></div>{proposal.status === "pending" && !admin && !transaction && <div className="mt-3 flex flex-wrap gap-2"><button disabled={busy || (user?.id === selectedMatch.farmer_id ? !!proposal.farmer_confirmed_at : !!proposal.business_confirmed_at)} onClick={() => perform(async () => { const result = await confirmSeasonProposal(proposal.id); if (result) setNotice("Cả hai bên đã xác nhận cùng phiên bản; giao dịch được ghi nhận."); }, "Đã ghi nhận xác nhận của bạn. Giao dịch chỉ ghi nhận sau khi bên kia cùng xác nhận.")} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"><Check className="h-4 w-4" />{(user?.id === selectedMatch.farmer_id ? proposal.farmer_confirmed_at : proposal.business_confirmed_at) ? "Bạn đã đồng ý phiên bản này" : "Đồng ý phiếu này"}</button><button disabled={busy} onClick={() => perform(() => rejectSeasonProposal(proposal.id), "Đã từ chối phiếu. Các bên có thể trao đổi và gửi phiên bản mới.")} className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700">Từ chối phiếu</button></div>}</article>)}</div> : <EmptyState text="Hai bên đã kết nối; chưa có phiếu thỏa thuận." />}
-            {transaction && <div className="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 p-4 text-emerald-900"><CheckCheck className="h-6 w-6 shrink-0" /><div><b>Giao dịch đã được xác nhận: {transaction.transaction_code}</b><p className="mt-1 text-sm">Cả nhà vườn và doanh nghiệp đã xác nhận cùng một phiên bản phiếu.</p></div></div>}
+            {transaction && <div className="mt-4 flex items-center gap-3 rounded-xl bg-emerald p-4 text-emerald-900"><CheckCheck className="h-6 w-6 shrink-0" /><div><b>Giao dịch đã được xác nhận: {transaction.transaction_code}</b><p className="mt-1 text-sm">Cả nhà vườn và doanh nghiệp đã xác nhận cùng một phiên bản phiếu.</p></div></div>}
           </section>}
         </div> : <div className={`${cardClass} flex min-h-64 items-center justify-center p-8 text-center`}><div><CircleHelp className="mx-auto h-9 w-9 text-gray-400" /><h2 className="mt-3 font-bold text-gray-800">Chưa có hồ sơ kết nối</h2><p className="mt-1 text-sm text-gray-500">{admin ? "Chọn nguồn cung và nhu cầu tại mục Ghép cặp & theo dõi." : "Hồ sơ sẽ xuất hiện khi Admin mời bạn kết nối."}</p></div></div>}
       </div>}

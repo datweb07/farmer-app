@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { AlertTriangle, BookOpen, LoaderCircle, Send, Sprout } from "lucide-react";
+import { AlertTriangle, BookOpen, LoaderCircle, Send } from "lucide-react";
 import { supabase } from "../../lib/supabase/supabase";
 
 interface AdvisorSource {
@@ -103,12 +103,12 @@ export function AgronomyAdvisor() {
   };
 
   return (
-    <section className="rounded-2xl border border-emerald-200 bg-white p-4 text-gray-900 shadow-sm md:p-6" aria-labelledby="agronomy-advisor-title">
+    <section className="rounded-2xl border border-emerald bg-white p-4 text-gray-900 shadow-sm md:p-6" aria-labelledby="agronomy-advisor-title">
       <div className="mb-4 flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Sprout className="h-5 w-5" /></span>
+        {/* <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Sprout className="h-5 w-5" /></span> */}
         <div>
           <h2 id="agronomy-advisor-title" className="text-lg font-bold">Hỏi đáp khuyến nghị canh tác</h2>
-          <p className="mt-1 text-sm text-gray-600">Trả lời dựa trên tài liệu kỹ thuật của Champ Mạnh Chat, kèm mục nguồn để bạn kiểm tra.</p>
+          <p className="mt-1 text-sm text-gray-600">Lưu ý từ người phát triển phần mềm: Groq Free hiện giới hạn tối đa 1.000 request/ngày (30 request/phút). Model đang sử dụng: openai/gpt-oss-120b.</p>
         </div>
       </div>
 
@@ -125,15 +125,15 @@ export function AgronomyAdvisor() {
         />
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs text-gray-500">Không nhập thông tin riêng tư hoặc dữ liệu người khác.</span>
-          <button type="submit" disabled={loading || question.trim().length < 8} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="submit" disabled={loading || question.trim().length < 8} className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-emerald-700 bg-white px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50">
             {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            {loading ? "Đang tra cứu…" : "Hỏi tài liệu"}
+            {loading ? "Đang tra cứu…" : "Hỏi đáp"}
           </button>
         </div>
       </form>
 
       {error && <p role="alert" className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{error}</p>}
-      {answer && <div className="mt-5 rounded-xl bg-emerald-50/70 p-4">
+      {answer && <div className="mt-5 rounded-xl p-4">
         <h3 className="font-semibold text-gray-900">Khuyến nghị</h3>
         <div className="mt-2"><MarkdownAnswer content={answer} /></div>
         {sources.length > 0 && <div className="mt-4 border-t border-emerald-200 pt-3">

@@ -65,7 +65,17 @@ function AppContent() {
 
   useEffect(() => {
     const navigateFromNotification = (event: Event) => {
-      const detail = (event as CustomEvent<{ page?: string; matchId?: string }>).detail;
+      const detail = (event as CustomEvent<{ page?: string; matchId?: string; postId?: string }>).detail;
+      if (detail?.page === "posts" && detail.postId) {
+        if (!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(detail.postId)) return;
+        setSelectedPostId(detail.postId);
+        setCurrentPage("posts");
+        const url = new URL(window.location.href);
+        url.searchParams.set("post", detail.postId);
+        window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
       if (detail?.page !== "connections") return;
       setCurrentPage("connections");
       if (detail.matchId) {

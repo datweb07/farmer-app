@@ -518,10 +518,9 @@ export async function getPlatformStatistics(): Promise<{
       { data: postsMonth },
       { count: totalPosts },
       { count: totalProducts },
-      { count: totalProjects },
+      { count: totalSeasonTransactions },
       { count: totalComments },
       { count: totalLikes },
-      { count: totalInvestments },
       { data: usersLastMonth },
       { data: postsLastMonth },
     ] = await Promise.all([
@@ -538,16 +537,12 @@ export async function getPlatformStatistics(): Promise<{
         .select("*", { count: "exact", head: true })
         .eq("moderation_status", "approved"),
       supabase
-        .from("investment_projects")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "active"),
+        .from("season_transactions")
+        .select("*", { count: "exact", head: true }),
       supabase
         .from("post_comments")
         .select("*", { count: "exact", head: true }),
       supabase.from("post_likes").select("*", { count: "exact", head: true }),
-      supabase
-        .from("project_investments")
-        .select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("id").lt("created_at", month),
       supabase
         .from("posts")
@@ -582,10 +577,9 @@ export async function getPlatformStatistics(): Promise<{
       active_users_month: activeUsersMonth,
       total_posts: totalPosts || 0,
       total_products: totalProducts || 0,
-      total_projects: totalProjects || 0,
+      total_season_transactions: totalSeasonTransactions || 0,
       total_comments: totalComments || 0,
       total_likes: totalLikes || 0,
-      total_investments: totalInvestments || 0,
       avg_engagement_rate: avgEngagementRate,
       user_growth_rate_month: userGrowthRate,
       content_growth_rate_month: contentGrowthRate,

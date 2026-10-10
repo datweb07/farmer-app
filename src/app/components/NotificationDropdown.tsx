@@ -130,7 +130,14 @@ export function NotificationDropdown() {
       setUnreadCount((prev) => Math.max(0, prev - 1));
     }
 
-    if (notification.type === "PROCUREMENT_REQUEST") {
+    if (notification.type === "POST_SHARE") {
+      const linkedPostId = notification.link?.match(/\/posts\/([0-9a-f-]{36})\/?$/i)?.[1];
+      const postId = typeof notification.metadata?.post_id === "string" ? notification.metadata.post_id : linkedPostId;
+      setIsOpen(false);
+      if (postId) {
+        window.dispatchEvent(new CustomEvent("champ:navigate", { detail: { page: "posts", postId } }));
+      }
+    } else if (notification.type === "PROCUREMENT_REQUEST") {
       setExpandedNotificationId((current) =>
         current === notification.id ? null : notification.id
       );

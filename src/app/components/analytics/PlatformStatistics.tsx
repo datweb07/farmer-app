@@ -3,7 +3,7 @@ import {
   Users,
   FileText,
   ShoppingBag,
-  Target,
+  Handshake,
   MessageCircle,
   Heart,
   TrendingUp,
@@ -44,10 +44,6 @@ export function PlatformStatistics() {
     null,
   );
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = async () => {
     setLoading(true);
 
@@ -61,6 +57,11 @@ export function PlatformStatistics() {
 
     setLoading(false);
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadData(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleExportAllStats = () => {
     if (!stats) return;
@@ -90,10 +91,7 @@ export function PlatformStatistics() {
         metric: "Tổng sản phẩm",
         value: stats.total_products,
       },
-      {
-        metric: "Tổng dự án",
-        value: stats.total_projects,
-      },
+      { metric: "Tổng giao dịch kết nối mùa vụ", value: stats.total_season_transactions },
       {
         metric: "Tổng bình luận",
         value: stats.total_comments,
@@ -140,7 +138,6 @@ export function PlatformStatistics() {
   const contentData = [
     { name: "Bài viết", value: stats.total_posts },
     { name: "Sản phẩm", value: stats.total_products },
-    { name: "Dự án", value: stats.total_projects },
   ];
 
   const engagementData = [
@@ -235,21 +232,16 @@ export function PlatformStatistics() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-purple-100 rounded-lg">
-              <Target className="w-6 h-6 text-purple-600" />
+              <Handshake className="w-6 h-6 text-purple-600" />
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Dự án đầu tư</p>
+              <p className="text-sm text-gray-600">Giao dịch kết nối</p>
               <p className="text-2xl font-bold text-gray-900">
-                {stats.total_projects.toLocaleString()}
+                {stats.total_season_transactions.toLocaleString()}
               </p>
             </div>
           </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">
-              {stats.total_investments.toLocaleString()}
-            </span>{" "}
-            lượt đầu tư
-          </div>
+          <div className="text-sm text-gray-600">Chỉ tính giao dịch hai bên đã cùng xác nhận</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">

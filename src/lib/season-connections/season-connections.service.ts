@@ -28,7 +28,7 @@ export async function loadSeasonWorkspace(isAdmin) {
   }
 
   const partyIds = [...new Set([
-    ...matches.flatMap((match) => [match.farmer_id, match.business_id]),
+    ...matches.flatMap((match) => [match.farmer_id, match.business_id, match.admin_id]),
     ...supplies.map((item) => item.farmer_id),
     ...demands.map((item) => item.business_id),
   ])];

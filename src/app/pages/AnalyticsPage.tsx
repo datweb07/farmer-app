@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { BarChart3, TrendingUp, Users, DollarSign } from "lucide-react";
+import { BarChart3, TrendingUp, Users, Handshake } from "lucide-react";
 import { UserAnalytics } from "../components/analytics/UserAnalytics";
-import { ProjectAnalytics } from "../components/analytics/ProjectAnalytics";
+import { SeasonConnectionAnalytics } from "../components/analytics/SeasonConnectionAnalytics";
 import { PlatformStatistics } from "../components/analytics/PlatformStatistics";
 
-type AnalyticsTab = "users" | "projects" | "platform";
+type AnalyticsTab = "users" | "connections" | "platform";
 
 export function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("platform");
@@ -21,9 +21,9 @@ export function AnalyticsPage() {
       icon: Users,
     },
     {
-      id: "projects" as AnalyticsTab,
-      label: "Phân tích dự án",
-      icon: DollarSign,
+      id: "connections" as AnalyticsTab,
+      label: "Giao dịch kết nối",
+      icon: Handshake,
     },
   ];
 
@@ -72,7 +72,7 @@ export function AnalyticsPage() {
         <div className="space-y-6">
           {activeTab === "platform" && <PlatformStatistics />}
           {activeTab === "users" && <UserAnalytics />}
-          {activeTab === "projects" && <ProjectAnalytics />}
+          {activeTab === "connections" && <SeasonConnectionAnalytics />}
         </div>
       </div>
     </div>

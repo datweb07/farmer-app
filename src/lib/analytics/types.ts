@@ -68,11 +68,9 @@ export interface PlatformStatistics {
   active_users_month: number;
   total_posts: number;
   total_products: number;
-  total_projects: number;
+  total_season_transactions: number;
   total_comments: number;
   total_likes: number;
-  total_investments: number;
-  total_investment_amount: number;
   avg_engagement_rate: number;
   user_growth_rate_month: number;
   content_growth_rate_month: number;

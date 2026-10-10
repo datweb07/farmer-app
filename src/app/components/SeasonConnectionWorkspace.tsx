@@ -21,21 +21,16 @@ import {
   updateSeasonListingStatus,
 } from "../../lib/season-connections/season-connections.service";
 import { supabase } from "../../lib/supabase/supabase";
+import { loadAdministrativeUnits } from "../../lib/location/administrative-data";
+import type { Province } from "../../lib/location/types";
 
 const inputClass = "mt-1.5 w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-100";
 const cardClass = "rounded-lg border border-gray-200 bg-white";
 const dateText = (value?: string) => value ? new Date(`${value}T00:00:00`).toLocaleDateString("vi-VN") : "Chưa xác định";
 const dateTime = (value?: string) => value ? new Date(value).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" }) : "";
 const priceLabel = (row) => row.price_mode === "fixed" && row.price_per_kg ? `${Number(row.price_per_kg).toLocaleString("vi-VN")} đ/kg` : "Thỏa thuận";
-const formatDateInput = (value?: string | null) => value ? new Date(`${value.slice(0, 10)}T00:00:00`).toLocaleDateString("en-GB") : "";
-function parseDateInput(value: FormDataEntryValue | null) {
-  const match = String(value ?? "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (!match) throw new Error("Ngày phải theo định dạng ngày/tháng/năm, ví dụ 09/11/2026.");
-  const [, day, month, year] = match;
-  const date = new Date(Number(year), Number(month) - 1, Number(day));
-  if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) throw new Error("Ngày không hợp lệ.");
-  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-}
+const locationLabel = (row) => [row.address_detail, row.area_detail, row.commune, row.district, row.province].filter(Boolean).join(", ");
+const normalizeAdminName = (value = "") => value.trim().toLocaleLowerCase("vi").replace(/^(tỉnh|thành phố|huyện|quận|thị xã|thị trấn)\s+/i, "");
 
 function Field({ label, children, className = "" }) {
   return <label className={`block text-sm font-medium text-gray-700 ${className}`}>{label}{children}</label>;
@@ -49,11 +44,32 @@ function StatusTag({ children, tone = "gray" }) {
 function ListingForm({ role, userId, initial, onCancel, onSaved }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [locations, setLocations] = useState<Province[]>([]);
+  const [locationLoading, setLocationLoading] = useState(true);
+  const [province, setProvince] = useState("");
+  const [district, setDistrict] = useState("");
   const [gps, setGps] = useState(initial?.farm_latitude != null && initial?.farm_longitude != null ? {
     latitude: Number(initial.farm_latitude), longitude: Number(initial.farm_longitude),
     accuracy: initial.farm_accuracy_m == null ? null : Number(initial.farm_accuracy_m),
   } : null);
   const isSupply = role === "farmer";
+  const selectedProvince = locations.find((item) => item.name === province);
+  const districts = selectedProvince?.districts ?? [];
+  useEffect(() => {
+    let active = true;
+    loadAdministrativeUnits().then((items) => {
+      if (!active) return;
+      setLocations(items);
+      const currentProvince = items.find((item) => normalizeAdminName(item.name) === normalizeAdminName(initial?.province));
+      if (currentProvince) {
+        setProvince(currentProvince.name);
+        const currentDistrict = currentProvince.districts.find((item) => normalizeAdminName(item.name) === normalizeAdminName(initial?.district));
+        if (currentDistrict) setDistrict(currentDistrict.name);
+      }
+    }).catch((e) => setError(e?.message || "Không tải được danh mục tỉnh/huyện."))
+      .finally(() => active && setLocationLoading(false));
+    return () => { active = false; };
+  }, [initial?.id, initial?.province, initial?.district]);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setBusy(true);
@@ -62,8 +78,9 @@ function ListingForm({ role, userId, initial, onCancel, onSaved }) {
     const numeric = (field) => Number(values[field]);
     try {
       if (!gps) throw new Error("Vui lòng ghi nhận GPS trước khi đăng tin mùa vụ.");
-      const startDate = parseDateInput(values.start);
-      const endDate = parseDateInput(values.end);
+      if (!province || !district) throw new Error("Vui lòng chọn tỉnh/thành phố và quận/huyện.");
+      const startDate = String(values.start || "");
+      const endDate = String(values.end || "");
       if (endDate < startDate) throw new Error("Ngày kết thúc phải sau hoặc trùng ngày bắt đầu.");
       const gpsValues = {
         farm_latitude: gps?.latitude ?? null,
@@ -75,7 +92,7 @@ function ListingForm({ role, userId, initial, onCancel, onSaved }) {
           farmer_id: userId,
           ...gpsValues,
           crop_name: values.crop_name, variety: values.variety || null,
-          province: values.province, commune: values.commune || null, area_detail: values.area_detail || null,
+          province, district, commune: values.commune || null, area_detail: values.area_detail || null, address_detail: values.address_detail || null,
           harvest_start: startDate, harvest_end: endDate, estimated_tons: numeric("estimated_tons"),
           sellable_tons: numeric("sellable_tons"), quantity_is_estimated: values.quantity_is_estimated === "on",
           quality_standard: values.quality_standard || null, delivery_mode: values.delivery_mode,
@@ -86,7 +103,7 @@ function ListingForm({ role, userId, initial, onCancel, onSaved }) {
           business_id: userId,
           ...gpsValues,
           crop_name: values.crop_name, variety: values.variety || null, desired_tons: numeric("desired_tons"),
-          province: values.province, commune: values.commune || null,
+          province, district, commune: values.commune || null, area_detail: values.area_detail || null, address_detail: values.address_detail || null,
           needed_start: startDate, needed_end: endDate, quality_standard: values.quality_standard || null,
           price_mode: values.price_mode, price_per_kg: values.price_mode === "fixed" ? numeric("price_per_kg") : null,
           delivery_terms: values.delivery_terms || null, payment_terms: values.payment_terms || null,
@@ -108,11 +125,13 @@ function ListingForm({ role, userId, initial, onCancel, onSaved }) {
         <Field label="Sản lượng muốn bán (tấn) *"><input required min="0.01" step="0.01" type="number" name="sellable_tons" className={inputClass} defaultValue={initial?.sellable_tons ?? ""} /></Field>
       </>}
       {!isSupply && <Field label="Sản lượng cần mua (tấn) *"><input required min="0.01" step="0.01" type="number" name="desired_tons" className={inputClass} defaultValue={initial?.desired_tons ?? ""} /></Field>}
-      <Field label="Tỉnh / thành phố *"><input required name="province" className={inputClass} placeholder="Cần Thơ" defaultValue={initial?.province} /></Field>
-      <Field label="Xã / phường"><input name="commune" className={inputClass} placeholder="Phong Điền" defaultValue={initial?.commune ?? ""} /></Field>
-      {isSupply && <Field label="Địa chỉ / khu vực vườn"><input name="area_detail" className={inputClass} placeholder="Ấp, tên vườn..." defaultValue={initial?.area_detail ?? ""} /></Field>}
-      <Field label={isSupply ? "Bắt đầu thu hoạch (ngày/tháng/năm) *" : "Cần hàng từ ngày (ngày/tháng/năm) *"}><input required inputMode="numeric" pattern="\d{1,2}/\d{1,2}/\d{4}" placeholder="dd/mm/yyyy" name="start" className={inputClass} defaultValue={formatDateInput(initial?.[isSupply ? "harvest_start" : "needed_start"])} /></Field>
-      <Field label={isSupply ? "Kết thúc thu hoạch (ngày/tháng/năm) *" : "Cần hàng đến ngày (ngày/tháng/năm) *"}><input required inputMode="numeric" pattern="\d{1,2}/\d{1,2}/\d{4}" placeholder="dd/mm/yyyy" name="end" className={inputClass} defaultValue={formatDateInput(initial?.[isSupply ? "harvest_end" : "needed_end"])} /></Field>
+      <Field label="Tỉnh / thành phố *"><select required value={province} disabled={locationLoading} onChange={(event) => { setProvince(event.target.value); setDistrict(""); }} className={inputClass}><option value="">{locationLoading ? "Đang tải tỉnh/thành..." : "Chọn tỉnh/thành phố"}</option>{locations.map((item) => <option key={item.code} value={item.name}>{item.name}</option>)}</select></Field>
+      <Field label="Quận / huyện *"><select required value={district} disabled={!selectedProvince} onChange={(event) => setDistrict(event.target.value)} className={inputClass}><option value="">Chọn quận/huyện</option>{districts.map((item) => <option key={item.code} value={item.name}>{item.name}</option>)}</select></Field>
+      <Field label="Xã / phường"><input name="commune" className={inputClass} placeholder="Nhập xã/phường" defaultValue={initial?.commune ?? ""} /></Field>
+      <Field label="Ấp / khu vực"><input name="area_detail" className={inputClass} placeholder="Tên ấp, khu vực..." defaultValue={initial?.area_detail ?? ""} /></Field>
+      <Field label="Số nhà / tên đường"><input name="address_detail" className={inputClass} placeholder="Số nhà, tên đường..." defaultValue={initial?.address_detail ?? ""} /></Field>
+      <Field label={isSupply ? "Bắt đầu thu hoạch *" : "Cần hàng từ ngày *"}><input required type="date" name="start" className={inputClass} defaultValue={initial?.[isSupply ? "harvest_start" : "needed_start"]?.slice(0, 10) ?? ""} /></Field>
+      <Field label={isSupply ? "Kết thúc thu hoạch *" : "Cần hàng đến ngày *"}><input required type="date" name="end" className={inputClass} defaultValue={initial?.[isSupply ? "harvest_end" : "needed_end"]?.slice(0, 10) ?? ""} /></Field>
       <Field label="Chất lượng / tiêu chuẩn"><input name="quality_standard" className={inputClass} placeholder="Kích cỡ, độ chín, mã vùng trồng..." defaultValue={initial?.quality_standard ?? ""} /></Field>
       {isSupply ? <Field label="Cách giao hàng"><select name="delivery_mode" className={inputClass} defaultValue={initial?.delivery_mode ?? "at_farm"}><option value="at_farm">Tại vườn</option><option value="collection_point">Điểm tập kết</option><option value="transport_help">Cần hỗ trợ vận chuyển</option></select></Field> : <>
         <Field label="Giá mua"><select name="price_mode" className={inputClass} defaultValue={initial?.price_mode ?? "negotiable"}><option value="negotiable">Thỏa thuận</option><option value="fixed">Giá cố định</option></select></Field>
@@ -173,6 +192,7 @@ export function SeasonConnectionWorkspace() {
   }, [load]);
 
   const activeMatches = useMemo(() => data.matches, [data.matches]);
+  const managedMatches = useMemo(() => activeMatches.filter((match) => match.admin_id === user?.id), [activeMatches, user?.id]);
   const selectedMatch = activeMatches.find((match) => match.id === selectedMatchId) ?? activeMatches[0] ?? null;
   useEffect(() => { if (selectedMatch && selectedMatch.id !== selectedMatchId) setSelectedMatchId(selectedMatch.id); }, [selectedMatch, selectedMatchId]);
 
@@ -223,7 +243,7 @@ export function SeasonConnectionWorkspace() {
     } finally { setUploading(false); }
   };
   const handleReaction = async (message, emoji) => {
-    if (!user?.id || admin) return;
+    if (!user?.id || (admin && !assignedManager)) return;
     const selected = details.reactions.some((reaction) => reaction.message_id === message.id && reaction.user_id === user.id && reaction.emoji === emoji);
     try { await toggleSeasonMessageReaction(selectedMatch.id, message.id, user.id, emoji, selected); await loadDetails(); }
     catch (e) { setError(e?.message || "Không cập nhật được cảm xúc."); }
@@ -248,6 +268,8 @@ export function SeasonConnectionWorkspace() {
   const currentProposal = details?.proposals?.find((item) => item.status === "pending");
   const transaction = details?.transaction;
   const connected = selectedMatch?.status === "connected";
+  const assignedManager = admin && selectedMatch?.admin_id === user?.id;
+  const canParticipateInChat = !admin || assignedManager;
   const userResponse = selectedMatch ? (user?.id === selectedMatch.farmer_id ? selectedMatch.farmer_response : selectedMatch.business_response) : "pending";
   const invitationPendingForUser = selectedMatch?.status === "invited" && userResponse === "pending" && !admin;
 
@@ -264,6 +286,7 @@ export function SeasonConnectionWorkspace() {
       <div className="mb-5 flex gap-2 overflow-x-auto rounded-lg border bg-white p-1.5">
         {[
           ...(admin ? [{ id: "admin", label: "Ghép cặp & theo dõi" }] : []),
+          ...(admin ? [{ id: "managed", label: `Giao dịch tôi quản lý (${managedMatches.length})` }] : []),
           { id: "listings", label: isFarmer ? "Nguồn cung của tôi" : "Nhu cầu thu mua của tôi" },
           { id: "matches", label: `Hồ sơ kết nối (${activeMatches.length})` },
         ].map((tab) => <button key={tab.id} onClick={() => { setActiveTab(tab.id); setEditing(null); }} className={`whitespace-nowrap rounded-md border px-4 py-2.5 text-sm font-semibold transition ${activeTab === tab.id ? "border-emerald-700 bg-transparent text-emerald-800" : "border-transparent text-gray-600 hover:text-emerald-700"}`}>{tab.label}</button>)}
@@ -278,41 +301,41 @@ export function SeasonConnectionWorkspace() {
           <ListingForm key={`${role}-${editing?.id ?? "new"}`} role={role} userId={user?.id} initial={editing} onCancel={editing ? () => setEditing(null) : undefined} onSaved={submitListing} />
         </section>
         <section className={`${cardClass} p-5 md:p-6`}><div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-bold text-gray-900">Thông tin của tôi</h2><span className="text-sm text-gray-500">{ownListings.length} tin</span></div>
-          {ownListings.length === 0 ? <EmptyState text={isFarmer ? "Bạn chưa đăng nguồn cung mùa vụ." : "Bạn chưa đăng nhu cầu thu mua."} /> : <div className="space-y-3">{ownListings.map((listing) => <article key={listing.id} className="rounded-xl border border-gray-200 p-4"><div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold text-gray-900">{listing.crop_name}{listing.variety ? ` · ${listing.variety}` : ""}</h3><p className="mt-1 text-sm text-gray-600"><MapPin className="mr-1 inline h-4 w-4" />{listing.commune ? `${listing.commune}, ` : ""}{listing.province}</p></div><StatusTag tone={listing.status === "open" ? "green" : listing.status === "paused" ? "amber" : "gray"}>{listing.status === "open" ? "Đang mở" : listing.status === "paused" ? "Tạm dừng" : "Đã đóng"}</StatusTag></div><p className="mt-2 text-sm text-gray-700">{isFarmer ? `${listing.sellable_tons} tấn muốn bán${listing.quantity_is_estimated ? " · dự kiến" : ""}` : `${listing.desired_tons} tấn cần mua`} · {dateText(isFarmer ? listing.harvest_start : listing.needed_start)} – {dateText(isFarmer ? listing.harvest_end : listing.needed_end)}</p><p className="mt-1 text-xs text-gray-400">Cập nhật {dateTime(listing.updated_at)}</p><div className="mt-3 flex flex-wrap gap-2"><button onClick={() => { setEditing(listing); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="rounded-lg border px-3 py-2 text-sm font-medium">Chỉnh sửa</button>{listing.status !== "closed" && <button onClick={() => perform(() => updateSeasonListingStatus(isFarmer ? "season_supplies" : "season_demands", listing.id, listing.status === "open" ? "paused" : "open"), listing.status === "open" ? "Đã tạm dừng tin." : "Đã mở lại tin.")} className="rounded-lg border px-3 py-2 text-sm font-medium">{listing.status === "open" ? "Tạm dừng" : "Mở lại"}</button>}{listing.status !== "closed" && <button onClick={() => perform(() => updateSeasonListingStatus(isFarmer ? "season_supplies" : "season_demands", listing.id, "closed"), "Đã đóng tin mùa vụ.")} className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-700">Đóng tin</button>}</div></article>)}</div>}
+          {ownListings.length === 0 ? <EmptyState text={isFarmer ? "Bạn chưa đăng nguồn cung mùa vụ." : "Bạn chưa đăng nhu cầu thu mua."} /> : <div className="space-y-3">{ownListings.map((listing) => <article key={listing.id} className="rounded-xl border border-gray-200 p-4"><div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold text-gray-900">{listing.crop_name}{listing.variety ? ` · ${listing.variety}` : ""}</h3><p className="mt-1 text-sm text-gray-600"><MapPin className="mr-1 inline h-4 w-4" />{locationLabel(listing)}</p></div><StatusTag tone={listing.status === "open" ? "green" : listing.status === "paused" ? "amber" : "gray"}>{listing.status === "open" ? "Đang mở" : listing.status === "paused" ? "Tạm dừng" : "Đã đóng"}</StatusTag></div><p className="mt-2 text-sm text-gray-700">{isFarmer ? `${listing.sellable_tons} tấn muốn bán${listing.quantity_is_estimated ? " · dự kiến" : ""}` : `${listing.desired_tons} tấn cần mua`} · {dateText(isFarmer ? listing.harvest_start : listing.needed_start)} – {dateText(isFarmer ? listing.harvest_end : listing.needed_end)}</p><p className="mt-1 text-xs text-gray-400">Cập nhật {dateTime(listing.updated_at)}</p><div className="mt-3 flex flex-wrap gap-2"><button onClick={() => { setEditing(listing); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="rounded-lg border px-3 py-2 text-sm font-medium">Chỉnh sửa</button>{listing.status !== "closed" && <button onClick={() => perform(() => updateSeasonListingStatus(isFarmer ? "season_supplies" : "season_demands", listing.id, listing.status === "open" ? "paused" : "open"), listing.status === "open" ? "Đã tạm dừng tin." : "Đã mở lại tin.")} className="rounded-lg border px-3 py-2 text-sm font-medium">{listing.status === "open" ? "Tạm dừng" : "Mở lại"}</button>}{listing.status !== "closed" && <button onClick={() => perform(() => updateSeasonListingStatus(isFarmer ? "season_supplies" : "season_demands", listing.id, "closed"), "Đã đóng tin mùa vụ.")} className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-700">Đóng tin</button>}</div></article>)}</div>}
         </section>
       </div>}
 
       {activeTab === "admin" && admin && <div className="space-y-5">
         <div className="grid gap-3 sm:grid-cols-4"><Kpi label="Nguồn cung đang mở" value={data.supplies.length} /><Kpi label="Nhu cầu đang mở" value={data.demands.length} /><Kpi label="Hồ sơ được ghép" value={data.matches.length} /><Kpi label="Giao dịch đã chốt" value={data.transactions.length} /></div>
         <div className="grid gap-5 lg:grid-cols-2">
-          <section className={`${cardClass} p-5`}><h2 className="mb-3 flex items-center gap-2 font-bold"><Wheat className="h-5 w-5 text-emerald-700" />Nguồn cung nhà vườn</h2>{data.supplies.length ? <div className="max-h-72 space-y-2 overflow-auto">{data.supplies.map((item) => <button key={item.id} onClick={() => setInviteSupply(item.id)} className={`w-full rounded-xl border p-3 text-left ${inviteSupply === item.id ? "border-emerald-600 bg-emerald-50" : "hover:bg-gray-50"}`}><span className="font-semibold">{item.crop_name} {item.variety && `· ${item.variety}`}</span><span className="block text-sm text-gray-600">{item.commune ? `${item.commune}, ` : ""}{item.province} · {item.sellable_tons} t · {dateText(item.harvest_start)}–{dateText(item.harvest_end)}</span><span className="mt-1 block text-xs text-gray-500">{profileName(item.farmer_id)} · cập nhật {dateTime(item.updated_at)}</span></button>)}</div> : <EmptyState text="Chưa có nguồn cung đang mở." />}</section>
-          <section className={`${cardClass} p-5`}><h2 className="mb-3 flex items-center gap-2 font-bold"><Truck className="h-5 w-5 text-emerald-700" />Nhu cầu doanh nghiệp</h2>{data.demands.length ? <div className="max-h-72 space-y-2 overflow-auto">{data.demands.map((item) => <button key={item.id} onClick={() => setInviteDemand(item.id)} className={`w-full rounded-xl border p-3 text-left ${inviteDemand === item.id ? "border-emerald-600 bg-emerald-50" : "hover:bg-gray-50"}`}><span className="font-semibold">{item.crop_name} {item.variety && `· ${item.variety}`}</span><span className="block text-sm text-gray-600">{item.commune ? `${item.commune}, ` : ""}{item.province} · {item.desired_tons} t · {dateText(item.needed_start)}–{dateText(item.needed_end)}</span><span className="mt-1 block text-xs text-gray-500">{profileName(item.business_id)} · {priceLabel(item)} · cập nhật {dateTime(item.updated_at)}</span></button>)}</div> : <EmptyState text="Chưa có nhu cầu thu mua đang mở." />}</section>
+          <section className={`${cardClass} p-5`}><h2 className="mb-3 flex items-center gap-2 font-bold"><Wheat className="h-5 w-5 text-emerald-700" />Nguồn cung nhà vườn</h2>{data.supplies.length ? <div className="max-h-72 space-y-2 overflow-auto">{data.supplies.map((item) => <button key={item.id} onClick={() => setInviteSupply(item.id)} className={`w-full rounded-xl border p-3 text-left ${inviteSupply === item.id ? "border-emerald-600 bg-emerald-50" : "hover:bg-gray-50"}`}><span className="font-semibold">{item.crop_name} {item.variety && `· ${item.variety}`}</span><span className="block text-sm text-gray-600">{locationLabel(item)} · {item.sellable_tons} t · {dateText(item.harvest_start)}–{dateText(item.harvest_end)}</span><span className="mt-1 block text-xs text-gray-500">{profileName(item.farmer_id)} · cập nhật {dateTime(item.updated_at)}</span></button>)}</div> : <EmptyState text="Chưa có nguồn cung đang mở." />}</section>
+          <section className={`${cardClass} p-5`}><h2 className="mb-3 flex items-center gap-2 font-bold"><Truck className="h-5 w-5 text-emerald-700" />Nhu cầu doanh nghiệp</h2>{data.demands.length ? <div className="max-h-72 space-y-2 overflow-auto">{data.demands.map((item) => <button key={item.id} onClick={() => setInviteDemand(item.id)} className={`w-full rounded-xl border p-3 text-left ${inviteDemand === item.id ? "border-emerald-600 bg-emerald-50" : "hover:bg-gray-50"}`}><span className="font-semibold">{item.crop_name} {item.variety && `· ${item.variety}`}</span><span className="block text-sm text-gray-600">{locationLabel(item)} · {item.desired_tons} t · {dateText(item.needed_start)}–{dateText(item.needed_end)}</span><span className="mt-1 block text-xs text-gray-500">{profileName(item.business_id)} · {priceLabel(item)} · cập nhật {dateTime(item.updated_at)}</span></button>)}</div> : <EmptyState text="Chưa có nhu cầu thu mua đang mở." />}</section>
         </div>
         <section className={`${cardClass} p-5 md:p-6`}><h2 className="mb-1 text-lg font-bold">Mời hai bên kết nối</h2><p className="mb-4 text-sm text-gray-600">Chỉ mời khi mặt hàng, khu vực, thời gian và lượng hàng có khả năng phù hợp. Hệ thống không chốt mua bán thay hai bên.</p>
-          {matchingSupply && matchingDemand && <div className="mb-4 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-950"><b>{matchingSupply.crop_name}</b> tại {matchingSupply.commune ? `${matchingSupply.commune}, ` : ""}{matchingSupply.province}, dự kiến {dateText(matchingSupply.harvest_start)}–{dateText(matchingSupply.harvest_end)}, có {matchingSupply.sellable_tons} tấn; doanh nghiệp cần {matchingDemand.desired_tons} tấn tại {matchingDemand.province}, thời gian {dateText(matchingDemand.needed_start)}–{dateText(matchingDemand.needed_end)}.</div>}
-          <form onSubmit={handleInvite} className="grid gap-3 md:grid-cols-[1fr_1fr_2fr_auto]"><Field label="Nguồn cung"><select required value={inviteSupply} onChange={(e) => setInviteSupply(e.target.value)} className={inputClass}><option value="">Chọn nguồn cung</option>{data.supplies.map((item) => <option key={item.id} value={item.id}>{item.crop_name} · {item.commune || item.province} · {item.sellable_tons} t</option>)}</select></Field><Field label="Nhu cầu"><select required value={inviteDemand} onChange={(e) => setInviteDemand(e.target.value)} className={inputClass}><option value="">Chọn nhu cầu</option>{data.demands.map((item) => <option key={item.id} value={item.id}>{item.crop_name} · {item.province} · {item.desired_tons} t</option>)}</select></Field><Field label="Lý do ghép cặp"><input required minLength={10} value={inviteReason} onChange={(e) => setInviteReason(e.target.value)} className={inputClass} placeholder="Mặt hàng, khu vực, mùa thu hoạch và sản lượng có độ tương thích..." /></Field><button disabled={busy || !matchingSupply || !matchingDemand} className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><Handshake className="h-4 w-4" />Mời kết nối</button></form>
+          {matchingSupply && matchingDemand && <div className="mb-4 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-950"><b>{matchingSupply.crop_name}</b> tại {locationLabel(matchingSupply)}, dự kiến {dateText(matchingSupply.harvest_start)}–{dateText(matchingSupply.harvest_end)}, có {matchingSupply.sellable_tons} tấn; doanh nghiệp cần {matchingDemand.desired_tons} tấn tại {locationLabel(matchingDemand)}, thời gian {dateText(matchingDemand.needed_start)}–{dateText(matchingDemand.needed_end)}.</div>}
+          <form onSubmit={handleInvite} className="grid gap-3 md:grid-cols-[1fr_1fr_2fr_auto]"><Field label="Nguồn cung"><select required value={inviteSupply} onChange={(e) => setInviteSupply(e.target.value)} className={inputClass}><option value="">Chọn nguồn cung</option>{data.supplies.map((item) => <option key={item.id} value={item.id}>{item.crop_name} · {item.district ? `${item.district}, ` : ""}{item.province} · {item.sellable_tons} t</option>)}</select></Field><Field label="Nhu cầu"><select required value={inviteDemand} onChange={(e) => setInviteDemand(e.target.value)} className={inputClass}><option value="">Chọn nhu cầu</option>{data.demands.map((item) => <option key={item.id} value={item.id}>{item.crop_name} · {item.district ? `${item.district}, ` : ""}{item.province} · {item.desired_tons} t</option>)}</select></Field><Field label="Lý do ghép cặp"><input required minLength={10} value={inviteReason} onChange={(e) => setInviteReason(e.target.value)} className={inputClass} placeholder="Mặt hàng, khu vực, mùa thu hoạch và sản lượng có độ tương thích..." /></Field><button disabled={busy || !matchingSupply || !matchingDemand} className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><Handshake className="h-4 w-4" />Mời kết nối</button></form>
         </section>
       </div>}
 
-      {activeTab === "matches" && <div className="grid gap-5 xl:grid-cols-[minmax(260px,.72fr)_minmax(0,1.7fr)]">
-        <section className={`${cardClass} p-3`}><div className="flex items-center justify-between px-2 py-2"><h2 className="font-bold">Hồ sơ kết nối</h2><button onClick={() => load()} title="Tải lại" className="rounded-lg border px-2.5 py-1.5 text-sm">Tải lại</button></div>{activeMatches.length ? <div className="space-y-2">{activeMatches.map((match) => { const active = selectedMatch?.id === match.id; const supply = data.supplies.find((item) => item.id === match.supply_id); const tone = match.status === "connected" ? "green" : match.status === "declined" ? "red" : "amber"; const label = match.status === "connected" ? "Đang trao đổi" : match.status === "declined" ? "Đã từ chối" : "Chờ phản hồi"; return <button key={match.id} onClick={() => setSelectedMatchId(match.id)} className={`w-full rounded-xl border p-3 text-left ${active ? "border-emerald-500 bg-emerald-50" : "border-gray-100 hover:bg-gray-50"}`}><div className="flex items-start justify-between gap-2"><b className="text-sm">{supply?.crop_name ?? "Kết nối mùa vụ"}</b><StatusTag tone={tone}>{label}</StatusTag></div><p className="mt-1 text-xs text-gray-600">{profileName(match.farmer_id)} ↔ {profileName(match.business_id)}</p><p className="mt-1 line-clamp-2 text-xs text-gray-500">{match.reason}</p></button>; })}</div> : <EmptyState text="Chưa có hồ sơ kết nối. Tin mời từ Admin sẽ xuất hiện ở đây." />}</section>
+      {(activeTab === "matches" || activeTab === "managed") && <div className="grid gap-5 xl:grid-cols-[minmax(260px,.72fr)_minmax(0,1.7fr)]">
+        <section className={`${cardClass} p-3`}><div className="flex items-center justify-between px-2 py-2"><h2 className="font-bold">{activeTab === "managed" ? "Danh sách giao dịch đang quản lý" : "Hồ sơ kết nối"}</h2><button onClick={() => load()} title="Tải lại" className="rounded-lg border px-2.5 py-1.5 text-sm">Tải lại</button></div>{(activeTab === "managed" ? managedMatches : activeMatches).length ? <div className="space-y-2">{(activeTab === "managed" ? managedMatches : activeMatches).map((match) => { const active = selectedMatch?.id === match.id; const supply = data.supplies.find((item) => item.id === match.supply_id); const tone = match.status === "connected" ? "green" : match.status === "declined" ? "red" : "amber"; const label = match.status === "connected" ? "Đang trao đổi" : match.status === "declined" ? "Đã từ chối" : "Chờ phản hồi"; return <button key={match.id} onClick={() => setSelectedMatchId(match.id)} className={`w-full rounded-xl border p-3 text-left ${active ? "border-emerald-500 bg-emerald-50" : "border-gray-100 hover:bg-gray-50"}`}><div className="flex items-start justify-between gap-2"><b className="text-sm">{supply?.crop_name ?? "Kết nối mùa vụ"}</b><StatusTag tone={tone}>{label}</StatusTag></div><p className="mt-1 text-xs text-gray-600">{profileName(match.farmer_id)} ↔ {profileName(match.business_id)}</p><p className="mt-1 line-clamp-2 text-xs text-gray-500">{match.reason}</p></button>; })}</div> : <EmptyState text={activeTab === "managed" ? "Bạn chưa được giao quản lý giao dịch nào." : "Chưa có hồ sơ kết nối."} />}</section>
 
         {selectedMatch && details ? <div className="space-y-5">
           <section className={`${cardClass} p-5 md:p-6`}>
             <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">Hồ sơ kết nối · {selectedMatch.id.slice(0, 8).toUpperCase()}</p><h2 className="mt-1 text-xl font-bold text-gray-900">{details.supply.crop_name}{details.supply.variety ? ` · ${details.supply.variety}` : ""}</h2><p className="mt-1 text-sm text-gray-600">Lý do ghép: {selectedMatch.reason}</p></div><StatusTag tone={connected ? "green" : selectedMatch.status === "declined" ? "red" : "amber"}>{transaction ? `Đã chốt · ${transaction.transaction_code}` : connected ? "Hai bên đã kết nối" : selectedMatch.status === "declined" ? "Đã từ chối" : "Chờ phản hồi"}</StatusTag></div>
             <div className="mt-5 grid gap-3 md:grid-cols-[1fr_36px_1fr]">
-              <PartyCard title="Nhà vườn" name={profileName(selectedMatch.farmer_id)} icon={<Leaf className="h-5 w-5" />}><Fact label="Khu vực" value={`${details.supply.commune ? `${details.supply.commune}, ` : ""}${details.supply.province}`} /><Fact label="Nguồn hàng" value={`${details.supply.sellable_tons} tấn muốn bán${details.supply.quantity_is_estimated ? " · dự kiến" : ""}`} /><Fact label="Thu hoạch" value={`${dateText(details.supply.harvest_start)} – ${dateText(details.supply.harvest_end)}`} /><Fact label="Tiêu chuẩn" value={details.supply.quality_standard || "Chưa ghi rõ"} /></PartyCard>
+              <PartyCard title="Nhà vườn" name={profileName(selectedMatch.farmer_id)} icon={<Leaf className="h-5 w-5" />}><Fact label="Khu vực" value={locationLabel(details.supply)} /><Fact label="Nguồn hàng" value={`${details.supply.sellable_tons} tấn muốn bán${details.supply.quantity_is_estimated ? " · dự kiến" : ""}`} /><Fact label="Thu hoạch" value={`${dateText(details.supply.harvest_start)} – ${dateText(details.supply.harvest_end)}`} /><Fact label="Tiêu chuẩn" value={details.supply.quality_standard || "Chưa ghi rõ"} /></PartyCard>
               <div className="flex items-center justify-center text-emerald-700"><Handshake className="h-6 w-6" /></div>
-              <PartyCard title="Doanh nghiệp thu mua" name={profileName(selectedMatch.business_id)} icon={<PackageCheck className="h-5 w-5" />}><Fact label="Khu vực" value={`${details.demand.commune ? `${details.demand.commune}, ` : ""}${details.demand.province}`} /><Fact label="Nhu cầu" value={`${details.demand.desired_tons} tấn`} /><Fact label="Thời gian cần" value={`${dateText(details.demand.needed_start)} – ${dateText(details.demand.needed_end)}`} /><Fact label="Giá dự kiến" value={priceLabel(details.demand)} /></PartyCard>
+              <PartyCard title="Doanh nghiệp thu mua" name={profileName(selectedMatch.business_id)} icon={<PackageCheck className="h-5 w-5" />}><Fact label="Khu vực" value={locationLabel(details.demand)} /><Fact label="Nhu cầu" value={`${details.demand.desired_tons} tấn`} /><Fact label="Thời gian cần" value={`${dateText(details.demand.needed_start)} – ${dateText(details.demand.needed_end)}`} /><Fact label="Giá dự kiến" value={priceLabel(details.demand)} /></PartyCard>
             </div>
-            <div className="mt-4 flex flex-wrap gap-2"><StatusTag tone={selectedMatch.farmer_response === "interested" ? "green" : selectedMatch.farmer_response === "declined" ? "red" : "amber"}>Nhà vườn: {responseLabel(selectedMatch.farmer_response)}</StatusTag><StatusTag tone={selectedMatch.business_response === "interested" ? "green" : selectedMatch.business_response === "declined" ? "red" : "amber"}>Doanh nghiệp: {responseLabel(selectedMatch.business_response)}</StatusTag></div>
+            <div className="mt-4 flex flex-wrap gap-2"><StatusTag tone="green">Người phụ trách: {profileName(selectedMatch.admin_id)}</StatusTag><StatusTag tone={selectedMatch.farmer_response === "interested" ? "green" : selectedMatch.farmer_response === "declined" ? "red" : "amber"}>Nhà vườn: {responseLabel(selectedMatch.farmer_response)}</StatusTag><StatusTag tone={selectedMatch.business_response === "interested" ? "green" : selectedMatch.business_response === "declined" ? "red" : "amber"}>Doanh nghiệp: {responseLabel(selectedMatch.business_response)}</StatusTag></div>
             <div className="mt-5 grid grid-cols-2 gap-2 md:grid-cols-4">{["Admin mời", "Hai bên đồng ý", "Trao đổi & đề xuất", "Cùng xác nhận"].map((step, index) => { const done = [true, connected, details.proposals.length > 0, !!transaction][index]; const current = !done && (index === 1 ? selectedMatch.status === "invited" : index === 2 ? connected && !transaction : false); return <div key={step} className={`border-t-[3px] pt-2 text-xs ${done ? "border-emerald-500 font-semibold text-emerald-800" : current ? "border-amber-400 font-semibold text-amber-800" : "border-gray-200 text-gray-400"}`}>{index + 1}. {step}</div>; })}</div>
             {invitationPendingForUser && <div className="mt-5 rounded-xl border border-emerald-100 bg-emerald-50 p-4"><h3 className="font-bold text-gray-900">Bạn có muốn trao đổi với {counterpartName}?</h3><p className="mt-1 text-sm text-gray-600">Quan tâm chỉ mở kênh trao đổi, chưa phải cam kết giao dịch.</p><div className="mt-3 flex gap-2"><button disabled={busy} onClick={() => perform(() => respondToSeasonMatch(selectedMatch.id, "interested"), "Đã ghi nhận bạn quan tâm kết nối.")} className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white">Quan tâm kết nối</button><button disabled={busy} onClick={() => perform(() => respondToSeasonMatch(selectedMatch.id, "declined"), "Đã ghi nhận từ chối lời mời.")} className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-700">Từ chối</button></div></div>}
-            {admin && <p className="mt-4 rounded-lg bg-gray-50 p-3 text-xs text-gray-600">Admin theo dõi hồ sơ và có thể hỗ trợ khi cần; không thể nhắn thay, đồng ý hay xác nhận mua bán thay hai bên.</p>}
+            {admin && <p className="mt-4 rounded-lg bg-gray-50 p-3 text-xs text-gray-600">{assignedManager ? "Bạn là người phụ trách hồ sơ này và có thể phối hợp với hai bên qua chat; quyền đồng ý và xác nhận giao dịch vẫn thuộc về nhà vườn và doanh nghiệp." : "Bạn chỉ có quyền theo dõi hồ sơ này."}</p>}
           </section>
 
           {connected && <section className={`${cardClass} overflow-hidden`}>
-            <div className="flex items-center justify-between border-b px-5 py-4"><div className="flex items-center gap-2"><MessageCircle className="h-5 w-5 text-emerald-700" /><div><h2 className="font-bold">Trao đổi giữa hai bên</h2><p className="text-xs text-gray-500">{admin ? "Admin chỉ theo dõi" : `Bạn đang trao đổi với ${counterpartName}`}</p></div></div><StatusTag tone="green">Đang mở</StatusTag></div>
+            <div className="flex items-center justify-between border-b px-5 py-4"><div className="flex items-center gap-2"><MessageCircle className="h-5 w-5 text-emerald-700" /><div><h2 className="font-bold">Trao đổi giữa hai bên</h2><p className="text-xs text-gray-500">{admin ? assignedManager ? `Người phụ trách: ${profileName(user?.id)}` : "Admin chỉ theo dõi" : `Bạn đang trao đổi với ${counterpartName}`}</p></div></div><StatusTag tone="green">Đang mở</StatusTag></div>
             <div className="max-h-[520px] min-h-36 space-y-4 overflow-y-auto bg-gray-50 p-4">
               {details.messages.length ? details.messages.map((message) => {
                 const mine = message.sender_id === user?.id;
@@ -329,13 +352,13 @@ export function SeasonConnectionWorkspace() {
                     {message.attachment_name && <p className="text-xs text-gray-500">{message.attachment_name}</p>}
                   </div>
                   <div className={`mt-1.5 flex flex-wrap items-center gap-1 ${mine ? "justify-end" : ""}`}>
-                    {counts.map(({ emoji, count, mine: reacted }) => <button type="button" key={emoji} disabled={admin} onClick={() => handleReaction(message, emoji)} className={`rounded-full border px-2 py-0.5 text-xs ${reacted ? "border-emerald-400 bg-emerald-50" : "border-gray-200 bg-white"}`}>{emoji} {count}</button>)}
-                    {!admin && <details className="relative"><summary aria-label="Thả cảm xúc" className="list-none cursor-pointer rounded-full p-1 text-gray-500 hover:bg-white"><Smile className="h-4 w-4" /></summary><div className="absolute bottom-full left-0 z-10 flex gap-1 rounded-full border bg-white p-1 shadow-sm">{["👍", "❤️", "😂", "🙏", "🎉"].map((emoji) => <button type="button" key={emoji} onClick={() => handleReaction(message, emoji)} className="rounded-full p-1 hover:bg-emerald-50" aria-label={`Thả ${emoji}`}>{emoji}</button>)}</div></details>}
+            {counts.map(({ emoji, count, mine: reacted }) => <button type="button" key={emoji} disabled={admin && !assignedManager} onClick={() => handleReaction(message, emoji)} className={`rounded-full border px-2 py-0.5 text-xs ${reacted ? "border-emerald-400 bg-emerald-50" : "border-gray-200 bg-white"}`}>{emoji} {count}</button>)}
+                    {canParticipateInChat && <details className="relative"><summary aria-label="Thả cảm xúc" className="list-none cursor-pointer rounded-full p-1 text-gray-500 hover:bg-white"><Smile className="h-4 w-4" /></summary><div className="absolute bottom-full left-0 z-10 flex gap-1 rounded-full border bg-white p-1 shadow-sm">{["👍", "❤️", "😂", "🙏", "🎉"].map((emoji) => <button type="button" key={emoji} onClick={() => handleReaction(message, emoji)} className="rounded-full p-1 hover:bg-emerald-50" aria-label={`Thả ${emoji}`}>{emoji}</button>)}</div></details>}
                   </div>
                 </div>;
               }) : <p className="py-10 text-center text-sm text-gray-500">Chưa có tin nhắn. Hai bên có thể bắt đầu trao đổi.</p>}
             </div>
-            {!admin && <form onSubmit={handleSendMessage} className="space-y-2 border-t p-3">
+            {canParticipateInChat && <form onSubmit={handleSendMessage} className="space-y-2 border-t p-3">
               {messageFile && <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600"><span className="truncate">{messageFile.name} · {(messageFile.size / 1024 / 1024).toFixed(1)} MB</span><button type="button" onClick={() => { setMessageFile(null); if (messageFileRef.current) messageFileRef.current.value = ""; }} aria-label="Bỏ tệp đính kèm"><X className="h-4 w-4" /></button></div>}
               <div className="flex gap-2"><input value={messageDraft} onChange={(e) => setMessageDraft(e.target.value)} maxLength={4000} className="min-w-0 flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-emerald-600" placeholder="Trao đổi về mùa vụ, chất lượng, giao nhận..." /><input ref={messageFileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" className="hidden" onChange={(event) => setMessageFile(event.target.files?.[0] ?? null)} /><button type="button" onClick={() => messageFileRef.current?.click()} aria-label="Đính kèm ảnh hoặc video" title="Đính kèm ảnh/video" className="rounded-lg border px-3 text-emerald-800 hover:bg-emerald-50"><ImagePlus className="h-5 w-5" /></button><button disabled={uploading || (!messageDraft.trim() && !messageFile)} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 font-semibold text-white disabled:opacity-50">{uploading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}<span className="hidden sm:inline">{uploading ? "Đang gửi" : "Gửi"}</span></button></div>
               <p className="text-xs text-gray-500">Ảnh/video tối đa 20 MB mỗi tệp. Chỉ hai bên trong hồ sơ mới xem được.</p>

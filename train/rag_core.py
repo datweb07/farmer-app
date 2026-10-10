@@ -87,7 +87,13 @@ Trích đoạn tài liệu:
 """
     result = json_request(
         f"{GROQ_API}/chat/completions",
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"},
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {key}",
+            # Groq's Cloudflare edge may reject urllib's default Python-urllib
+            # signature (HTTP 403, error code 1010). Identify this API client.
+            "User-Agent": "ChampManhChat/1.0 (Vercel Python API)",
+        },
         payload={
             "model": GENERATION_MODEL,
             "messages": [{"role": "user", "content": prompt}],

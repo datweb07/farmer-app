@@ -43,6 +43,7 @@ class handler(BaseHTTPRequestHandler):
         user_id = _user_id(self.headers.get("Authorization", ""))
         if not user_id:
             return self._reply(401, {"error": "Vui lòng đăng nhập để sử dụng tư vấn."})
+        stage = "validate request"
         try:
             try:
                 length = int(self.headers.get("Content-Length", "0"))
@@ -58,6 +59,7 @@ class handler(BaseHTTPRequestHandler):
             if len(question) < 8 or len(question) > 2000:
                 return self._reply(400, {"error": "Câu hỏi cần dài từ 8 đến 2.000 ký tự."})
 
+            stage = "Supabase text retrieval"
             matches = supabase_request("rpc/search_agronomy_knowledge", method="POST", payload={
                 "query_text": question,
                 "match_count": 5,
@@ -67,6 +69,7 @@ class handler(BaseHTTPRequestHandler):
                     "answer": "Chưa tìm thấy đoạn tài liệu đủ liên quan để đưa ra khuyến nghị an toàn. Bạn có thể mô tả rõ cây trồng, giai đoạn sinh trưởng, triệu chứng và điều kiện nước/đất; hoặc hỏi cán bộ nông nghiệp địa phương.",
                     "sources": [],
                 })
+            stage = "Groq generation"
             answer = generate_answer(question, matches, context)
             sources = [{
                 "source_name": item["source_name"],
@@ -78,10 +81,10 @@ class handler(BaseHTTPRequestHandler):
         except (json.JSONDecodeError, UnicodeDecodeError):
             return self._reply(400, {"error": "Yêu cầu phải là JSON hợp lệ."})
         except IntegrationError as exc:
-            print("Agronomy advisor integration error:", str(exc))
+            print(f"Agronomy advisor {stage} integration error:", str(exc))
             return self._reply(503, {"error": "Dịch vụ tư vấn đang tạm thời chưa sẵn sàng. Vui lòng thử lại sau."})
         except Exception as exc:
-            print("Agronomy advisor unexpected error:", repr(exc))
+            print(f"Agronomy advisor {stage} unexpected error:", repr(exc))
             return self._reply(500, {"error": "Đã có lỗi khi tạo khuyến nghị."})
 
     def log_message(self, format: str, *args: object) -> None:

@@ -5,6 +5,7 @@ const SponsorsSlider = () => {
     { id: 3, name: 'HAGL Agrico', logo: '/assets/images/HAGL_Agrico.jpg' },
     { id: 4, name: 'Vinafood II', logo: '/assets/images/Vinafood_II.jpg' },
     { id: 5, name: 'Hillo', logo: '/assets/images/Hillo.png' },
+    { id: 6, name: 'Abavina', logo: '/assets/images/Abavina.png' },
   ];
 
   // Nhân đôi list để tạo vòng lặp vô hạn

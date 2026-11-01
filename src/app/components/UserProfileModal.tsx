@@ -275,7 +275,7 @@ export function UserProfileModal({
                   <div>
                     <p className="text-xs text-gray-500">Vai trò</p>
                     <p className="text-sm font-medium text-gray-900">
-                      {profile.role === "farmer" ? "Nông dân" : "Tổ chức"}
+                      {profile.is_admin ? "Admin" : profile.role === "farmer" ? "Nông dân" : "Tổ chức"}
                     </p>
                   </div>
                 </div>

@@ -407,7 +407,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                         : "bg-blue-100 text-blue-700"
                       }`}
                   >
-                    {profile.role === "farmer" ? "Nông dân" : "Tổ chức"}
+                    {profile.is_admin ? "Admin" : profile.role === "farmer" ? "Nông dân" : "Tổ chức"}
                   </span>
                 </div>
               </div>
